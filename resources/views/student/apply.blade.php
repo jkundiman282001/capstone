@@ -331,12 +331,10 @@
                             <!-- Ethnolinguistic Group -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Ethnolinguistic Group</label>
-                                <select name="ethno_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500 form-select" required>
-                                    <option value="">Select Ethnolinguistic Group</option>
-                                    @foreach($ethnicities as $ethno)
-                                        <option value="{{ $ethno->id }}" {{ old('ethno_id') == $ethno->id ? 'selected' : '' }}>{{ $ethno->ethnicity }}</option>
-                                    @endforeach
-                                </select>
+                                @php
+                                    $ethno = $ethnicities->firstWhere('id', auth()->user()->ethno_id);
+                                @endphp
+                                <input type="text" name="ethno_name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500 form-input" value="{{ $ethno->ethnicity ?? '' }}" readonly>
                             </div>
                         </div>
                     </div>

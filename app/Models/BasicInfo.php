@@ -24,5 +24,6 @@ class BasicInfo extends Model
         'education_id',
         'family_id',
         'school_pref_id',
+        'full_address_id',
     ];
 } 

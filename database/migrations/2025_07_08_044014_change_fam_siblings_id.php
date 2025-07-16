@@ -11,19 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Drop the foreign key constraint
-        Schema::table('family', function (Blueprint $table) {
-            $table->dropForeign(['fam_siblings_id']);
-        });
-
-        // 2. Make the column nullable
-        Schema::table('family', function (Blueprint $table) {
-            $table->unsignedBigInteger('fam_siblings_id')->nullable()->change();
-        });
-
-        // 3. Re-add the foreign key constraint
-        Schema::table('family', function (Blueprint $table) {
-            $table->foreign('fam_siblings_id')->references('id')->on('fam_siblings')->onDelete('set null');
+        Schema::table('users', function (Blueprint $table) {
+            $table->unsignedBigInteger('ethno_id')->nullable()->after('password');
+            $table->foreign('ethno_id')->references('id')->on('ethno')->onDelete('set null');
         });
     }
 
@@ -32,11 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Reverse the changes if needed
-        Schema::table('family', function (Blueprint $table) {
-            $table->dropForeign(['fam_siblings_id']);
-            $table->unsignedBigInteger('fam_siblings_id')->nullable(false)->change();
-            $table->foreign('fam_siblings_id')->references('id')->on('fam_siblings');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['ethno_id']);
+            $table->dropColumn('ethno_id');
         });
     }
 };

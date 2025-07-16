@@ -21,7 +21,8 @@ class AuthController extends Controller
 
     public function showFlipForm()
     {
-        return view('auth.modern');
+        $ethnicities = \App\Models\Ethno::all();
+        return view('auth.modern', compact('ethnicities'));
     }
 
     public function login(Request $request)
@@ -50,6 +51,7 @@ class AuthController extends Controller
             'contact_num' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'min:8', 'confirmed'],
+            'ethno_id' => ['required', 'exists:ethno,id'], // Add validation for ethno_id
         ]);
 
         $user = User::create([
@@ -59,6 +61,7 @@ class AuthController extends Controller
             'contact_num' => $validated['contact_num'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'ethno_id' => $validated['ethno_id'], // Save ethno_id
         ]);
 
         return redirect('/auth')->with('success', 'Account created successfully! Please log in.');

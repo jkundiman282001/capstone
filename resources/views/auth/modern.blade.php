@@ -173,6 +173,12 @@
           </div>
           <input type="text" name="middle_name" id="register_middle_name" placeholder="Middle Name (optional)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
           <input type="text" name="contact_num" id="register_contact_num" required placeholder="Contact Number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
+          <select name="ethno_id" id="register_ethno_id" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <option value="">Select Ethnolinguistic Group</option>
+            @foreach($ethnicities as $ethno)
+              <option value="{{ $ethno->id }}">{{ $ethno->ethnicity }}</option>
+            @endforeach
+          </select>
           <input type="email" name="email" id="register_email" required autofocus placeholder="Enter your email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
           <div class="relative">
             <input type="password" name="password" id="register_password" required placeholder="Enter your password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 pr-10" />

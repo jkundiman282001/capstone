@@ -19,11 +19,52 @@ class StudentController extends Controller
     {
         $user = auth()->user();
 
-        // 1. Save Address
-        $address = \App\Models\Address::create([
+        // 1. Save Mailing Address (reuse if exists)
+        $mailingAddress = \App\Models\Address::firstOrCreate([
             'barangay' => $request->mailing_barangay,
             'municipality' => $request->mailing_municipality,
             'province' => $request->mailing_province,
+        ]);
+        $mailing = \DB::table('mailing_address')->insertGetId([
+            'address_id' => $mailingAddress->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        \DB::table('mailing_address')->where('id', $mailing)->update(['house_num' => $request->mailing_house_num]);
+
+        // 2. Save Permanent Address (reuse if exists)
+        $permanentAddress = \App\Models\Address::firstOrCreate([
+            'barangay' => $request->permanent_barangay,
+            'municipality' => $request->permanent_municipality,
+            'province' => $request->permanent_province,
+        ]);
+        $permanent = \DB::table('permanent_address')->insertGetId([
+            'address_id' => $permanentAddress->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        \DB::table('permanent_address')->where('id', $permanent)->update(['house_num' => $request->permanent_house_num]);
+
+        // 3. Save Origin Address (reuse if exists)
+        $originAddress = \App\Models\Address::firstOrCreate([
+            'barangay' => $request->origin_barangay,
+            'municipality' => $request->origin_municipality,
+            'province' => $request->origin_province,
+        ]);
+        $origin = \DB::table('origin')->insertGetId([
+            'address_id' => $originAddress->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        \DB::table('origin')->where('id', $origin)->update(['house_num' => $request->origin_house_num]);
+
+        // 4. Save Full Address (connect the three address tables)
+        $fullAddressId = \DB::table('full_address')->insertGetId([
+            'mailing_address_id' => $mailing,
+            'permanent_address_id' => $permanent,
+            'origin_id' => $origin,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // 2. Save Education (all levels as JSON fields)
@@ -133,7 +174,7 @@ class StudentController extends Controller
             'gender' => $request->gender,
             'civil_status' => $request->civil_status,
             'ethno_id' => $request->ethno_id,
-            'address_id' => $address->id,
+            'full_address_id' => $fullAddressId,
             'education_id' => $education->id,
             'family_id' => $father->id, // or store both father and mother IDs as needed
             'school_pref_id' => $schoolPref->id,
