@@ -12,8 +12,8 @@ class Family extends Model
     protected $table = 'family';
 
     protected $fillable = [
+        'basic_info_id',
         'ethno_id',
-        'fam_siblings_id',
         'fam_type',
         'name',
         'address',

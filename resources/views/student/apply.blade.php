@@ -427,7 +427,7 @@
                         <div class="space-y-8">
                             <!-- Elementary -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Elementary</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Elementary <span class="text-xs bg-yellow-100 text-orange-600 px-2 py-1 rounded ml-2">Category: 1</span></label>
                                 <input type="text" name="elem_school" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500" placeholder="School Name" value="{{ old('elem_school') }}">
                             </div>
                             <div>
@@ -454,7 +454,7 @@
                             </div>
                             <!-- High School -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">High School</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">High School <span class="text-xs bg-yellow-100 text-orange-600 px-2 py-1 rounded ml-2">Category: 2</span></label>
                                 <input type="text" name="hs_school" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500" placeholder="School Name" value="{{ old('hs_school') }}">
                             </div>
                             <div>
@@ -481,7 +481,7 @@
                             </div>
                             <!-- Vocational -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Vocational</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vocational <span class="text-xs bg-yellow-100 text-orange-600 px-2 py-1 rounded ml-2">Category: 3</span></label>
                                 <input type="text" name="voc_school" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500" placeholder="School Name" value="{{ old('voc_school') }}">
                             </div>
                             <div>
@@ -508,7 +508,7 @@
                             </div>
                             <!-- College/Undergraduate -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">College/Undergraduate</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">College/Undergraduate <span class="text-xs bg-yellow-100 text-orange-600 px-2 py-1 rounded ml-2">Category: 4</span></label>
                                 <input type="text" name="college_school" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500" placeholder="School Name" value="{{ old('college_school') }}">
                             </div>
                             <div>
@@ -535,7 +535,7 @@
                             </div>
                             <!-- Masteral -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Masteral</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Masteral <span class="text-xs bg-yellow-100 text-orange-600 px-2 py-1 rounded ml-2">Category: 5</span></label>
                                 <input type="text" name="masteral_school" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500" placeholder="School Name" value="{{ old('masteral_school') }}">
                             </div>
                             <div>
@@ -562,7 +562,7 @@
                             </div>
                             <!-- Doctorate -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Doctorate</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Doctorate <span class="text-xs bg-yellow-100 text-orange-600 px-2 py-1 rounded ml-2">Category: 6</span></label>
                                 <input type="text" name="doctorate_school" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500" placeholder="School Name" value="{{ old('doctorate_school') }}">
                             </div>
                             <div>
@@ -743,13 +743,13 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">A. School's First Preference: <span class="text-red-500">*</span></label>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                            <input type="text" name="school1_address" class="form-input" value="{{ old('school1_address', $school_pref->address ?? '') }}">
+                            <input type="text" name="school1_address" class="form-input" required value="{{ old('school1_address', $school_pref->address ?? '') }}">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Degree Program/Course</label>
-                            <input type="text" name="school1_course1" class="form-input mb-2" value="{{ old('school1_course1', $school_pref->degree ?? '') }}">
+                            <input type="text" name="school1_course1" class="form-input mb-2" required value="{{ old('school1_course1', $school_pref->degree ?? '') }}">
                             <div class="flex space-x-4 mt-2">
                                 <div class="w-1/2">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">School Type</label>
-                                    <select name="school1_type" class="form-select">
+                                    <select name="school1_type" class="form-select" required>
                                         <option value="">Select Type</option>
                                         <option value="Public" {{ old('school1_type', $school_pref->school_type ?? '') == 'Public' ? 'selected' : '' }}>Public</option>
                                         <option value="Private" {{ old('school1_type', $school_pref->school_type ?? '') == 'Private' ? 'selected' : '' }}>Private</option>
@@ -757,7 +757,7 @@
                                 </div>
                                 <div class="w-1/2">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">No. of Years</label>
-                                    <input type="text" name="school1_years" class="form-input" value="{{ old('school1_years', $school_pref->num_years ?? '') }}">
+                                    <input type="text" name="school1_years" class="form-input" required value="{{ old('school1_years', $school_pref->num_years ?? '') }}">
                                 </div>
                             </div>
                         </div>
@@ -765,13 +765,13 @@
                         <div class="mb-4 mt-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">B. School's Second Preference: <span class="text-red-500">*</span></label>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                            <input type="text" name="school2_address" class="form-input" value="{{ old('school2_address', $school_pref->address2 ?? '') }}">
+                            <input type="text" name="school2_address" class="form-input" required value="{{ old('school2_address', $school_pref->address2 ?? '') }}">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Degree Program/Course</label>
-                            <input type="text" name="school2_course1" class="form-input mb-2" value="{{ old('school2_course1', $school_pref->degree2 ?? '') }}">
+                            <input type="text" name="school2_course1" class="form-input mb-2" required value="{{ old('school2_course1', $school_pref->degree2 ?? '') }}">
                             <div class="flex space-x-4 mt-2">
                                 <div class="w-1/2">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">School Type</label>
-                                    <select name="school2_type" class="form-select">
+                                    <select name="school2_type" class="form-select" required>
                                         <option value="">Select Type</option>
                                         <option value="Public" {{ old('school2_type', $school_pref->school_type2 ?? '') == 'Public' ? 'selected' : '' }}>Public</option>
                                         <option value="Private" {{ old('school2_type', $school_pref->school_type2 ?? '') == 'Private' ? 'selected' : '' }}>Private</option>
@@ -779,7 +779,7 @@
                                 </div>
                                 <div class="w-1/2">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">No. of Years</label>
-                                    <input type="text" name="school2_years" class="form-input" value="{{ old('school2_years', $school_pref->num_years2 ?? '') }}">
+                                    <input type="text" name="school2_years" class="form-input" required value="{{ old('school2_years', $school_pref->num_years2 ?? '') }}">
                                 </div>
                             </div>
                         </div>
@@ -787,9 +787,9 @@
                         <div class="mb-4 mt-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">In brief statement answer the following: <span class="text-red-500">*</span></label>
                             <label class="block text-sm font-medium text-gray-700 mb-2">What possible contribution/s that you may extend to your community ICCs/IPs while studying?</label>
-                            <textarea name="contribution" class="form-textarea" rows="4">{{ old('contribution', $school_pref->ques_answer1 ?? '') }}</textarea>
+                            <textarea name="contribution" class="form-textarea" rows="4" required>{{ old('contribution', $school_pref->ques_answer1 ?? '') }}</textarea>
                             <label class="block text-sm font-medium text-gray-700 mb-2 mt-4">What are your plans after graduation?</label>
-                            <textarea name="plans_after_grad" class="form-textarea" rows="4">{{ old('plans_after_grad', $school_pref->ques_answer2 ?? '') }}</textarea>
+                            <textarea name="plans_after_grad" class="form-textarea" rows="4" required>{{ old('plans_after_grad', $school_pref->ques_answer2 ?? '') }}</textarea>
                         </div>
                     </div>
                     <div class="flex justify-between mt-6">

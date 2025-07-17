@@ -67,90 +67,6 @@ class StudentController extends Controller
             'updated_at' => now(),
         ]);
 
-        // 2. Save Education (all levels as JSON fields)
-        $education = \App\Models\Education::create([
-            'category' => 'All',
-            'school_name' => json_encode([
-                'elem' => $request->elem_school,
-                'hs' => $request->hs_school,
-                'voc' => $request->voc_school,
-                'college' => $request->college_school,
-                'masteral' => $request->masteral_school,
-                'doctorate' => $request->doctorate_school,
-            ]),
-            'school_type' => json_encode([
-                'elem' => $request->elem_type,
-                'hs' => $request->hs_type,
-                'voc' => $request->voc_type,
-                'college' => $request->college_type,
-                'masteral' => $request->masteral_type,
-                'doctorate' => $request->doctorate_type,
-            ]),
-            'year_grad' => json_encode([
-                'elem' => $request->elem_year,
-                'hs' => $request->hs_year,
-                'voc' => $request->voc_year,
-                'college' => $request->college_year,
-                'masteral' => $request->masteral_year,
-                'doctorate' => $request->doctorate_year,
-            ]),
-            'grade_ave' => json_encode([
-                'elem' => $request->elem_avg,
-                'hs' => $request->hs_avg,
-                'voc' => $request->voc_avg,
-                'college' => $request->college_avg,
-                'masteral' => $request->masteral_avg,
-                'doctorate' => $request->doctorate_avg,
-            ]),
-            'rank' => json_encode([
-                'elem' => $request->elem_rank,
-                'hs' => $request->hs_rank,
-                'voc' => $request->voc_rank,
-                'college' => $request->college_rank,
-                'masteral' => $request->masteral_rank,
-                'doctorate' => $request->doctorate_rank,
-            ]),
-        ]);
-
-        // 3. Save Siblings
-        if ($request->sibling_name) {
-            foreach ($request->sibling_name as $i => $name) {
-                if ($name) {
-                    \App\Models\FamSiblings::create([
-                        'name' => $name,
-                        'age' => $request->sibling_age[$i] ?? null,
-                        'scholarship' => $request->sibling_scholarship[$i] ?? null,
-                        'course_year' => $request->sibling_course[$i] ?? null,
-                        'present_status' => $request->sibling_status[$i] ?? null,
-                    ]);
-                }
-            }
-        }
-
-        // 4. Save Family (father and mother)
-        $father = \App\Models\Family::create([
-            'name' => $request->father_name,
-            'address' => $request->father_address,
-            'occupation' => $request->father_occupation,
-            'office_address' => $request->father_office_address,
-            'educational_attainment' => $request->father_education,
-            'ethno_id' => $request->father_ethno,
-            'income' => $request->father_income,
-            'status' => $request->father_status,
-            'fam_type' => 'father',
-        ]);
-        $mother = \App\Models\Family::create([
-            'name' => $request->mother_name,
-            'address' => $request->mother_address,
-            'occupation' => $request->mother_occupation,
-            'office_address' => $request->mother_office_address,
-            'educational_attainment' => $request->mother_education,
-            'ethno_id' => $request->mother_ethno,
-            'income' => $request->mother_income,
-            'status' => $request->mother_status,
-            'fam_type' => 'mother',
-        ]);
-
         // 5. Save School Preference
         $schoolPref = \App\Models\SchoolPref::create([
             'address' => $request->school1_address,
@@ -166,19 +82,89 @@ class StudentController extends Controller
         ]);
 
         // 6. Save Basic Info (linking all the above)
-        \App\Models\BasicInfo::create([
+        $basicInfo = \App\Models\BasicInfo::create([
             'user_id' => $user->id,
             'house_num' => $request->mailing_house_num,
             'birthdate' => $request->birthdate,
             'birthplace' => $request->birthplace,
             'gender' => $request->gender,
             'civil_status' => $request->civil_status,
-            'ethno_id' => $request->ethno_id,
             'full_address_id' => $fullAddressId,
-            'education_id' => $education->id,
-            'family_id' => $father->id, // or store both father and mother IDs as needed
+            // 'family_id' => will be set after creating family records
             'school_pref_id' => $schoolPref->id,
         ]);
+
+        // 2. Save Education (each level as a separate row, linked to BasicInfo)
+        $educationLevels = [
+            1 => ['school' => $request->elem_school, 'type' => $request->elem_type, 'year' => $request->elem_year, 'avg' => $request->elem_avg, 'rank' => $request->elem_rank],
+            2 => ['school' => $request->hs_school, 'type' => $request->hs_type, 'year' => $request->hs_year, 'avg' => $request->hs_avg, 'rank' => $request->hs_rank],
+            3 => ['school' => $request->voc_school, 'type' => $request->voc_type, 'year' => $request->voc_year, 'avg' => $request->voc_avg, 'rank' => $request->voc_rank],
+            4 => ['school' => $request->college_school, 'type' => $request->college_type, 'year' => $request->college_year, 'avg' => $request->college_avg, 'rank' => $request->college_rank],
+            5 => ['school' => $request->masteral_school, 'type' => $request->masteral_type, 'year' => $request->masteral_year, 'avg' => $request->masteral_avg, 'rank' => $request->masteral_rank],
+            6 => ['school' => $request->doctorate_school, 'type' => $request->doctorate_type, 'year' => $request->doctorate_year, 'avg' => $request->doctorate_avg, 'rank' => $request->doctorate_rank],
+        ];
+
+        $educationIds = [];
+        foreach ($educationLevels as $category => $data) {
+            if (!empty($data['school'])) { // Only save if school name is provided
+                $education = \App\Models\Education::create([
+                    'basic_info_id' => $basicInfo->id,
+                    'category' => $category,
+                    'school_name' => $data['school'],
+                    'school_type' => $data['type'],
+                    'year_grad' => $data['year'],
+                    'grade_ave' => $data['avg'],
+                    'rank' => $data['rank'],
+                ]);
+                $educationIds[$category] = $education->id;
+            }
+        }
+
+        // Optionally, set education_id in BasicInfo to the highest level's ID (if any)
+
+        // 4. Save Family (father and mother)
+        $father = \App\Models\Family::create([
+            'basic_info_id' => $basicInfo->id,
+            'name' => $request->father_name,
+            'address' => $request->father_address,
+            'occupation' => $request->father_occupation,
+            'office_address' => $request->father_office_address,
+            'educational_attainment' => $request->father_education,
+            'ethno_id' => $request->father_ethno,
+            'income' => $request->father_income,
+            'status' => $request->father_status,
+            'fam_type' => 'father',
+        ]);
+        $mother = \App\Models\Family::create([
+            'basic_info_id' => $basicInfo->id,
+            'name' => $request->mother_name,
+            'address' => $request->mother_address,
+            'occupation' => $request->mother_occupation,
+            'office_address' => $request->mother_office_address,
+            'educational_attainment' => $request->mother_education,
+            'ethno_id' => $request->mother_ethno,
+            'income' => $request->mother_income,
+            'status' => $request->mother_status,
+            'fam_type' => 'mother',
+        ]);
+
+        // 3. Save Siblings
+        $createdSiblingIds = [];
+        if ($request->sibling_name) {
+            foreach ($request->sibling_name as $i => $name) {
+                if ($name) {
+                    $sibling = \App\Models\FamSiblings::create([
+                        'basic_info_id' => $basicInfo->id,
+                        'name' => $name,
+                        'age' => $request->sibling_age[$i] ?? null,
+                        'scholarship' => $request->sibling_scholarship[$i] ?? null,
+                        'course_year' => $request->sibling_course[$i] ?? null,
+                        'present_status' => $request->sibling_status[$i] ?? null,
+                    ]);
+                    $createdSiblingIds[] = $sibling->id;
+                }
+            }
+        }
 
         $request->session()->flash('status', 'Your IP Scholarship application has been submitted!');
         return redirect()->route('student.dashboard');

@@ -11,6 +11,7 @@ class Education extends Model
     protected $table = 'education';
     protected $primaryKey = 'id';
     protected $fillable = [
+        'basic_info_id',
         'category',
         'school_name',
         'school_type',

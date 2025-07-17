@@ -14,16 +14,12 @@ class BasicInfo extends Model
     public $timestamps = true;
     protected $fillable = [
         'user_id',
+        'full_address_id',
         'house_num',
         'birthdate',
         'birthplace',
         'gender',
         'civil_status',
-        'ethno_id',
-        'address_id',
-        'education_id',
-        'family_id',
         'school_pref_id',
-        'full_address_id',
     ];
 } 

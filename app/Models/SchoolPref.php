@@ -11,8 +11,6 @@ class SchoolPref extends Model
 
     protected $table = 'school_pref';
 
-    protected $primaryKey = 'school_pref_id';
-
     protected $fillable = [
         'address',
         'degree',

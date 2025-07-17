@@ -12,6 +12,7 @@ class FamSiblings extends Model
     protected $table = 'fam_siblings';
 
     protected $fillable = [
+        'basic_info_id',
         'name',
         'age',
         'scholarship',

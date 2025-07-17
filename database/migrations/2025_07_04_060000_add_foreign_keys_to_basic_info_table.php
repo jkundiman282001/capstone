@@ -16,6 +16,11 @@ return new class extends Migration
             $table->foreign('education_id')->references('id')->on('education')->onDelete('set null');
             $table->foreign('family_id')->references('id')->on('family')->onDelete('set null');
         });
+
+        // Add foreign key for basic_info_id in education table
+        Schema::table('education', function (Blueprint $table) {
+            $table->foreign('basic_info_id')->references('id')->on('basic_info')->onDelete('cascade');
+        });
     }
 
     /**
