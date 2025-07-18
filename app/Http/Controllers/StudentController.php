@@ -19,6 +19,13 @@ class StudentController extends Controller
     {
         $user = auth()->user();
 
+    
+        // Get the selected type of assistance (only one allowed)
+        $typeAssist = null;
+        if ($request->has('type_of_assistance') && is_array($request->type_of_assistance) && count($request->type_of_assistance) > 0) {
+            $typeAssist = $request->type_of_assistance[0];
+        }
+
         // 1. Save Mailing Address (reuse if exists)
         $mailingAddress = \App\Models\Address::firstOrCreate([
             'barangay' => $request->mailing_barangay,
@@ -92,6 +99,7 @@ class StudentController extends Controller
             'full_address_id' => $fullAddressId,
             // 'family_id' => will be set after creating family records
             'school_pref_id' => $schoolPref->id,
+            'type_assist' => $typeAssist,
         ]);
 
         // 2. Save Education (each level as a separate row, linked to BasicInfo)
@@ -179,9 +187,9 @@ class StudentController extends Controller
 
     public function performance(Request $request)
     {
-        // In a real app, fetch the student's performance data from DB
         $student = Auth::user(); // Get the authenticated user
-        return view('student.performance', compact('student'));
+        $basicInfo = \App\Models\BasicInfo::where('user_id', $student->id)->first();
+        return view('student.performance', compact('student', 'basicInfo'));
     }
 
     public function notifications(Request $request)

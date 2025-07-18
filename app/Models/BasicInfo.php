@@ -21,5 +21,6 @@ class BasicInfo extends Model
         'gender',
         'civil_status',
         'school_pref_id',
+        'type_assist',
     ];
 } 

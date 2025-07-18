@@ -6,9 +6,7 @@
     <title>Performance - IP Scholar Portal</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
-    <!-- Cropper.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
-    <!-- Cropper.js JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
     <style>
@@ -93,6 +91,17 @@
     <p class="text-2xl font-extrabold tracking-tight">Fall 2024</p>
   </div>
 </section>
+<!-- Show Type of Assistance if application is complete -->
+@if(isset($basicInfo) && $basicInfo)
+        <div class="max-w-7xl mx-auto px-6 pt-6">
+            <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 rounded mb-4">
+                <strong>Type of Assistance:</strong>
+                <span class="font-semibold">
+                    {{ $basicInfo->type_assist ? $basicInfo->type_assist : 'Not specified' }}
+                </span>
+            </div>
+        </div>
+    @endif
 
 <!-- Current Academic Performance and Quick Stats -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
