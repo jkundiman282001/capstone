@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\DocumentController;
 
 Route::get('/', function () {
     return view('student.dashboard');
@@ -19,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/student/type-of-assistance', [StudentController::class, 'typeOfAssistance'])->name('student.type_of_assistance');
     Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
     Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
-    Route::get('/student/performance', [StudentController::class, 'performance'])->name('student.performance');
+    Route::get('/student/performance', [DocumentController::class, 'index'])->name('student.performance');
     Route::get('/student/notifications', [StudentController::class, 'notifications'])->name('student.notifications');
     Route::get('/student/support', [StudentController::class, 'support'])->name('student.support');
     Route::post('/student/apply', [StudentController::class, 'apply'])->name('student.apply');
@@ -33,8 +34,19 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+Route::post('/documents/upload', [DocumentController::class, 'store'])->name('documents.upload');
+
 Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
 Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
 Route::post('/staff/feedback', [StaffDashboardController::class, 'submitFeedback'])->name('staff.feedback');
 
 Route::get('/address/barangays', [AddressController::class, 'barangaysByMunicipality'])->name('address.barangays');
+
+// Staff Auth Routes
+Route::get('staff/login', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.login');
+Route::post('staff/login', [App\Http\Controllers\StaffAuthController::class, 'login']);
+Route::get('staff/register', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.register');
+Route::post('staff/register', [App\Http\Controllers\StaffAuthController::class, 'register']);
+Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
+// Placeholder dashboard route for staff
+Route::get('staff/dashboard', [App\Http\Controllers\StaffDashboardController::class, 'index'])->name('staff.dashboard');

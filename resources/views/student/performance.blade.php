@@ -268,257 +268,89 @@
 </section>
 
 <!-- Event Participation & Attendance -->
-<section
-  class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-  <!-- Left grid col spanning 2 for events -->
-  <div class="col-span-1 md:col-span-2 space-y-5">
-    <h3 class="font-semibold text-lg text-gray-900">Event Participation &amp; Attendance</h3>
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-700 font-normal select-none max-w-full">
-      <!-- Cards -->
-      <div
-        class="rounded-lg border border-gray-200 p-4 flex flex-col justify-between cursor-default hover:shadow-md transition duration-150">
-        <div>
-          <p class="font-semibold text-gray-900 mb-1">Indigenous Cultural Workshop</p>
-          <p class="mb-2 text-xs text-gray-600">Cultural heritage preservation workshop</p>
-        </div>
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <time datetime="2024-10-15">October 15, 2024</time>
-          <span>2 hours</span>
-        </div>
-        <span
-          class="mt-4 inline-block bg-green-100 text-green-700 rounded-md text-xs font-semibold px-2 py-1 select-none w-max">Attended</span>
-      </div>
-
-      <div
-        class="rounded-lg border border-gray-200 p-4 flex flex-col justify-between cursor-default hover:shadow-md transition duration-150">
-        <div>
-          <p class="font-semibold text-gray-900 mb-1">Academic Success Seminar</p>
-          <p class="mb-2 text-xs text-gray-600">Study strategies and time management</p>
-        </div>
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <time datetime="2024-09-28">September 28, 2024</time>
-          <span>3 hours</span>
-        </div>
-        <span
-          class="mt-4 inline-block bg-green-100 text-green-700 rounded-md text-xs font-semibold px-2 py-1 select-none w-max">Attended</span>
-      </div>
-
-      <div
-        class="rounded-lg border border-gray-200 p-4 flex flex-col justify-between cursor-default hover:shadow-md transition duration-150">
-        <div>
-          <p class="font-semibold text-gray-900 mb-1">Community Service Day</p>
-          <p class="mb-2 text-xs text-gray-600">Local community outreach program</p>
-        </div>
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <time datetime="2024-12-10">December 10, 2024</time>
-          <span>4 hours</span>
-        </div>
-        <span
-          class="mt-4 inline-block bg-yellow-100 text-yellow-700 rounded-md text-xs font-semibold px-2 py-1 select-none w-max">Scheduled</span>
-      </div>
-
-      <div
-        class="rounded-lg border border-gray-200 p-4 flex flex-col justify-between cursor-default hover:shadow-md transition duration-150">
-        <div>
-          <p class="font-semibold text-gray-900 mb-1">Leadership Development</p>
-          <p class="mb-2 text-xs text-gray-600">Student leadership training program</p>
-        </div>
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <time datetime="2025-01-15">January 15, 2025</time>
-          <span>6 hours</span>
-        </div>
-        <span
-          class="mt-4 inline-block bg-blue-100 text-blue-700 rounded-md text-xs font-semibold px-2 py-1 select-none w-max">Registered</span>
-      </div>
-
-      <div
-        class="rounded-lg border border-gray-200 p-4 flex flex-col justify-between cursor-default hover:shadow-md transition duration-150">
-        <div>
-          <p class="font-semibold text-gray-900 mb-1">Mentorship Program</p>
-          <p class="mb-2 text-xs text-gray-600">Ongoing mentorship with industry professional</p>
-        </div>
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <time datetime="2024-01-01">Ongoing</time>
-          <span>Monthly</span>
-        </div>
-        <span
-          class="mt-4 inline-block bg-green-100 text-green-700 rounded-md text-xs font-semibold px-2 py-1 select-none w-max">Active</span>
-      </div>
-
-      <div
-        class="rounded-lg border border-gray-200 p-4 flex flex-col justify-between cursor-default hover:shadow-md transition duration-150">
-        <div>
-          <p class="font-semibold text-gray-900 mb-1">Career Fair</p>
-          <p class="mb-2 text-xs text-gray-600">Annual career and internship fair</p>
-        </div>
-        <div class="flex justify-between items-center text-xs text-gray-600">
-          <time datetime="2024-11-05">November 5, 2024</time>
-          <span>4 hours</span>
-        </div>
-        <span
-          class="mt-4 inline-block bg-gray-100 text-gray-700 rounded-md text-xs font-semibold px-2 py-1 select-none w-max">Missed</span>
-      </div>
-    </div>
-
-    <!-- Summary stats -->
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-4 text-center text-sm font-semibold rounded-lg">
-      <div class="bg-green-100 text-green-700 p-4 rounded">
-        <p class="text-3xl">4</p>
-        <p>Events Attended</p>
-      </div>
-      <div class="bg-blue-100 text-blue-700 p-4 rounded">
-        <p class="text-3xl">2</p>
-        <p>Events Scheduled</p>
-      </div>
-      <div class="bg-yellow-100 text-yellow-800 p-4 rounded">
-        <p class="text-3xl">1</p>
-        <p>Events Missed</p>
-      </div>
-      <div class="bg-purple-100 text-purple-700 p-4 rounded">
-        <p class="text-3xl">12</p>
-        <p>Total Hours</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right: Compliance Checklist & Upload Documents -->
-  <aside class="space-y-6">
-    <!-- Compliance Checklist -->
-    <section
-      class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-md w-full flex flex-col space-y-6 select-none">
-      <h3 class="font-semibold text-lg text-gray-900">Compliance Checklist</h3>
-      <ul class="space-y-4 text-sm text-gray-700">
-        <li
-          class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 flex justify-between items-center">
-          <div class="flex items-start space-x-3">
-            <span
-              class="flex-shrink-0 w-6 h-6 rounded-md bg-green-600 text-white flex items-center justify-center text-xs font-bold select-none">✓</span>
-            <div>
-              <p class="font-semibold leading-tight">Grade Report</p>
-              <p class="text-xs text-green-900">Fall 2024 grades submitted</p>
-            </div>
-          </div>
-          <span class="text-green-600 font-semibold text-xs whitespace-nowrap">Complete</span>
-        </li>
-        <li
-          class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 flex justify-between items-center">
-          <div class="flex items-start space-x-3">
-            <span
-              class="flex-shrink-0 w-6 h-6 rounded-md bg-green-600 text-white flex items-center justify-center text-xs font-bold select-none">✓</span>
-            <div>
-              <p class="font-semibold leading-tight">Certificate of Enrollment</p>
-              <p class="text-xs text-green-900">Current semester enrollment verified</p>
-            </div>
-          </div>
-          <span class="text-green-600 font-semibold text-xs whitespace-nowrap">Complete</span>
-        </li>
-        <li
-          class="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg p-3 flex justify-between items-center">
-          <div class="flex items-start space-x-3">
-            <span
-              class="flex-shrink-0 w-6 h-6 rounded-md bg-yellow-400 text-yellow-900 flex items-center justify-center text-xs font-bold select-none">!</span>
-            <div>
-              <p class="font-semibold leading-tight">Community Service Log</p>
-              <p class="text-xs text-yellow-900">Due by December 15, 2024</p>
-            </div>
-          </div>
-          <span class="text-yellow-700 font-semibold text-xs whitespace-nowrap">Pending</span>
-        </li>
-        <li
-          class="bg-red-50 border border-red-300 text-red-700 rounded-lg p-3 flex justify-between items-center">
-          <div class="flex items-start space-x-3">
-            <span
-              class="flex-shrink-0 w-6 h-6 rounded-md bg-red-600 text-white flex items-center justify-center text-xs font-bold select-none">×</span>
-            <div>
-              <p class="font-semibold leading-tight">Financial Aid Form</p>
-              <p class="text-xs text-red-900">Required for next semester</p>
-            </div>
-          </div>
-          <span class="text-red-600 font-semibold text-xs whitespace-nowrap">Missing</span>
-        </li>
-        <li
-          class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 flex justify-between items-center">
-          <div class="flex items-start space-x-3">
-            <span
-              class="flex-shrink-0 w-6 h-6 rounded-md bg-green-600 text-white flex items-center justify-center text-xs font-bold select-none">✓</span>
-            <div>
-              <p class="font-semibold leading-tight">Academic Plan</p>
-              <p class="text-xs text-green-900">Updated for current semester</p>
-            </div>
-          </div>
-          <span class="text-green-600 font-semibold text-xs whitespace-nowrap">Complete</span>
-        </li>
-      </ul>
-
-      <!-- Overall Compliance -->
-      <div class="bg-blue-50 border border-blue-200 p-4 rounded-md">
-        <div class="flex justify-between font-semibold text-blue-700 mb-1 text-sm select-none">
-          <span>Overall Compliance</span>
-          <span>80%</span>
-        </div>
-        <div class="w-full bg-blue-100 rounded-full h-2 overflow-hidden">
-          <div class="bg-blue-600 h-2 rounded-full w-[80%]"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Upload Documents -->
-    <section
-      class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-md w-full flex flex-col space-y-4 select-none">
-      <h3 class="font-semibold text-lg text-gray-900">Upload Documents</h3>
-
-      <label for="upload-file"
-        class="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-lg cursor-pointer p-8 text-gray-500 hover:border-gray-600 hover:text-gray-700 transition">
-        <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="17 8 12 3 7 8"></polyline>
-          <line x1="12" y1="3" x2="12" y2="15"></line>
-        </svg>
-        <span class="text-sm font-medium">Upload a file</span>
-        <span class="text-xs mt-0.5">PDF, DOC, or image files up to 10MB</span>
-        <input id="upload-file" type="file" class="hidden" />
-      </label>
-
-      <div class="text-sm text-gray-600">
-        <p class="font-semibold mb-2">Recent Uploads</p>
-        <ul class="space-y-2">
-          <li
-            class="flex items-center justify-between bg-gray-100 rounded-md px-3 py-2 text-gray-800 hover:bg-gray-200 transition cursor-default">
-            <div class="flex items-center space-x-3">
-              <svg class="w-5 h-5 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 24 24"
-                aria-hidden="true" focusable="false">
-                <path
-                  d="M14.7 2.1H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.3L14.7 2.1zM12 19a1.5 1.5 0 1 1 1.501-1.5A1.5 1.5 0 0 1 12 19zm2.5-7.5h-5v-1h5z" />
-              </svg>
-              <div>
-                <p class="font-semibold">Fall_2024_Grades.pdf</p>
-                <p class="text-xs text-gray-500">Uploaded 2 days ago</p>
-              </div>
-            </div>
-            <a href="#" class="text-blue-600 hover:underline hover:text-blue-800">View</a>
-          </li>
-          <li
-            class="flex items-center justify-between bg-gray-100 rounded-md px-3 py-2 text-gray-800 hover:bg-gray-200 transition cursor-default">
-            <div class="flex items-center space-x-3">
-              <svg class="w-5 h-5 flex-shrink-0 text-blue-500" fill="currentColor" viewBox="0 0 24 24"
-                aria-hidden="true" focusable="false">
-                <path
-                  d="M19 2H9a2 2 0 0 0-2 2v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3h2a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM9 6h7v7h-2v-1a2 2 0 0 0-2-2H9z" />
-              </svg>
-              <div>
-                <p class="font-semibold">Enrollment_Certificate.pdf</p>
-                <p class="text-xs text-gray-500">Uploaded 1 week ago</p>
-              </div>
-            </div>
-            <a href="#" class="text-blue-600 hover:underline hover:text-blue-800">View</a>
-          </li>
+<!-- Compliance Checklist & Upload Documents (Glassmorphism Centered) -->
+<div class="flex justify-center items-start w-full py-12">
+  <section class="backdrop-blur-lg bg-white/60 shadow-2xl rounded-3xl p-10 border border-white/30 max-w-5xl w-full flex flex-col space-y-10 select-none transition-all">
+    <h3 class="text-3xl font-black text-gray-900 mb-4 flex items-center gap-3 tracking-tight drop-shadow">
+      <svg class="w-9 h-9 text-orange-500" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M16 3v4a1 1 0 0 0 1 1h4"/></svg>
+      Compliance Checklist & Uploads
+    </h3>
+    @if(session('success'))
+      <div class="bg-green-200/80 text-green-900 rounded-xl p-3 mb-2 text-center font-bold shadow">{{ session('success') }}</div>
+    @endif
+    @if($errors->any())
+      <div class="bg-red-200/80 text-red-900 rounded-xl p-3 mb-2 shadow">
+        <ul class="list-disc pl-5">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
         </ul>
       </div>
-    </section>
-  </aside>
-</section>
+    @endif
+    @php
+      $totalRequired = count($requiredTypes);
+      $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
+      $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
+    @endphp
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-sm font-semibold text-gray-700">Document Approval Progress</span>
+        <span class="text-sm font-bold text-orange-600">{{ $progressPercent }}%</span>
+      </div>
+      <div class="w-full bg-orange-100 rounded-full h-3 overflow-hidden">
+        <div class="bg-gradient-to-r from-orange-400 to-orange-600 h-3 rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
+      </div>
+    </div>
+    <ul class="space-y-7">
+      @foreach($requiredTypes as $typeKey => $typeLabel)
+        @php
+          $uploaded = $documents->firstWhere('type', $typeKey);
+          $status = $uploaded ? $uploaded->status : 'missing';
+        @endphp
+        <li class="bg-gradient-to-br from-orange-100/80 via-amber-100/60 to-white/60 border border-orange-200/60 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow-lg hover:shadow-2xl transition-all">
+          <div class="flex items-center gap-5 min-w-0">
+            @if($status === 'approved')
+              <span class="w-12 h-12 rounded-full bg-green-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40">✓</span>
+            @elseif($status === 'pending')
+              <span class="w-12 h-12 rounded-full bg-yellow-400/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40">!</span>
+            @else
+              <span class="w-12 h-12 rounded-full bg-red-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40">×</span>
+            @endif
+            <div class="flex flex-col min-w-0">
+              <span class="font-extrabold text-lg text-gray-900 truncate tracking-tight">{{ $typeLabel }}</span>
+              <div class="flex items-center gap-2 mt-1">
+                @if($status === 'approved')
+                  <span class="bg-green-200/80 text-green-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Approved</span>
+                @elseif($status === 'pending')
+                  <span class="bg-yellow-200/80 text-yellow-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Pending</span>
+                @else
+                  <span class="bg-red-200/80 text-red-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Missing</span>
+                @endif
+                @if($uploaded)
+                  <span class="text-gray-400 text-xs">• Uploaded {{ $uploaded->created_at->diffForHumans() }}</span>
+                @endif
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col md:items-end gap-2 w-full md:w-auto">
+            @if($uploaded)
+              <a href="{{ asset('storage/' . $uploaded->filepath) }}" target="_blank" class="inline-block px-5 py-2 bg-blue-600/90 text-white rounded-full text-xs font-bold shadow hover:bg-blue-700/90 transition">View</a>
+            @endif
+            @if(!$uploaded)
+              <form method="POST" action="{{ route('documents.upload') }}" enctype="multipart/form-data" class="flex items-center gap-2 w-full md:w-auto">
+                @csrf
+                <input type="hidden" name="type" value="{{ $typeKey }}">
+                <input type="file" name="upload-file" required class="block text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <button type="submit" class="px-5 py-2 bg-orange-500/90 text-white rounded-full text-xs font-bold shadow hover:bg-orange-700/90 transition">Upload</button>
+              </form>
+            @endif
+          </div>
+        </li>
+      @endforeach
+    </ul>
+  </section>
+</div>
+
 
 <!-- System-Generated Feedback -->
 <section class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-4xl mx-auto select-none">
