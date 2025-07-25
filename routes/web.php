@@ -39,6 +39,7 @@ Route::post('/documents/upload', [DocumentController::class, 'store'])->name('do
 Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
 Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
 Route::post('/staff/feedback', [StaffDashboardController::class, 'submitFeedback'])->name('staff.feedback');
+Route::post('/staff/notifications/mark-read', [App\Http\Controllers\StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
 
 Route::get('/address/barangays', [AddressController::class, 'barangaysByMunicipality'])->name('address.barangays');
 

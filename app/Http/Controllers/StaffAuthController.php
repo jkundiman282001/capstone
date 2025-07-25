@@ -21,11 +21,8 @@ class StaffAuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $staff = Staff::where('email', $credentials['email'])->first();
-        if ($staff && Hash::check($credentials['password'], $staff->password)) {
-            // Login staff (manual session)
-            $request->session()->put('staff_id', $staff->id);
-            $request->session()->put('staff_name', $staff->first_name . ' ' . $staff->last_name);
+        if (Auth::guard('staff')->attempt($credentials)) {
+            $request->session()->regenerate();
             return redirect()->route('staff.dashboard');
         }
         return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
@@ -47,15 +44,14 @@ class StaffAuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Auto-login after registration
-        $request->session()->put('staff_id', $staff->id);
-        $request->session()->put('staff_name', $staff->first_name . ' ' . $staff->last_name);
+        Auth::guard('staff')->login($staff);
+        $request->session()->regenerate();
         return redirect()->route('staff.dashboard');
     }
 
     public function logout(Request $request)
     {
-        $request->session()->forget(['staff_id', 'staff_name']);
+        Auth::guard('staff')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('staff.login');

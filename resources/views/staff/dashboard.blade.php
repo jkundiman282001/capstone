@@ -28,11 +28,33 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <button class="text-white hover:text-orange-200 transition-colors" onclick="toggleNotifications()">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"/>
-                    </svg>
-                </button>
+                <!-- Notification Bell -->
+                <div class="relative">
+                    <button class="text-white hover:text-orange-200 transition-colors relative" onclick="toggleNotifDropdown()" aria-label="Notifications">
+                        <!-- Bell Icon SVG -->
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        @if($notifications->count() > 0)
+                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">{{ $notifications->count() }}</span>
+                        @endif
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white text-gray-800 rounded shadow-lg z-50 border border-orange-200">
+                        <div class="p-3 border-b font-semibold text-orange-700">Notifications</div>
+                        <ul class="max-h-72 overflow-y-auto">
+                            @forelse($notifications as $notif)
+                                <li class="px-4 py-2 border-b hover:bg-orange-50 cursor-pointer">
+                                    <div class="text-sm">{{ $notif->data['message'] ?? '' }}</div>
+                                    <div class="text-xs text-gray-400">{{ $notif->created_at->diffForHumans() }}</div>
+                                </li>
+                            @empty
+                                <li class="px-4 py-2 text-gray-400">No new notifications.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+                <!-- End Notification Bell -->
                 <span class="text-xs opacity-75">Last updated: {{ now()->format('M d, Y g:i A') }}</span>
             </div>
         </div>
@@ -237,5 +259,33 @@
             quickAlerts.classList.add('hidden');
         }
     }, 10000);
+
+    // Notification dropdown toggle
+    function toggleNotifDropdown() {
+        const dropdown = document.getElementById('notif-dropdown');
+        dropdown.classList.toggle('hidden');
+        // Hide the notification badge when bell is clicked
+        const badge = document.getElementById('notif-badge');
+        if (badge) {
+            badge.style.display = 'none';
+        }
+        // Mark notifications as read in backend
+        fetch("{{ route('staff.notifications.markRead') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('notif-dropdown');
+        const bell = event.target.closest('button[onclick="toggleNotifDropdown()"]');
+        if (!dropdown.contains(event.target) && !bell) {
+            dropdown.classList.add('hidden');
+        }
+    });
 </script>
 @endpush 

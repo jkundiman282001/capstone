@@ -9,7 +9,10 @@ class StaffDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = \Auth::guard('staff')->user();
+        if (!$user) {
+            return redirect()->route('staff.login'); // Adjust this route if your staff login route is different
+        }
         $name = $user->name ?? 'Staff';
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -103,12 +106,16 @@ class StaffDashboardController extends Controller
         // Demo feedbacks (in a real app, fetch from DB)
         $feedbacks = session('feedbacks', []);
 
+        // Fetch unread notifications for staff
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'barangays', 'ipGroups', 'semesters',
             'totalScholars', 'newApplicants', 'activeScholars', 'inactiveScholars',
             'alerts', 'barChartData', 'pieChartData', 'performanceChartData',
             'pendingRequirements',
-            'feedbacks'
+            'feedbacks',
+            'notifications'
         ));
     }
 
@@ -130,5 +137,14 @@ class StaffDashboardController extends Controller
         ];
         session(['feedbacks' => $feedbacks]);
         return back()->with('success', 'Thank you for your feedback!');
+    }
+
+    public function markNotificationsRead(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+        if ($user) {
+            $user->unreadNotifications->markAsRead();
+        }
+        return response()->json(['success' => true]);
     }
 } 

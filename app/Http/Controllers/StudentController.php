@@ -175,6 +175,12 @@ class StudentController extends Controller
         }
 
         $request->session()->flash('status', 'Your IP Scholarship application has been submitted!');
+
+        // Notify all staff
+        foreach (\App\Models\Staff::all() as $staff) {
+            $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+        }
+
         return redirect()->route('student.dashboard');
     }
 

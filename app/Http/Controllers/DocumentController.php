@@ -38,6 +38,13 @@ class DocumentController extends Controller
         $document->type = $request->type;
         $document->save();
 
+        // Notify all staff
+        $student = $user;
+        $documentType = $request->type;
+        foreach (\App\Models\Staff::all() as $staff) {
+            $staff->notify(new \App\Notifications\StudentUploadedDocument($student, $documentType));
+        }
+
         return back()->with('success', 'Document uploaded successfully!');
     }
 
