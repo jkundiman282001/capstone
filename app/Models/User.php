@@ -50,4 +50,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function basicInfo()
+    {
+        return $this->hasOne(\App\Models\BasicInfo::class, 'user_id');
+    }
 }

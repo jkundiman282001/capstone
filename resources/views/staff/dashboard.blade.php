@@ -106,6 +106,7 @@
             <p class="text-gray-600">Welcome, {{ $name }} ({{ $assignedBarangay }})</p>
         </div>
         <div class="flex space-x-2">
+            <a href="{{ route('staff.applicants.list') }}" class="btn btn-primary">View Applicants</a>
             <select class="form-select" name="barangay">
                 <option value="">All Barangays</option>
                 @foreach($barangays as $barangay)

@@ -147,4 +147,36 @@ class StaffDashboardController extends Controller
         }
         return response()->json(['success' => true]);
     }
+
+    public function viewApplication($userId)
+    {
+        $user = \App\Models\User::findOrFail($userId);
+        $basicInfo = \App\Models\BasicInfo::where('user_id', $userId)->first();
+        $schoolPref = $basicInfo ? \App\Models\SchoolPref::find($basicInfo->school_pref_id) : null;
+        $education = $basicInfo ? \App\Models\Education::where('basic_info_id', $basicInfo->id)->get() : collect();
+        $siblings = $basicInfo ? \App\Models\FamSiblings::where('basic_info_id', $basicInfo->id)->get() : collect();
+        $ethno = $user->ethno_id ? \App\Models\Ethno::find($user->ethno_id) : null;
+
+        // Address fetching (simplified, adjust as needed)
+        $fullAddress = $basicInfo ? \DB::table('full_address')->where('id', $basicInfo->full_address_id)->first() : null;
+        $mailing = $fullAddress ? \DB::table('mailing_address')->where('id', $fullAddress->mailing_address_id)->first() : null;
+        $permanent = $fullAddress ? \DB::table('permanent_address')->where('id', $fullAddress->permanent_address_id)->first() : null;
+        $origin = $fullAddress ? \DB::table('origin')->where('id', $fullAddress->origin_id)->first() : null;
+
+        // Family (if you have a Family model, otherwise adjust)
+        $familyFather = $basicInfo ? \App\Models\Family::where('basic_info_id', $basicInfo->id)->where('fam_type', 'father')->first() : null;
+        $familyMother = $basicInfo ? \App\Models\Family::where('basic_info_id', $basicInfo->id)->where('fam_type', 'mother')->first() : null;
+
+        return view('staff.application-view', compact(
+            'user', 'basicInfo', 'schoolPref', 'education', 'siblings', 'ethno',
+            'mailing', 'permanent', 'origin', 'familyFather', 'familyMother'
+        ));
+    }
+
+    public function applicantsList()
+    {
+        // Get all users who have a BasicInfo record (i.e., submitted an application)
+        $applicants = \App\Models\User::whereHas('basicInfo')->get();
+        return view('staff.applicants-list', compact('applicants'));
+    }
 } 

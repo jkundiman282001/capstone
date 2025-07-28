@@ -51,3 +51,6 @@ Route::post('staff/register', [App\Http\Controllers\StaffAuthController::class, 
 Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
 // Placeholder dashboard route for staff
 Route::get('staff/dashboard', [App\Http\Controllers\StaffDashboardController::class, 'index'])->name('staff.dashboard');
+
+Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
+Route::get('/staff/applicants', [App\Http\Controllers\StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
