@@ -167,9 +167,21 @@ class StaffDashboardController extends Controller
         $familyFather = $basicInfo ? \App\Models\Family::where('basic_info_id', $basicInfo->id)->where('fam_type', 'father')->first() : null;
         $familyMother = $basicInfo ? \App\Models\Family::where('basic_info_id', $basicInfo->id)->where('fam_type', 'mother')->first() : null;
 
+        // Documents
+        $documents = \App\Models\Document::where('user_id', $userId)->latest()->get();
+        $requiredTypes = [
+            'birth_certificate' => 'Certified Birth Certificate',
+            'income_document' => 'Income Tax Return/Tax Exemption/Indigency',
+            'tribal_certificate' => 'Certificate of Tribal Membership/Confirmation',
+            'endorsement' => 'Endorsement of the IPS/IP Traditional Leaders',
+            'good_moral' => 'Certificate of Good Moral',
+            'grades' => 'Latest Copy of Grades',
+        ];
+
         return view('staff.application-view', compact(
             'user', 'basicInfo', 'schoolPref', 'education', 'siblings', 'ethno',
-            'mailing', 'permanent', 'origin', 'familyFather', 'familyMother'
+            'mailing', 'permanent', 'origin', 'familyFather', 'familyMother',
+            'documents', 'requiredTypes'
         ));
     }
 
