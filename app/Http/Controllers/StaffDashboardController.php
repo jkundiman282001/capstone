@@ -191,4 +191,20 @@ class StaffDashboardController extends Controller
         $applicants = \App\Models\User::whereHas('basicInfo')->get();
         return view('staff.applicants-list', compact('applicants'));
     }
+
+    public function updateDocumentStatus(Request $request, $documentId)
+    {
+        $request->validate([
+            'status' => 'required|in:approved,rejected,pending'
+        ]);
+
+        $document = \App\Models\Document::findOrFail($documentId);
+        $document->update(['status' => $request->status]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Document status updated successfully',
+            'new_status' => $request->status
+        ]);
+    }
 } 

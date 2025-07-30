@@ -19,8 +19,11 @@ class DocumentController extends Controller
             'grades',
         ];
         $request->validate([
-            'upload-file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'upload-file' => 'required|file|mimes:pdf|max:10240',
             'type' => 'required|in:' . implode(',', $requiredTypes),
+        ], [
+            'upload-file.mimes' => 'Only PDF files are allowed. Please convert your document to PDF format before uploading.',
+            'upload-file.max' => 'File size must not exceed 10MB.',
         ]);
 
         $file = $request->file('upload-file');
@@ -45,7 +48,7 @@ class DocumentController extends Controller
             $staff->notify(new \App\Notifications\StudentUploadedDocument($student, $documentType));
         }
 
-        return back()->with('success', 'Document uploaded successfully!');
+        return back()->with('success', 'PDF document uploaded successfully! Please wait for staff review.');
     }
 
     public function index()

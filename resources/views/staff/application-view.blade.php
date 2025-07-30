@@ -87,6 +87,16 @@
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
         <h2 class="font-semibold text-lg mb-4">Uploaded Documents</h2>
         
+        <!-- PDF Notice -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-lg mb-4">
+            <div class="flex items-center gap-2 text-sm text-blue-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span><strong>File Format:</strong> Only PDF files are accepted for document uploads (max 10MB)</span>
+            </div>
+        </div>
+        
         @php
             $totalRequired = count($requiredTypes);
             $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
@@ -116,6 +126,8 @@
                                 <span class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">✓</span>
                             @elseif($status === 'pending')
                                 <span class="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center text-white text-sm font-bold">!</span>
+                            @elseif($status === 'rejected')
+                                <span class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-bold">✗</span>
                             @else
                                 <span class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-bold">×</span>
                             @endif
@@ -126,6 +138,8 @@
                                         <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">Approved</span>
                                     @elseif($status === 'pending')
                                         <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">Pending</span>
+                                    @elseif($status === 'rejected')
+                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">Rejected</span>
                                     @else
                                         <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">Missing</span>
                                     @endif
@@ -137,8 +151,17 @@
                         </div>
                         <div class="flex items-center gap-2">
                             @if($uploaded)
-                                <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition">View</button>
-                                <span class="text-xs text-gray-500">{{ $uploaded->filename }}</span>
+                                <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition">View</button>
+                                @if($uploaded->status === 'pending')
+                                    <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm font-semibold hover:bg-green-700 transition">Accept</button>
+                                    <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'rejected')" class="px-3 py-1.5 bg-red-600 text-white rounded text-sm font-semibold hover:bg-red-700 transition">Reject</button>
+                                @elseif($uploaded->status === 'approved')
+                                    <span class="px-3 py-1.5 bg-green-100 text-green-800 rounded text-sm font-semibold">✓ Accepted</span>
+                                @elseif($uploaded->status === 'rejected')
+                                    <span class="px-3 py-1.5 bg-red-100 text-red-800 rounded text-sm font-semibold">✗ Rejected</span>
+                                    <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm font-semibold hover:bg-green-700 transition">Accept</button>
+                                @endif
+                                <span class="text-xs text-gray-500 ml-2">{{ $uploaded->filename }}</span>
                             @else
                                 <span class="text-gray-400 text-sm">Not uploaded</span>
                             @endif
@@ -168,6 +191,16 @@
         <!-- Modal Content -->
         <div class="flex-1 p-2 overflow-hidden">
             <div id="documentViewer" class="w-full h-full"></div>
+        </div>
+        
+        <!-- PDF Notice -->
+        <div class="px-4 py-2 bg-blue-50 border-t border-gray-200">
+            <div class="flex items-center gap-2 text-sm text-blue-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Note: Only PDF files are accepted for document uploads</span>
+            </div>
         </div>
         
         <!-- Modal Footer -->
@@ -200,12 +233,20 @@ function viewDocument(url, filename, filetype) {
     
     // Handle different file types
     if (filetype.startsWith('image/')) {
-        // Image files
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'max-w-full max-h-full object-contain mx-auto';
-        img.alt = filename;
-        documentViewer.appendChild(img);
+        // Image files - show message that only PDFs are accepted
+        const message = document.createElement('div');
+        message.className = 'flex items-center justify-center h-full text-gray-500';
+        message.innerHTML = `
+            <div class="text-center">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <p class="text-lg font-semibold mb-2">Non-PDF File Detected</p>
+                <p class="text-sm mb-4">This file is not in PDF format. Only PDF files are accepted for document uploads.</p>
+                <button onclick="downloadDocument()" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Download to View</button>
+            </div>
+        `;
+        documentViewer.appendChild(message);
     } else if (filetype === 'application/pdf') {
         // PDF files
         const iframe = document.createElement('iframe');
@@ -220,10 +261,10 @@ function viewDocument(url, filename, filetype) {
         message.innerHTML = `
             <div class="text-center">
                 <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                 </svg>
-                <p class="text-lg font-semibold mb-2">Document Preview Not Available</p>
-                <p class="text-sm mb-4">This file type cannot be previewed in the browser.</p>
+                <p class="text-lg font-semibold mb-2">Non-PDF File Detected</p>
+                <p class="text-sm mb-4">This file is not in PDF format. Only PDF files are accepted for document uploads.</p>
                 <button onclick="downloadDocument()" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Download to View</button>
             </div>
         `;
@@ -239,6 +280,38 @@ function closeDocumentModal() {
     const modal = document.getElementById('documentModal');
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
+}
+
+function updateDocumentStatus(documentId, newStatus) {
+    if (!confirm(`Are you sure you want to ${newStatus} this document?`)) {
+        return;
+    }
+
+    fetch(`/staff/documents/${documentId}/update-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert(`Document ${newStatus} successfully!`);
+            // Reload the page to show updated status
+            location.reload();
+        } else {
+            alert('Error updating document status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating document status');
+    });
 }
 
 function downloadDocument() {

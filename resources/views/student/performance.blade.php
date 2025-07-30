@@ -275,6 +275,24 @@
       <svg class="w-9 h-9 text-orange-500" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M16 3v4a1 1 0 0 0 1 1h4"/></svg>
       Compliance Checklist & Uploads
     </h3>
+    
+    <!-- PDF Only Notice -->
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-6">
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h4 class="text-sm font-medium text-blue-800">Important Notice</h4>
+          <div class="mt-1 text-sm text-blue-700">
+            <p><strong>PDF Files Only:</strong> All documents must be uploaded in PDF format. Please convert your documents to PDF before uploading.</p>
+            <p class="mt-1"><strong>Maximum Size:</strong> 10MB per file</p>
+          </div>
+        </div>
+      </div>
+    </div>
     @if(session('success'))
       <div class="bg-green-200/80 text-green-900 rounded-xl p-3 mb-2 text-center font-bold shadow">{{ session('success') }}</div>
     @endif
@@ -340,7 +358,10 @@
               <form method="POST" action="{{ route('documents.upload') }}" enctype="multipart/form-data" class="flex items-center gap-2 w-full md:w-auto">
                 @csrf
                 <input type="hidden" name="type" value="{{ $typeKey }}">
-                <input type="file" name="upload-file" required class="block text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <div class="flex flex-col gap-1">
+                  <input type="file" name="upload-file" required class="block text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf">
+                  <span class="text-xs text-gray-500">PDF files only (max 10MB)</span>
+                </div>
                 <button type="submit" class="px-5 py-2 bg-orange-500/90 text-white rounded-full text-xs font-bold shadow hover:bg-orange-700/90 transition">Upload</button>
               </form>
             @endif
