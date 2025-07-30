@@ -36,20 +36,23 @@ Route::middleware(['auth'])->group(function () {
 
 Route::post('/documents/upload', [DocumentController::class, 'store'])->name('documents.upload');
 
-Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
-Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
-Route::post('/staff/feedback', [StaffDashboardController::class, 'submitFeedback'])->name('staff.feedback');
-Route::post('/staff/notifications/mark-read', [App\Http\Controllers\StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
-
-Route::get('/address/barangays', [AddressController::class, 'barangaysByMunicipality'])->name('address.barangays');
-
-// Staff Auth Routes
+// Staff Auth Routes (Public)
 Route::get('staff/login', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.login');
 Route::post('staff/login', [App\Http\Controllers\StaffAuthController::class, 'login']);
 Route::get('staff/register', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.register');
 Route::post('staff/register', [App\Http\Controllers\StaffAuthController::class, 'register']);
-Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
 
-Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
-Route::get('/staff/applicants', [App\Http\Controllers\StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
-Route::post('/staff/documents/{document}/update-status', [StaffDashboardController::class, 'updateDocumentStatus'])->name('staff.documents.update-status');
+// Staff Protected Routes (Require Authentication)
+Route::middleware(['auth.staff'])->group(function () {
+    Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+    Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
+    Route::post('/staff/feedback', [StaffDashboardController::class, 'submitFeedback'])->name('staff.feedback');
+    Route::post('/staff/notifications/mark-read', [App\Http\Controllers\StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
+    Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
+    Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
+    Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
+});
+
+// Geographic API Routes (Public)
+Route::get('/address/barangays', [AddressController::class, 'barangaysByMunicipality'])->name('address.barangays');
+Route::get('/address/municipalities', [AddressController::class, 'municipalitiesByProvince'])->name('address.municipalities');

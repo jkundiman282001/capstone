@@ -107,26 +107,55 @@
         </div>
         <div class="flex space-x-2">
             <a href="{{ route('staff.applicants.list') }}" class="btn btn-primary">View Applicants</a>
-            <select class="form-select" name="barangay">
-                <option value="">All Barangays</option>
-                @foreach($barangays as $barangay)
-                    <option value="{{ $barangay->id }}">{{ $barangay->name }}</option>
-                @endforeach
-            </select>
-            <select class="form-select" name="ip_group">
-                <option value="">All IP Groups</option>
-                @foreach($ipGroups as $group)
-                    <option value="{{ $group->id }}">{{ $group->name }}</option>
-                @endforeach
-            </select>
-            <select class="form-select" name="semester">
-                <option value="">All Semesters</option>
-                @foreach($semesters as $semester)
-                    <option value="{{ $semester->id }}">{{ $semester->name }}</option>
-                @endforeach
-            </select>
             <a href="{{ route('staff.reports.download') }}" class="btn btn-primary">Download Report</a>
+            <form method="POST" action="{{ route('staff.logout') }}" class="inline">
+                @csrf
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
         </div>
+    </div>
+
+    <!-- Geographic Filters -->
+    <div class="bg-white p-4 rounded shadow mb-6">
+        <h3 class="font-semibold mb-3 text-gray-800">Geographic Filters</h3>
+        <form id="filter-form" method="GET" action="{{ route('staff.dashboard') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Province</label>
+                <select name="province" id="province-filter" class="form-select w-full border rounded p-2">
+                    <option value="">All Provinces</option>
+                    @foreach($provinces as $province)
+                        <option value="{{ $province }}" {{ $selectedProvince == $province ? 'selected' : '' }}>{{ $province }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Municipality</label>
+                <select name="municipality" id="municipality-filter" class="form-select w-full border rounded p-2">
+                    <option value="">All Municipalities</option>
+                    @foreach($municipalities as $municipality)
+                        <option value="{{ $municipality }}" {{ $selectedMunicipality == $municipality ? 'selected' : '' }}>{{ $municipality }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
+                <select name="barangay" id="barangay-filter" class="form-select w-full border rounded p-2">
+                    <option value="">All Barangays</option>
+                    @foreach($barangays as $barangay)
+                        <option value="{{ $barangay }}" {{ $selectedBarangay == $barangay ? 'selected' : '' }}>{{ $barangay }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">IP Group</label>
+                <select name="ethno" id="ethno-filter" class="form-select w-full border rounded p-2">
+                    <option value="">All IP Groups</option>
+                    @foreach($ethnicities as $ethno)
+                        <option value="{{ $ethno->id }}" {{ $selectedEthno == $ethno->id ? 'selected' : '' }}>{{ $ethno->ethnicity }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </form>
     </div>
 
     <!-- Metrics Cards -->
@@ -287,6 +316,58 @@
         if (!dropdown.contains(event.target) && !bell) {
             dropdown.classList.add('hidden');
         }
+    });
+
+    // Geographic filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const provinceFilter = document.getElementById('province-filter');
+        const municipalityFilter = document.getElementById('municipality-filter');
+        const barangayFilter = document.getElementById('barangay-filter');
+        const ethnoFilter = document.getElementById('ethno-filter');
+        const filterForm = document.getElementById('filter-form');
+
+        // Auto-submit form when filters change
+        [provinceFilter, municipalityFilter, barangayFilter, ethnoFilter].forEach(filter => {
+            filter.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+
+        // Dynamic municipality loading based on province
+        provinceFilter.addEventListener('change', function() {
+            const province = this.value;
+            if (province) {
+                fetch(`/address/municipalities?province=${encodeURIComponent(province)}`)
+                    .then(response => response.json())
+                    .then(municipalities => {
+                        municipalityFilter.innerHTML = '<option value="">All Municipalities</option>';
+                        municipalities.forEach(municipality => {
+                            const option = document.createElement('option');
+                            option.value = municipality;
+                            option.textContent = municipality;
+                            municipalityFilter.appendChild(option);
+                        });
+                    });
+            }
+        });
+
+        // Dynamic barangay loading based on municipality
+        municipalityFilter.addEventListener('change', function() {
+            const municipality = this.value;
+            if (municipality) {
+                fetch(`/address/barangays?municipality=${encodeURIComponent(municipality)}`)
+                    .then(response => response.json())
+                    .then(barangays => {
+                        barangayFilter.innerHTML = '<option value="">All Barangays</option>';
+                        barangays.forEach(barangay => {
+                            const option = document.createElement('option');
+                            option.value = barangay;
+                            option.textContent = barangay;
+                            barangayFilter.appendChild(option);
+                        });
+                    });
+            }
+        });
     });
 </script>
 @endpush 

@@ -55,4 +55,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(\App\Models\BasicInfo::class, 'user_id');
     }
+
+    public function ethno()
+    {
+        return $this->belongsTo(\App\Models\Ethno::class, 'ethno_id');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(\App\Models\Document::class, 'user_id');
+    }
 }

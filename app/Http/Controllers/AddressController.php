@@ -16,4 +16,14 @@ class AddressController extends Controller
             ->pluck('barangay');
         return response()->json($barangays);
     }
+
+    public function municipalitiesByProvince(Request $request)
+    {
+        $province = $request->input('province');
+        $municipalities = Address::where('province', $province)
+            ->where('municipality', '!=', '')
+            ->orderBy('municipality')
+            ->pluck('municipality');
+        return response()->json($municipalities);
+    }
 }

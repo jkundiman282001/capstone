@@ -11,7 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Exclude staff routes from CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            'staff/login',
+            'staff/register',
+            'staff/logout',
+        ]);
+        
+        // Register auth middleware
+        $middleware->alias([
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+            'auth.staff' => \App\Http\Middleware\RedirectIfNotStaff::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
