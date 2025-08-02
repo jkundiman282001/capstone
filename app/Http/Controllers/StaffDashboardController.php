@@ -216,8 +216,59 @@ class StaffDashboardController extends Controller
 
     public function viewApplication($user)
     {
-        $user = User::with(['basicInfo.fullAddress.address', 'ethno'])->findOrFail($user);
-        return view('staff.application-view', compact('user'));
+        $user = User::with([
+            'basicInfo.fullAddress.address', 
+            'ethno', 
+            'documents',
+            'basicInfo.education',
+            'basicInfo.family.ethno',
+            'basicInfo.siblings',
+            'basicInfo.schoolPref',
+            'basicInfo.fullAddress.mailingAddress.address',
+            'basicInfo.fullAddress.permanentAddress.address',
+            'basicInfo.fullAddress.origin.address'
+        ])->findOrFail($user);
+
+        // Extract the related data
+        $basicInfo = $user->basicInfo;
+        $ethno = $user->ethno;
+        
+        // Address data
+        $mailing = $basicInfo->fullAddress->mailingAddress ?? null;
+        $permanent = $basicInfo->fullAddress->permanentAddress ?? null;
+        $origin = $basicInfo->fullAddress->origin ?? null;
+        
+        // Education data
+        $education = $basicInfo->education ?? collect();
+        
+        // Family data
+        $familyFather = $basicInfo->family->where('fam_type', 'father')->first() ?? null;
+        $familyMother = $basicInfo->family->where('fam_type', 'mother')->first() ?? null;
+        
+        // Siblings data
+        $siblings = $basicInfo->siblings ?? collect();
+        
+        // School preference data
+        $schoolPref = $basicInfo->schoolPref ?? null;
+        
+        // Documents data
+        $documents = $user->documents ?? collect();
+        
+        // Required document types
+        $requiredTypes = [
+            'birth_certificate' => 'Certified Birth Certificate',
+            'income_document' => 'Certificate of Low Income',
+            'tribal_certificate' => 'Tribal Certificate',
+            'endorsement' => 'Endorsement Letter',
+            'good_moral' => 'Good Moral Certificate',
+            'grades' => 'Grade Slip'
+        ];
+
+        return view('staff.application-view', compact(
+            'user', 'basicInfo', 'ethno', 'mailing', 'permanent', 'origin',
+            'education', 'familyFather', 'familyMother', 'siblings', 'schoolPref',
+            'documents', 'requiredTypes'
+        ));
     }
 
     public function applicantsList(Request $request)
@@ -279,5 +330,23 @@ class StaffDashboardController extends Controller
             'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedStatus'
         ));
+    }
+
+    public function updateDocumentStatus(Request $request, $document)
+    {
+        $document = Document::findOrFail($document);
+        
+        $validated = $request->validate([
+            'status' => 'required|in:approved,rejected,pending'
+        ]);
+        
+        $document->update([
+            'status' => $validated['status']
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Document status updated successfully'
+        ]);
     }
 } 

@@ -23,4 +23,9 @@ class Family extends Model
         'income',
         'status', // for father's or mother's status (Living/Deceased)
     ];
+
+    public function ethno()
+    {
+        return $this->belongsTo(\App\Models\Ethno::class, 'ethno_id');
+    }
 } 

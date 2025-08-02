@@ -19,9 +19,9 @@
     </div>
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
         <h2 class="font-semibold text-lg mb-2">Address</h2>
-        <div class="mb-2"><strong>Mailing Address:</strong> {{ $mailing->house_num ?? '' }}, {{ $mailing->address_id ? (\App\Models\Address::find($mailing->address_id)->barangay ?? '') : '' }}, {{ $mailing->address_id ? (\App\Models\Address::find($mailing->address_id)->municipality ?? '') : '' }}, {{ $mailing->address_id ? (\App\Models\Address::find($mailing->address_id)->province ?? '') : '' }}</div>
-        <div class="mb-2"><strong>Permanent Address:</strong> {{ $permanent->house_num ?? '' }}, {{ $permanent->address_id ? (\App\Models\Address::find($permanent->address_id)->barangay ?? '') : '' }}, {{ $permanent->address_id ? (\App\Models\Address::find($permanent->address_id)->municipality ?? '') : '' }}, {{ $permanent->address_id ? (\App\Models\Address::find($permanent->address_id)->province ?? '') : '' }}</div>
-        <div class="mb-2"><strong>Place of Origin:</strong> {{ $origin->house_num ?? '' }}, {{ $origin->address_id ? (\App\Models\Address::find($origin->address_id)->barangay ?? '') : '' }}, {{ $origin->address_id ? (\App\Models\Address::find($origin->address_id)->municipality ?? '') : '' }}, {{ $origin->address_id ? (\App\Models\Address::find($origin->address_id)->province ?? '') : '' }}</div>
+        <div class="mb-2"><strong>Mailing Address:</strong> {{ $mailing->house_num ?? '' }}, {{ $mailing->address->barangay ?? '' }}, {{ $mailing->address->municipality ?? '' }}, {{ $mailing->address->province ?? '' }}</div>
+        <div class="mb-2"><strong>Permanent Address:</strong> {{ $permanent->house_num ?? '' }}, {{ $permanent->address->barangay ?? '' }}, {{ $permanent->address->municipality ?? '' }}, {{ $permanent->address->province ?? '' }}</div>
+        <div class="mb-2"><strong>Place of Origin:</strong> {{ $origin->house_num ?? '' }}, {{ $origin->address->barangay ?? '' }}, {{ $origin->address->municipality ?? '' }}, {{ $origin->address->province ?? '' }}</div>
     </div>
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
         <h2 class="font-semibold text-lg mb-2">Education</h2>
@@ -44,7 +44,7 @@
         <div class="mb-2"><strong>Father's Occupation:</strong> {{ $familyFather->occupation ?? '' }}</div>
         <div class="mb-2"><strong>Father's Office Address:</strong> {{ $familyFather->office_address ?? '' }}</div>
         <div class="mb-2"><strong>Father's Educational Attainment:</strong> {{ $familyFather->educational_attainment ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Ethnolinguistic Group:</strong> {{ $familyFather->ethno_id ? (\App\Models\Ethno::find($familyFather->ethno_id)->ethnicity ?? '') : '' }}</div>
+        <div class="mb-2"><strong>Father's Ethnolinguistic Group:</strong> {{ $familyFather->ethno->ethnicity ?? '' }}</div>
         <div class="mb-2"><strong>Father's Income:</strong> {{ $familyFather->income ?? '' }}</div>
         <div class="mb-2"><strong>Mother's Name:</strong> {{ $familyMother->name ?? '' }}</div>
         <div class="mb-2"><strong>Mother's Status:</strong> {{ $familyMother->status ?? '' }}</div>
@@ -52,7 +52,7 @@
         <div class="mb-2"><strong>Mother's Occupation:</strong> {{ $familyMother->occupation ?? '' }}</div>
         <div class="mb-2"><strong>Mother's Office Address:</strong> {{ $familyMother->office_address ?? '' }}</div>
         <div class="mb-2"><strong>Mother's Educational Attainment:</strong> {{ $familyMother->educational_attainment ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Ethnolinguistic Group:</strong> {{ $familyMother->ethno_id ? (\App\Models\Ethno::find($familyMother->ethno_id)->ethnicity ?? '') : '' }}</div>
+        <div class="mb-2"><strong>Mother's Ethnolinguistic Group:</strong> {{ $familyMother->ethno->ethnicity ?? '' }}</div>
         <div class="mb-2"><strong>Mother's Income:</strong> {{ $familyMother->income ?? '' }}</div>
     </div>
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
