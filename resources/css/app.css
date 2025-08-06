@@ -8,4 +8,52 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    
+    /* Cultural Color Palette */
+    --color-earth-brown: #8B4513;
+    --color-forest-green: #228B22;
+    --color-sunrise-orange: #FF8C00;
+    --color-gold: #FFD700;
+    --color-mountain-gray: #6B7280;
+    --color-sky-blue: #87CEEB;
+    --color-clay-red: #CD5C5C;
+}
+
+/* Custom Color Classes */
+.earth-brown { color: var(--color-earth-brown); }
+.bg-earth-brown { background-color: var(--color-earth-brown); }
+.border-earth-brown { border-color: var(--color-earth-brown); }
+
+.forest-green { color: var(--color-forest-green); }
+.bg-forest-green { background-color: var(--color-forest-green); }
+.border-forest-green { border-color: var(--color-forest-green); }
+
+.sunrise-orange { color: var(--color-sunrise-orange); }
+.bg-sunrise-orange { background-color: var(--color-sunrise-orange); }
+.border-sunrise-orange { border-color: var(--color-sunrise-orange); }
+
+.gold { color: var(--color-gold); }
+.bg-gold { background-color: var(--color-gold); }
+.border-gold { border-color: var(--color-gold); }
+
+.mountain-gray { color: var(--color-mountain-gray); }
+.bg-mountain-gray { background-color: var(--color-mountain-gray); }
+.border-mountain-gray { border-color: var(--color-mountain-gray); }
+
+.sky-blue { color: var(--color-sky-blue); }
+.bg-sky-blue { background-color: var(--color-sky-blue); }
+.border-sky-blue { border-color: var(--color-sky-blue); }
+
+.clay-red { color: var(--color-clay-red); }
+.bg-clay-red { background-color: var(--color-clay-red); }
+.border-clay-red { border-color: var(--color-clay-red); }
+
+/* Floating Animation */
+@keyframes floating {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.floating {
+    animation: floating 3s ease-in-out infinite;
 }

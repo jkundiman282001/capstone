@@ -264,10 +264,15 @@ class StaffDashboardController extends Controller
             'grades' => 'Grade Slip'
         ];
 
+        // Calculate progress variables
+        $totalRequired = count($requiredTypes);
+        $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
+        $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
+
         return view('staff.application-view', compact(
             'user', 'basicInfo', 'ethno', 'mailing', 'permanent', 'origin',
             'education', 'familyFather', 'familyMother', 'siblings', 'schoolPref',
-            'documents', 'requiredTypes'
+            'documents', 'requiredTypes', 'totalRequired', 'approvedCount', 'progressPercent'
         ));
     }
 

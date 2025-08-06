@@ -2,7 +2,234 @@
 
 @section('content')
 <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4">Scholarship Application (Read-Only)</h1>
+    <!-- Enhanced Application Header -->
+    <div class="bg-white/95 rounded-2xl shadow-2xl p-8 mb-8 relative overflow-hidden backdrop-blur-sm">
+        <!-- Cultural Pattern Overlay -->
+        <div class="absolute top-0 right-0 w-32 h-32 opacity-10">
+            <div class="w-full h-full bg-gradient-to-br from-gold to-sunrise-orange rounded-full"></div>
+        </div>
+        
+        <div class="flex items-center justify-between mb-8 relative z-10">
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    @if($user->profile_pic)
+                        <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-xl floating">
+                            <img src="{{ asset('storage/' . $user->profile_pic) }}" 
+                                 alt="{{ $user->first_name }} {{ $user->last_name }}" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                    @else
+                        <div class="w-20 h-20 bg-gradient-to-br from-amber-700 via-green-600 to-yellow-400 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-xl floating">
+                            {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                        </div>
+                    @endif
+                    <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                        <span class="text-amber-700 text-sm">🌟</span>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold text-amber-700 mb-2">{{ $user->first_name }} {{ $user->middle_name }} {{ $user->last_name }}</h2>
+                    <p class="text-gray-600 text-lg">Application ID: #NCIP-{{ date('Y') }}-{{ str_pad($user->id, 3, '0', STR_PAD_LEFT) }}</p>
+                    <div class="flex items-center space-x-3 mt-3">
+                        <span class="px-4 py-2 bg-green-100 text-green-700 text-sm font-bold rounded-full border border-green-200">
+                            ✅ Active
+                        </span>
+                        <span class="px-4 py-2 bg-blue-100 text-blue-700 text-sm font-bold rounded-full border border-blue-200">
+                            💻 {{ $schoolPref->degree ?? 'N/A' }}
+                        </span>
+                        <span class="px-4 py-2 bg-yellow-100 text-amber-700 text-sm font-bold rounded-full border border-yellow-200">
+                            🏔️ {{ $ethno->ethnicity ?? 'N/A' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right bg-gradient-to-br from-orange-100 to-yellow-100 p-6 rounded-2xl border border-orange-200">
+                <p class="text-base text-gray-600 font-medium">Application Status</p>
+                <p class="text-2xl font-bold text-orange-600 mt-1">Under Review</p>
+                <p class="text-sm text-gray-500">Under Review</p>
+            </div>
+        </div>
+
+        <!-- Enhanced Progress Bar -->
+        <div class="mb-8 relative z-10">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-lg font-bold text-amber-700 flex items-center">
+                    <span class="mr-2">📄</span> Document Completion
+                </span>
+                <span class="text-xl font-bold text-green-600">{{ $progressPercent }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-2xl h-6 shadow-inner">
+                <div class="bg-gradient-to-r from-green-500 via-orange-500 to-yellow-400 h-6 rounded-2xl transition-all duration-1000 shadow-lg" style="width: {{ $progressPercent }}%"></div>
+            </div>
+            <div class="flex justify-between text-sm text-gray-600 mt-3">
+                <span class="flex items-center"><span class="mr-1">✅</span> {{ $approvedCount }} of {{ $totalRequired }} documents submitted</span>
+                <span class="flex items-center"><span class="mr-1">⏳</span> {{ $totalRequired - $approvedCount }} pending</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Quick Stats with Cultural Icons -->
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white/95 rounded-2xl shadow-xl p-6 relative overflow-hidden backdrop-blur-sm hover:scale-105 transition-transform duration-300">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-green-100 rounded-full -mr-10 -mt-10"></div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-base font-bold text-gray-700 mb-1">Approved</p>
+                    <p class="text-sm text-gray-500">Approved</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ $documents->where('status', 'approved')->count() }}</p>
+                </div>
+                <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">✅</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white/95 rounded-2xl shadow-xl p-6 relative overflow-hidden backdrop-blur-sm hover:scale-105 transition-transform duration-300">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-red-100 rounded-full -mr-10 -mt-10"></div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-base font-bold text-gray-700 mb-1">Missing</p>
+                    <p class="text-sm text-gray-500">Missing</p>
+                    <p class="text-3xl font-bold text-red-600 mt-2">{{ $totalRequired - $documents->whereIn('type', array_keys($requiredTypes))->count() }}</p>
+                </div>
+                <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">❌</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white/95 rounded-2xl shadow-xl p-6 relative overflow-hidden backdrop-blur-sm hover:scale-105 transition-transform duration-300">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-orange-100 rounded-full -mr-10 -mt-10"></div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-base font-bold text-gray-700 mb-1">In Review</p>
+                    <p class="text-sm text-gray-500">In Review</p>
+                    <p class="text-3xl font-bold text-orange-600 mt-2">{{ $documents->where('status', 'pending')->count() }}</p>
+                </div>
+                <div class="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">⏳</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white/95 rounded-2xl shadow-xl p-6 relative overflow-hidden backdrop-blur-sm hover:scale-105 transition-transform duration-300">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-full -mr-10 -mt-10"></div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-base font-bold text-gray-700 mb-1">Total</p>
+                    <p class="text-sm text-gray-500">Total</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ $totalRequired }}</p>
+                </div>
+                <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">📊</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Documents Section -->
+    <div class="bg-white/95 rounded-2xl shadow-2xl p-8 mb-8 backdrop-blur-sm">
+        <div class="mb-8">
+            <h3 class="text-2xl font-bold text-amber-700 flex items-center">
+                <span class="mr-3">📋</span> Required Documents
+            </h3>
+        </div>
+
+        <div class="space-y-4">
+            @foreach($requiredTypes as $typeKey => $typeLabel)
+                @php
+                    $uploaded = $documents->firstWhere('type', $typeKey);
+                    $status = $uploaded ? $uploaded->status : 'missing';
+                    
+                    // Get appropriate icon for each document type
+                    $icon = match($typeKey) {
+                        'birth_certificate' => '📋',
+                        'income_document' => '💰',
+                        'tribal_certificate' => '🏔️',
+                        'endorsement' => '✅',
+                        'good_moral' => '🤝',
+                        'grades' => '📚',
+                        default => '📄'
+                    };
+                @endphp
+                
+                @if($status === 'approved')
+                    <!-- Approved Document -->
+                    <div class="flex items-center justify-between p-6 bg-gradient-to-r from-green-100 to-green-50 border-2 border-green-300 rounded-2xl hover:shadow-lg transition-all duration-300">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-green-600 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-xl">✅</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-amber-700 text-lg">{{ $typeLabel }}</h4>
+                                <p class="text-green-600 font-medium">Approved • Uploaded {{ $uploaded->created_at->diffForHumans() }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-4 py-2 bg-green-600 text-white font-bold rounded-xl">✓ Accepted</span>
+                            <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-xl hover:bg-blue-200 transition-colors">View</button>
+                        </div>
+                    </div>
+                @elseif($status === 'pending')
+                    <!-- Pending Document -->
+                    <div class="flex items-center justify-between p-6 bg-gradient-to-r from-orange-100 to-orange-50 border-2 border-orange-300 rounded-2xl hover:shadow-lg transition-all duration-300">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-xl">⏳</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-amber-700 text-lg">{{ $typeLabel }}</h4>
+                                <p class="text-orange-600 font-medium">Pending Review • Uploaded {{ $uploaded->created_at->diffForHumans() }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-4 py-2 bg-orange-500 text-white font-bold rounded-xl">Pending</span>
+                            <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-xl hover:bg-blue-200 transition-colors">View</button>
+                            <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-xl hover:bg-green-200 transition-colors">Accept</button>
+                            <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'rejected')" class="px-4 py-2 bg-red-100 text-red-700 font-semibold rounded-xl hover:bg-red-200 transition-colors">Reject</button>
+                        </div>
+                    </div>
+                @elseif($status === 'rejected')
+                    <!-- Rejected Document -->
+                    <div class="flex items-center justify-between p-6 bg-gradient-to-r from-red-100 to-red-50 border-2 border-red-300 rounded-2xl hover:shadow-lg transition-all duration-300">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-xl">✗</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-amber-700 text-lg">{{ $typeLabel }}</h4>
+                                <p class="text-red-600 font-medium">Rejected • Uploaded {{ $uploaded->created_at->diffForHumans() }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-4 py-2 bg-red-600 text-white font-bold rounded-xl">Rejected</span>
+                            <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-xl hover:bg-blue-200 transition-colors">View</button>
+                        </div>
+                    </div>
+                @else
+                    <!-- Missing Document -->
+                    <div class="flex items-center justify-between p-6 bg-gradient-to-r from-red-100 to-red-50 border-2 border-red-300 rounded-2xl hover:shadow-lg transition-all duration-300">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-xl">{{ $icon }}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-amber-700 text-lg">{{ $typeLabel }}</h4>
+                                <p class="text-red-600 font-medium">Missing • {{ $typeLabel }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-4 py-2 bg-red-600 text-white font-bold rounded-xl">Missing</span>
+                        </div>
+                    </div>
+                @endif
+                @if($typeKey === 'grades' && $uploaded)
+                    <button onclick="showGradesViewer()" class="px-4 py-2 bg-purple-100 text-purple-700 font-semibold rounded-xl hover:bg-purple-200 transition-colors">View Grades</button>
+                @endif
+            @endforeach
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
         <h2 class="font-semibold text-lg mb-2">Personal Info</h2>
         <div><strong>Type of Assistance:</strong> {{ $basicInfo->type_assist }}</div>
@@ -81,96 +308,7 @@
         <div class="mb-2"><strong>Second Preference No. of Years:</strong> {{ $schoolPref->num_years2 ?? '' }}</div>
         <div class="mb-2"><strong>Contribution to Community:</strong> {{ $schoolPref->ques_answer1 ?? '' }}</div>
         <div class="mb-2"><strong>Plans After Graduation:</strong> {{ $schoolPref->ques_answer2 ?? '' }}</div>
-    </div>
 
-    <!-- Documents Section -->
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-4">Uploaded Documents</h2>
-        
-        <!-- PDF Notice -->
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-lg mb-4">
-            <div class="flex items-center gap-2 text-sm text-blue-700">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span><strong>File Format:</strong> Only PDF files are accepted for document uploads (max 10MB)</span>
-            </div>
-        </div>
-        
-        @php
-            $totalRequired = count($requiredTypes);
-            $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
-            $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
-        @endphp
-        
-        <div class="mb-6">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-semibold text-gray-700">Document Approval Progress</span>
-                <span class="text-sm font-bold text-blue-600">{{ $progressPercent }}%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            @foreach($requiredTypes as $typeKey => $typeLabel)
-                @php
-                    $uploaded = $documents->firstWhere('type', $typeKey);
-                    $status = $uploaded ? $uploaded->status : 'missing';
-                @endphp
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            @if($status === 'approved')
-                                <span class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">✓</span>
-                            @elseif($status === 'pending')
-                                <span class="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center text-white text-sm font-bold">!</span>
-                            @elseif($status === 'rejected')
-                                <span class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-bold">✗</span>
-                            @else
-                                <span class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-bold">×</span>
-                            @endif
-                            <div>
-                                <span class="font-semibold text-gray-900">{{ $typeLabel }}</span>
-                                <div class="flex items-center gap-2 mt-1">
-                                    @if($status === 'approved')
-                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">Approved</span>
-                                    @elseif($status === 'pending')
-                                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">Pending</span>
-                                    @elseif($status === 'rejected')
-                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">Rejected</span>
-                                    @else
-                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">Missing</span>
-                                    @endif
-                                    @if($uploaded)
-                                        <span class="text-gray-500 text-xs">• Uploaded {{ $uploaded->created_at->diffForHumans() }}</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            @if($uploaded)
-                                <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition">View</button>
-                                @if($uploaded->status === 'pending')
-                                    <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm font-semibold hover:bg-green-700 transition">Accept</button>
-                                    <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'rejected')" class="px-3 py-1.5 bg-red-600 text-white rounded text-sm font-semibold hover:bg-red-700 transition">Reject</button>
-                                @elseif($uploaded->status === 'approved')
-                                    <span class="px-3 py-1.5 bg-green-100 text-green-800 rounded text-sm font-semibold">✓ Accepted</span>
-                                @elseif($uploaded->status === 'rejected')
-                                    <span class="px-3 py-1.5 bg-red-100 text-red-800 rounded text-sm font-semibold">✗ Rejected</span>
-                                    <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm font-semibold hover:bg-green-700 transition">Accept</button>
-                                @endif
-                                <span class="text-xs text-gray-500 ml-2">{{ $uploaded->filename }}</span>
-                            @else
-                                <span class="text-gray-400 text-sm">Not uploaded</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
 
     <a href="{{ route('staff.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
 </div>
@@ -210,6 +348,52 @@
                 <button onclick="printDocument()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition">Print</button>
             </div>
             <button onclick="closeDocumentModal()" class="px-4 py-2 bg-gray-600 text-white rounded text-sm font-semibold hover:bg-gray-700 transition">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Grades Viewer Modal -->
+<div id="gradesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-2">
+    <div class="bg-white rounded-lg shadow-xl w-[90vw] max-w-2xl flex flex-col">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Student Grades</h3>
+            <button onclick="closeGradesModal()" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 p-6 overflow-auto">
+            <div class="mb-4 text-gray-600 text-sm">This is a preview UI for the student's grades. (AI extraction coming soon)</div>
+            <table class="min-w-full border text-sm">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-4 py-2 border">Subject</th>
+                        <th class="px-4 py-2 border">Grade</th>
+                        <th class="px-4 py-2 border">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="px-4 py-2 border">Sample Subject 1</td>
+                        <td class="px-4 py-2 border">1.25</td>
+                        <td class="px-4 py-2 border">Passed</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-2 border">Sample Subject 2</td>
+                        <td class="px-4 py-2 border">1.50</td>
+                        <td class="px-4 py-2 border">Passed</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-2 border">Sample Subject 3</td>
+                        <td class="px-4 py-2 border">2.00</td>
+                        <td class="px-4 py-2 border">Passed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="flex items-center justify-end p-4 border-t border-gray-200">
+            <button onclick="closeGradesModal()" class="px-4 py-2 bg-gray-600 text-white rounded text-sm font-semibold hover:bg-gray-700 transition">Close</button>
         </div>
     </div>
 </div>
@@ -358,5 +542,23 @@ document.addEventListener('keydown', function(e) {
         closeDocumentModal();
     }
 });
+
+function showGradesViewer() {
+    document.getElementById('gradesModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeGradesModal() {
+    document.getElementById('gradesModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+// Optional: Close modal with Escape key
+if (!window._gradesModalEscapeListener) {
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGradesModal();
+        }
+    });
+    window._gradesModalEscapeListener = true;
+}
 </script>
 @endsection

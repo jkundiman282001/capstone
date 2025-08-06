@@ -354,7 +354,7 @@
             @if($uploaded)
               <a href="{{ asset('storage/' . $uploaded->filepath) }}" target="_blank" class="inline-block px-5 py-2 bg-blue-600/90 text-white rounded-full text-xs font-bold shadow hover:bg-blue-700/90 transition">View</a>
             @endif
-            @if(!$uploaded)
+            @if(!$uploaded || ($uploaded && $uploaded->status === 'rejected'))
               <form method="POST" action="{{ route('documents.upload') }}" enctype="multipart/form-data" class="flex items-center gap-2 w-full md:w-auto">
                 @csrf
                 <input type="hidden" name="type" value="{{ $typeKey }}">
@@ -362,7 +362,9 @@
                   <input type="file" name="upload-file" required class="block text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf">
                   <span class="text-xs text-gray-500">PDF files only (max 10MB)</span>
                 </div>
-                <button type="submit" class="px-5 py-2 bg-orange-500/90 text-white rounded-full text-xs font-bold shadow hover:bg-orange-700/90 transition">Upload</button>
+                <button type="submit" class="px-5 py-2 bg-orange-500/90 text-white rounded-full text-xs font-bold shadow hover:bg-orange-700/90 transition">
+                  {{ $uploaded && $uploaded->status === 'rejected' ? 'Re-upload' : 'Upload' }}
+                </button>
               </form>
             @endif
           </div>
