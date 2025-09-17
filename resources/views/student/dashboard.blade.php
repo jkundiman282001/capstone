@@ -138,7 +138,7 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <div class="text-2xl font-bold">
-                            <span class="text-orange-400">IndiGenSys</span>
+                            <span class="text-orange-400">NCIP-EAP</span>
                         </div>
                     </div>
                     
@@ -213,13 +213,13 @@
                 <!-- Left Content -->
                 <div class="space-y-8">
                 <h1 class="text-5xl lg:text-7xl font-bold leading-tight">
-                    <span class="hero-text">FIND THE PERFECT</span><br>
-                    <span class="text-white">SCHOLARSHIP</span><br>
-                    <span class="hero-text">OPPORTUNITY</span>
+                    <span class="hero-text">NCIP</span><br>
+                    <span class="text-white">EDUCATIONAL</span><br>
+                    <span class="hero-text">ASSISTANCE PROGRAM</span>
                 </h1>
                 
                 <p class="text-xl text-gray-200 leading-relaxed max-w-2xl">
-                    Receive personalized recommendations and guidance for your academic journey as an Indigenous Youth. Apply, track, and succeed with the IP Scholar Portal.
+                    Receive personalized recommendations and guidance for your academic journey as an Indigenous Youth. Apply, track, and succeed with the NCIP-EAP.
                 </p>
                 
                 <button onclick="window.location.href='{{ url('student/apply') }}'" class="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all pulse-glow">

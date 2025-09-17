@@ -100,10 +100,6 @@
           <img src="{{ asset('National_Commission_on_Indigenous_Peoples_(NCIP).png') }}" alt="NCIP Logo" class="h-20 mx-auto" />
         </div>
       </div>
-      <div class="flex justify-center mb-6">
-        <button id="showLogin" class="px-4 py-2 font-semibold rounded-l bg-orange-600 text-white focus:outline-none">Login</button>
-        <button id="showRegister" class="px-4 py-2 font-semibold rounded-r bg-orange-100 text-orange-600 focus:outline-none">Sign Up</button>
-      </div>
       <!-- Login Form -->
       <div id="loginForm">
         <h2 class="text-2xl font-bold mb-6 text-center text-orange-600">NCIP Staff Login</h2>

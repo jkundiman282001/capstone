@@ -224,7 +224,7 @@
                     </div>
                 @endif
                 @if($typeKey === 'grades' && $uploaded)
-                    <button onclick="showGradesViewer()" class="px-4 py-2 bg-purple-100 text-purple-700 font-semibold rounded-xl hover:bg-purple-200 transition-colors">View Grades</button>
+                    <button onclick="showGradesViewer(this)" data-user-id="{{ $user->id }}" class="px-4 py-2 bg-purple-100 text-purple-700 font-semibold rounded-xl hover:bg-purple-200 transition-colors">View Grades</button>
                 @endif
             @endforeach
         </div>
@@ -356,7 +356,7 @@
 <div id="gradesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-2">
     <div class="bg-white rounded-lg shadow-xl w-[90vw] max-w-2xl flex flex-col">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Student Grades</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Extracted Grades Text</h3>
             <button onclick="closeGradesModal()" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -364,33 +364,8 @@
             </button>
         </div>
         <div class="flex-1 p-6 overflow-auto">
-            <div class="mb-4 text-gray-600 text-sm">This is a preview UI for the student's grades. (AI extraction coming soon)</div>
-            <table class="min-w-full border text-sm">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-4 py-2 border">Subject</th>
-                        <th class="px-4 py-2 border">Grade</th>
-                        <th class="px-4 py-2 border">Remarks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="px-4 py-2 border">Sample Subject 1</td>
-                        <td class="px-4 py-2 border">1.25</td>
-                        <td class="px-4 py-2 border">Passed</td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-2 border">Sample Subject 2</td>
-                        <td class="px-4 py-2 border">1.50</td>
-                        <td class="px-4 py-2 border">Passed</td>
-                    </tr>
-                    <tr>
-                        <td class="px-4 py-2 border">Sample Subject 3</td>
-                        <td class="px-4 py-2 border">2.00</td>
-                        <td class="px-4 py-2 border">Passed</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="mb-4 text-gray-600 text-sm">Below is the raw extracted text from the student's grades PDF.</div>
+            <pre id="gradesText" class="bg-gray-100 p-4 rounded text-sm text-gray-800 whitespace-pre-wrap">Loading...</pre>
         </div>
         <div class="flex items-center justify-end p-4 border-t border-gray-200">
             <button onclick="closeGradesModal()" class="px-4 py-2 bg-gray-600 text-white rounded text-sm font-semibold hover:bg-gray-700 transition">Close</button>
@@ -423,7 +398,7 @@ function viewDocument(url, filename, filetype) {
         message.innerHTML = `
             <div class="text-center">
                 <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <p class="text-lg font-semibold mb-2">Non-PDF File Detected</p>
                 <p class="text-sm mb-4">This file is not in PDF format. Only PDF files are accepted for document uploads.</p>
@@ -543,13 +518,41 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-function showGradesViewer() {
+function showGradesViewer(btn) {
+    const userId = btn ? btn.getAttribute('data-user-id') : null;
     document.getElementById('gradesModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    if (!userId) return;
+    const gradesText = document.getElementById('gradesText');
+    gradesText.textContent = 'Loading...';
+    fetch(`/staff/grades/${userId}`)
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(data => {
+                    throw new Error(data.error || 'Failed to contact AI service.');
+                }).catch(() => {
+                    throw new Error('Failed to contact AI service.');
+                });
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success && typeof data.text === 'string') {
+                gradesText.textContent = data.text.trim() ? data.text : 'No text found in document.';
+            } else {
+                gradesText.textContent = data.error || 'Failed to extract text.';
+            }
+        })
+        .catch((error) => {
+            console.error('Error contacting AI service:', error);
+            gradesText.textContent = (error.message || 'Error contacting AI service.') + '\nClick Retry below.';
+            gradesText.insertAdjacentHTML('afterend', `<button onclick='retryGradesViewer(${userId})' class='mt-2 px-4 py-2 bg-purple-100 text-purple-700 rounded'>Retry</button>`);
+        });
 }
-function closeGradesModal() {
-    document.getElementById('gradesModal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
+
+function retryGradesViewer(userId) {
+    // Simulate a button object for showGradesViewer
+    showGradesViewer({ getAttribute: () => userId });
 }
 // Optional: Close modal with Escape key
 if (!window._gradesModalEscapeListener) {

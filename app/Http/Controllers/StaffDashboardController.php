@@ -10,6 +10,7 @@ use App\Models\Address;
 use App\Models\Document;
 use App\Models\Ethno;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class StaffDashboardController extends Controller
 {
@@ -354,4 +355,21 @@ class StaffDashboardController extends Controller
             'message' => 'Document status updated successfully'
         ]);
     }
-} 
+
+    public function extractGrades($userId)
+    {
+        $user = \App\Models\User::with('documents')->findOrFail($userId);
+        $gradesDoc = $user->documents->where('type', 'grades')->first();
+        if ($gradesDoc) {
+            $pdfPath = storage_path('app/' . $gradesDoc->filepath);
+            $gemini = new \App\Services\GeminiService();
+            if (!file_exists($pdfPath)) {
+                return response()->json(['success' => false, 'error' => 'Grades document file not found.'], 404);
+            }
+            $text = $gemini->extractGradesTextFromPdf($pdfPath);
+            return response()->json(['success' => true, 'text' => $text]);
+        } else {
+            return response()->json(['success' => false, 'error' => 'No grades document found.'], 404);
+        }
+    }
+}
