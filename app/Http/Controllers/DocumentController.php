@@ -41,6 +41,10 @@ class DocumentController extends Controller
         $document->type = $request->type;
         $document->save();
 
+        // Calculate document priority (First Come, First Serve)
+        $priorityService = new \App\Services\DocumentPriorityService();
+        $priorityService->onDocumentUploaded($document);
+
         // Notify all staff
         $student = $user;
         $documentType = $request->type;

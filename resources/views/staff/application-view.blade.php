@@ -129,10 +129,19 @@
 
     <!-- Enhanced Documents Section -->
     <div class="bg-white/95 rounded-2xl shadow-2xl p-8 mb-8 backdrop-blur-sm">
-        <div class="mb-8">
+        <div class="mb-8 flex items-center justify-between">
+            <div>
             <h3 class="text-2xl font-bold text-amber-700 flex items-center">
                 <span class="mr-3">📋</span> Required Documents
             </h3>
+                <p class="text-sm text-gray-600 mt-1">Priority: First Come, First Serve</p>
+            </div>
+            <button onclick="recalculateDocumentPriorities()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Recalculate Priorities
+            </button>
         </div>
 
         <div class="space-y-4">
@@ -171,15 +180,61 @@
                         </div>
                     </div>
                 @elseif($status === 'pending')
-                    <!-- Pending Document -->
-                    <div class="flex items-center justify-between p-6 bg-gradient-to-r from-orange-100 to-orange-50 border-2 border-orange-300 rounded-2xl hover:shadow-lg transition-all duration-300">
+                    <!-- Pending Document with Priority -->
+                    @php
+                        $priorityRank = $uploaded->priority_rank ?? null;
+                        $waitingHours = $uploaded->waiting_hours ?? 0;
+                        $submittedAt = $uploaded->submitted_at ?? $uploaded->created_at;
+                        
+                        // Priority badge color
+                        $priorityBadgeColor = 'bg-gray-500';
+                        $priorityText = 'Not Ranked';
+                        if ($priorityRank) {
+                            if ($priorityRank <= 10) {
+                                $priorityBadgeColor = 'bg-red-600';
+                                $priorityText = 'High Priority';
+                            } elseif ($priorityRank <= 50) {
+                                $priorityBadgeColor = 'bg-orange-600';
+                                $priorityText = 'Medium Priority';
+                            } else {
+                                $priorityBadgeColor = 'bg-yellow-600';
+                                $priorityText = 'Low Priority';
+                            }
+                        }
+                    @endphp
+                    <div class="flex items-center justify-between p-6 bg-gradient-to-r from-orange-100 to-orange-50 border-2 border-orange-300 rounded-2xl hover:shadow-lg transition-all duration-300 relative">
+                        @if($priorityRank)
+                            <div class="absolute top-2 right-2 flex items-center space-x-2">
+                                <span class="px-3 py-1 {{ $priorityBadgeColor }} text-white text-xs font-bold rounded-full">
+                                    {{ $priorityText }}
+                                </span>
+                                <span class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">
+                                    Rank #{{ $priorityRank }}
+                                </span>
+                            </div>
+                        @endif
                         <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center">
+                            <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center relative">
                                 <span class="text-white text-xl">⏳</span>
+                                @if($priorityRank && $priorityRank <= 10)
+                                    <div class="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white text-xs font-bold">!</span>
+                                    </div>
+                                @endif
                             </div>
                             <div>
                                 <h4 class="font-bold text-amber-700 text-lg">{{ $typeLabel }}</h4>
-                                <p class="text-orange-600 font-medium">Pending Review • Uploaded {{ $uploaded->created_at->diffForHumans() }}</p>
+                                <p class="text-orange-600 font-medium">Pending Review • Uploaded {{ $submittedAt->diffForHumans() }}</p>
+                                @if($waitingHours > 0)
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        ⏱️ Waiting for {{ $waitingHours }} {{ Str::plural('hour', $waitingHours) }} 
+                                        @if($waitingHours >= 72)
+                                            <span class="text-red-600 font-bold">(Urgent!)</span>
+                                        @elseif($waitingHours >= 48)
+                                            <span class="text-orange-600 font-bold">(Priority)</span>
+                                        @endif
+                                    </p>
+                                @endif
                             </div>
                         </div>
                         <div class="flex items-center space-x-3">
@@ -230,87 +285,943 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-2">Personal Info</h2>
-        <div><strong>Type of Assistance:</strong> {{ $basicInfo->type_assist }}</div>
-        <div><strong>First Name:</strong> {{ $user->first_name }}</div>
-        <div><strong>Middle Name:</strong> {{ $user->middle_name }}</div>
-        <div><strong>Last Name:</strong> {{ $user->last_name }}</div>
-        <div><strong>Email:</strong> {{ $user->email }}</div>
-        <div><strong>Contact Number:</strong> {{ $user->contact_num }}</div>
-        <div><strong>Date of Birth:</strong> {{ $basicInfo->birthdate }}</div>
-        <div><strong>Place of Birth:</strong> {{ $basicInfo->birthplace }}</div>
-        <div><strong>Gender:</strong> {{ $basicInfo->gender }}</div>
-        <div><strong>Civil Status:</strong> {{ $basicInfo->civil_status }}</div>
-        <div><strong>Ethnolinguistic Group:</strong> {{ $ethno->ethnicity ?? '' }}</div>
+    <!-- Priority Score Breakdown Section -->
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-xl p-8 mb-8 border border-blue-200">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-blue-800 flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Priority Score Analysis
+                </h2>
+                <p class="text-blue-600 mt-1">Weighted algorithm evaluation for scholarship prioritization</p>
     </div>
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-2">Address</h2>
-        <div class="mb-2"><strong>Mailing Address:</strong> {{ $mailing->house_num ?? '' }}, {{ $mailing->address->barangay ?? '' }}, {{ $mailing->address->municipality ?? '' }}, {{ $mailing->address->province ?? '' }}</div>
-        <div class="mb-2"><strong>Permanent Address:</strong> {{ $permanent->house_num ?? '' }}, {{ $permanent->address->barangay ?? '' }}, {{ $permanent->address->municipality ?? '' }}, {{ $permanent->address->province ?? '' }}</div>
-        <div class="mb-2"><strong>Place of Origin:</strong> {{ $origin->house_num ?? '' }}, {{ $origin->address->barangay ?? '' }}, {{ $origin->address->municipality ?? '' }}, {{ $origin->address->province ?? '' }}</div>
+            <div class="text-right">
+                @if($user->applicantScore)
+                    <div class="text-3xl font-bold 
+                        @if($user->applicantScore->total_score >= 80) text-red-600
+                        @elseif($user->applicantScore->total_score >= 60) text-orange-600
+                        @elseif($user->applicantScore->total_score >= 40) text-yellow-600
+                        @else text-gray-600 @endif">
+                        {{ number_format($user->applicantScore->total_score, 1) }}/100
     </div>
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-2">Education</h2>
-        @foreach($education as $edu)
-            <div class="mb-2">
-                <strong>Category:</strong> {{ $edu->category }}<br>
-                <strong>School Name:</strong> {{ $edu->school_name }}<br>
-                <strong>School Type:</strong> {{ $edu->school_type }}<br>
-                <strong>Year Graduate:</strong> {{ $edu->year_grad }}<br>
-                <strong>Grade Average:</strong> {{ $edu->grade_ave }}<br>
-                <strong>Rank:</strong> {{ $edu->rank }}
+                    <div class="text-sm text-blue-600 font-medium">
+                        @if($user->applicantScore->priority_rank)
+                            Rank #{{ $user->applicantScore->priority_rank }}
+                        @else
+                            Not Ranked
+                        @endif
             </div>
-        @endforeach
+                    <div class="text-xs px-3 py-1 rounded-full mt-2
+                        @if($user->applicantScore->total_score >= 80) bg-red-100 text-red-700
+                        @elseif($user->applicantScore->total_score >= 60) bg-orange-100 text-orange-700
+                        @elseif($user->applicantScore->total_score >= 40) bg-yellow-100 text-yellow-700
+                        @else bg-gray-100 text-gray-700 @endif">
+                        {{ $user->applicantScore->priority_level }}
     </div>
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-2">Family</h2>
-        <div class="mb-2"><strong>Father's Name:</strong> {{ $familyFather->name ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Status:</strong> {{ $familyFather->status ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Address:</strong> {{ $familyFather->address ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Occupation:</strong> {{ $familyFather->occupation ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Office Address:</strong> {{ $familyFather->office_address ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Educational Attainment:</strong> {{ $familyFather->educational_attainment ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Ethnolinguistic Group:</strong> {{ $familyFather->ethno->ethnicity ?? '' }}</div>
-        <div class="mb-2"><strong>Father's Income:</strong> {{ $familyFather->income ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Name:</strong> {{ $familyMother->name ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Status:</strong> {{ $familyMother->status ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Address:</strong> {{ $familyMother->address ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Occupation:</strong> {{ $familyMother->occupation ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Office Address:</strong> {{ $familyMother->office_address ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Educational Attainment:</strong> {{ $familyMother->educational_attainment ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Ethnolinguistic Group:</strong> {{ $familyMother->ethno->ethnicity ?? '' }}</div>
-        <div class="mb-2"><strong>Mother's Income:</strong> {{ $familyMother->income ?? '' }}</div>
+                @else
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500 mb-2">No Score Available</div>
+                        <button onclick="calculateScore({{ $user->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+                            Calculate Score
+                        </button>
     </div>
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-2">Siblings</h2>
-        @forelse($siblings as $sibling)
-            <div class="mb-2 border-b pb-2">
-                <strong>Name:</strong> {{ $sibling->name }}<br>
-                <strong>Age:</strong> {{ $sibling->age }}<br>
-                <strong>Scholarship:</strong> {{ $sibling->scholarship }}<br>
-                <strong>Course/Year Level:</strong> {{ $sibling->course_year }}<br>
-                <strong>Status:</strong> {{ $sibling->present_status }}
+                @endif
+            </div>
+        </div>
+
+        @if($user->applicantScore)
+            <!-- Score Breakdown Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Financial Need Score -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-green-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                            Financial Need
+                        </h3>
+                        <span class="text-2xl font-bold text-green-600">{{ number_format($user->applicantScore->financial_need_score, 1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div class="bg-green-500 h-3 rounded-full transition-all duration-1000" style="width: {{ $user->applicantScore->financial_need_score }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        <strong>Weight:</strong> 25% (Highest Priority)<br>
+                        <strong>Factors:</strong> Family income, unemployed parents, siblings in school
+                    </div>
+                </div>
+
+                <!-- Academic Performance Score -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                            Academic Performance
+                        </h3>
+                        <span class="text-2xl font-bold text-blue-600">{{ number_format($user->applicantScore->academic_performance_score, 1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div class="bg-blue-500 h-3 rounded-full transition-all duration-1000" style="width: {{ $user->applicantScore->academic_performance_score }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        <strong>Weight:</strong> 20%<br>
+                        <strong>Factors:</strong> GPA, class ranking, academic honors
+                    </div>
+                </div>
+
+                <!-- Document Completeness Score -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-purple-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Document Completeness
+                        </h3>
+                        <span class="text-2xl font-bold text-purple-600">{{ number_format($user->applicantScore->document_completeness_score, 1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div class="bg-purple-500 h-3 rounded-full transition-all duration-1000" style="width: {{ $user->applicantScore->document_completeness_score }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        <strong>Weight:</strong> 15%<br>
+                        <strong>Factors:</strong> Required documents status, submission timing
+                    </div>
+                </div>
+
+                <!-- Geographic Priority Score -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-orange-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Geographic Priority
+                        </h3>
+                        <span class="text-2xl font-bold text-orange-600">{{ number_format($user->applicantScore->geographic_priority_score, 1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div class="bg-orange-500 h-3 rounded-full transition-all duration-1000" style="width: {{ $user->applicantScore->geographic_priority_score }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        <strong>Weight:</strong> 15%<br>
+                        <strong>Factors:</strong> Priority provinces/municipalities, rural areas
+                    </div>
+                </div>
+
+                <!-- Indigenous Heritage Score -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-amber-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            Indigenous Heritage
+                        </h3>
+                        <span class="text-2xl font-bold text-amber-600">{{ number_format($user->applicantScore->indigenous_heritage_score, 1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div class="bg-amber-500 h-3 rounded-full transition-all duration-1000" style="width: {{ $user->applicantScore->indigenous_heritage_score }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        <strong>Weight:</strong> 15%<br>
+                        <strong>Factors:</strong> Indigenous ethnicity, cultural heritage
+                    </div>
+                </div>
+
+                <!-- Family Situation Score -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-pink-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Family Situation
+                        </h3>
+                        <span class="text-2xl font-bold text-pink-600">{{ number_format($user->applicantScore->family_situation_score, 1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                        <div class="bg-pink-500 h-3 rounded-full transition-all duration-1000" style="width: {{ $user->applicantScore->family_situation_score }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        <strong>Weight:</strong> 10%<br>
+                        <strong>Factors:</strong> Single parent, elderly/disabled members, family size
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scoring Notes -->
+            @if($user->applicantScore->scoring_notes)
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="font-bold text-gray-800 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Scoring Analysis Notes
+                    </h3>
+                    <div class="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">
+                        {{ $user->applicantScore->scoring_notes }}
+                    </div>
+                </div>
+            @endif
+
+            <!-- Last Calculated Info -->
+            <div class="mt-4 text-xs text-gray-500 text-center">
+                Score last calculated: {{ $user->applicantScore->last_calculated_at ? $user->applicantScore->last_calculated_at->format('M d, Y g:i A') : 'Never' }}
+                <button onclick="recalculateScore({{ $user->id }})" class="ml-2 text-blue-600 hover:text-blue-800 underline">
+                    Recalculate
+                </button>
+            </div>
+        @else
+            <!-- No Score Available -->
+            <div class="bg-white rounded-xl p-8 text-center shadow-lg">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">No Priority Score Available</h3>
+                <p class="text-gray-500 mb-4">This applicant hasn't been scored yet. Click the button below to calculate their priority score using our weighted algorithm.</p>
+                <button onclick="calculateScore({{ $user->id }})" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Calculate Priority Score
+                </button>
+            </div>
+        @endif
+    </div>
+
+    <!-- Personal Information Section -->
+    <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl p-8 mb-8 border border-blue-100">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">Personal Information</h2>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-blue-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Type of Assistance</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $basicInfo->type_assist ?? 'N/A' }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-green-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Email</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $user->email }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-purple-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Contact Number</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $user->contact_num ?? 'Not provided' }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-orange-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Date of Birth</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $basicInfo->birthdate ?? 'N/A' }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-pink-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-pink-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Place of Birth</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $basicInfo->birthplace ?? 'N/A' }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-indigo-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Gender</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $basicInfo->gender ?? 'N/A' }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-teal-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-teal-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Civil Status</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $basicInfo->civil_status ?? 'N/A' }}</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-5 shadow-md border-l-4 border-amber-500">
+                <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-500 uppercase">Ethnolinguistic Group</span>
+                </div>
+                <p class="text-lg font-bold text-gray-800">{{ $ethno->ethnicity ?? 'Not specified' }}</p>
+            </div>
+        </div>
+
+        <!-- Full Name Display -->
+        <div class="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+            <div class="flex items-center mb-2">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="text-sm font-semibold uppercase opacity-90">Full Name</span>
+            </div>
+            <p class="text-2xl font-bold">{{ $user->first_name }} {{ $user->middle_name }} {{ $user->last_name }}</p>
+        </div>
+    </div>
+
+    <!-- Address Information Section -->
+    <div class="bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-xl p-8 mb-8 border border-green-100">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">Address Information</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Mailing Address -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-t-4 border-blue-500">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">Mailing Address</h3>
+                </div>
+                @if($mailing && $mailing->address)
+                    <div class="space-y-2 text-gray-700">
+                        <p class="flex items-start">
+                            <span class="font-semibold mr-2">📍</span>
+                            <span>{{ $mailing->house_num ?? '' }}, {{ $mailing->address->barangay ?? '' }}, {{ $mailing->address->municipality ?? '' }}, {{ $mailing->address->province ?? '' }}</span>
+                        </p>
+                    </div>
+                @else
+                    <p class="text-gray-400 italic">Not provided</p>
+                @endif
+            </div>
+
+            <!-- Permanent Address -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-t-4 border-green-500">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">Permanent Address</h3>
+                </div>
+                @if($permanent && $permanent->address)
+                    <div class="space-y-2 text-gray-700">
+                        <p class="flex items-start">
+                            <span class="font-semibold mr-2">🏠</span>
+                            <span>{{ $permanent->house_num ?? '' }}, {{ $permanent->address->barangay ?? '' }}, {{ $permanent->address->municipality ?? '' }}, {{ $permanent->address->province ?? '' }}</span>
+                        </p>
+                    </div>
+                @else
+                    <p class="text-gray-400 italic">Not provided</p>
+                @endif
+            </div>
+
+            <!-- Place of Origin -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-t-4 border-amber-500">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">Place of Origin</h3>
+                </div>
+                @if($origin && $origin->address)
+                    <div class="space-y-2 text-gray-700">
+                        <p class="flex items-start">
+                            <span class="font-semibold mr-2">🏔️</span>
+                            <span>{{ $origin->house_num ?? '' }}, {{ $origin->address->barangay ?? '' }}, {{ $origin->address->municipality ?? '' }}, {{ $origin->address->province ?? '' }}</span>
+                        </p>
+                    </div>
+                @else
+                    <p class="text-gray-400 italic">Not provided</p>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Education Section -->
+    <div class="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-xl p-8 mb-8 border border-purple-100">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">Educational Background</h2>
+        </div>
+
+        @forelse($education as $index => $edu)
+            <div class="bg-white rounded-xl p-6 shadow-lg mb-4 border-l-4 border-purple-500">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl font-bold text-purple-600">{{ $index + 1 }}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">{{ $edu->school_name ?? 'N/A' }}</h3>
+                            <p class="text-sm text-gray-500">{{ $edu->category ?? 'N/A' }}</p>
+                        </div>
+                    </div>
+                    @if($edu->year_grad)
+                        <span class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                            Graduated {{ $edu->year_grad }}
+                        </span>
+                    @endif
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">School Type</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">{{ $edu->school_type ?? 'N/A' }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Grade Average</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">{{ $edu->grade_ave ?? 'N/A' }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Rank</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">
+                            @if($edu->rank)
+                                #{{ $edu->rank }}
+                            @else
+                                N/A
+                            @endif
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Year Graduate</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">{{ $edu->year_grad ?? 'N/A' }}</p>
+                    </div>
+                </div>
             </div>
         @empty
-            <div class="text-gray-400">No siblings listed.</div>
+            <div class="bg-white rounded-xl p-8 text-center shadow-lg">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <p class="text-gray-500 text-lg">No educational records available</p>
+            </div>
         @endforelse
     </div>
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 class="font-semibold text-lg mb-2">School Preference</h2>
-        <div class="mb-2"><strong>First Preference Address:</strong> {{ $schoolPref->address ?? '' }}</div>
-        <div class="mb-2"><strong>First Preference Degree/Course:</strong> {{ $schoolPref->degree ?? '' }}</div>
-        <div class="mb-2"><strong>First Preference School Type:</strong> {{ $schoolPref->school_type ?? '' }}</div>
-        <div class="mb-2"><strong>First Preference No. of Years:</strong> {{ $schoolPref->num_years ?? '' }}</div>
-        <div class="mb-2"><strong>Second Preference Address:</strong> {{ $schoolPref->address2 ?? '' }}</div>
-        <div class="mb-2"><strong>Second Preference Degree/Course:</strong> {{ $schoolPref->degree2 ?? '' }}</div>
-        <div class="mb-2"><strong>Second Preference School Type:</strong> {{ $schoolPref->school_type2 ?? '' }}</div>
-        <div class="mb-2"><strong>Second Preference No. of Years:</strong> {{ $schoolPref->num_years2 ?? '' }}</div>
-        <div class="mb-2"><strong>Contribution to Community:</strong> {{ $schoolPref->ques_answer1 ?? '' }}</div>
-        <div class="mb-2"><strong>Plans After Graduation:</strong> {{ $schoolPref->ques_answer2 ?? '' }}</div>
+    <!-- Family Information Section -->
+    <div class="bg-gradient-to-br from-white to-rose-50 rounded-2xl shadow-xl p-8 mb-8 border border-rose-100">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-rose-600 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">Family Information</h2>
+        </div>
 
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Father's Information -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500">
+                <div class="flex items-center mb-5">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Father's Information</h3>
+                </div>
 
-    <a href="{{ route('staff.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                @if($familyFather)
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Name</span>
+                            </div>
+                            <p class="text-base font-bold text-gray-800">{{ $familyFather->name ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Status</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $familyFather->status ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Occupation</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $familyFather->occupation ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Address</span>
+                            </div>
+                            <p class="text-sm text-gray-700">{{ $familyFather->address ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Office Address</span>
+                            </div>
+                            <p class="text-sm text-gray-700">{{ $familyFather->office_address ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Education</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $familyFather->educational_attainment ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Income</span>
+                                <p class="text-sm font-bold text-gray-800">
+                                    @if($familyFather->income)
+                                        ₱{{ number_format((float) $familyFather->income, 2) }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        @if($familyFather->ethno)
+                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                                <div class="flex items-center mb-2">
+                                    <svg class="w-4 h-4 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    <span class="text-xs font-semibold text-amber-700 uppercase">Ethnolinguistic Group</span>
+                                </div>
+                                <p class="text-sm font-bold text-amber-800">{{ $familyFather->ethno->ethnicity ?? 'N/A' }}</p>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-gray-400 italic text-center py-4">No father's information provided</p>
+                @endif
+            </div>
+
+            <!-- Mother's Information -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-pink-500">
+                <div class="flex items-center mb-5">
+                    <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Mother's Information</h3>
+                </div>
+
+                @if($familyMother)
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Name</span>
+                            </div>
+                            <p class="text-base font-bold text-gray-800">{{ $familyMother->name ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Status</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $familyMother->status ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Occupation</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $familyMother->occupation ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Address</span>
+                            </div>
+                            <p class="text-sm text-gray-700">{{ $familyMother->address ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Office Address</span>
+                            </div>
+                            <p class="text-sm text-gray-700">{{ $familyMother->office_address ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Education</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $familyMother->educational_attainment ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Income</span>
+                                <p class="text-sm font-bold text-gray-800">
+                                    @if($familyMother->income)
+                                        ₱{{ number_format((float) $familyMother->income, 2) }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        @if($familyMother->ethno)
+                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                                <div class="flex items-center mb-2">
+                                    <svg class="w-4 h-4 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    <span class="text-xs font-semibold text-amber-700 uppercase">Ethnolinguistic Group</span>
+                                </div>
+                                <p class="text-sm font-bold text-amber-800">{{ $familyMother->ethno->ethnicity ?? 'N/A' }}</p>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-gray-400 italic text-center py-4">No mother's information provided</p>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Siblings Section -->
+    <div class="bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-xl p-8 mb-8 border border-indigo-100">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">Siblings Information</h2>
+            <span class="ml-auto px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
+                {{ $siblings->count() }} {{ Str::plural('Sibling', $siblings->count()) }}
+            </span>
+        </div>
+
+        @forelse($siblings as $index => $sibling)
+            <div class="bg-white rounded-xl p-6 shadow-lg mb-4 border-l-4 border-indigo-500 hover:shadow-xl transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-xl font-bold text-indigo-600">{{ $index + 1 }}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">{{ $sibling->name ?? 'N/A' }}</h3>
+                            <p class="text-sm text-gray-500">Sibling #{{ $index + 1 }}</p>
+                        </div>
+                    </div>
+                    @if($sibling->present_status)
+                        <span class="px-4 py-2 rounded-full text-sm font-semibold
+                            @if($sibling->present_status === 'Studying') bg-green-100 text-green-700
+                            @elseif($sibling->present_status === 'Working') bg-blue-100 text-blue-700
+                            @else bg-gray-100 text-gray-700
+                            @endif">
+                            {{ $sibling->present_status }}
+                        </span>
+                    @endif
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Age</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">{{ $sibling->age ?? 'N/A' }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Scholarship</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">
+                            @if($sibling->scholarship)
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">{{ $sibling->scholarship }}</span>
+                            @else
+                                <span class="text-gray-400">None</span>
+                            @endif
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Course/Year</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">{{ $sibling->course_year ?? 'N/A' }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-500 uppercase">Status</span>
+                        </div>
+                        <p class="text-lg font-bold text-gray-800">{{ $sibling->present_status ?? 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="bg-white rounded-xl p-8 text-center shadow-lg">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <p class="text-gray-500 text-lg">No siblings listed</p>
+            </div>
+        @endforelse
+    </div>
+    <!-- School Preference Section -->
+    <div class="bg-gradient-to-br from-white to-cyan-50 rounded-2xl shadow-xl p-8 mb-8 border border-cyan-100">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v9M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">School Preference & Goals</h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <!-- First Preference -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-cyan-500">
+                <div class="flex items-center mb-5">
+                    <div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mr-4">
+                        <span class="text-2xl font-bold text-cyan-600">1st</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">First Preference</h3>
+                </div>
+
+                @if($schoolPref)
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">School Address</span>
+                            </div>
+                            <p class="text-sm font-bold text-gray-800">{{ $schoolPref->address ?? 'Not specified' }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Degree/Course</span>
+                            </div>
+                            <p class="text-base font-bold text-gray-800">{{ $schoolPref->degree ?? 'Not specified' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">School Type</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $schoolPref->school_type ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Years</span>
+                                <p class="text-sm font-bold text-gray-800">
+                                    @if($schoolPref->num_years)
+                                        {{ $schoolPref->num_years }} {{ Str::plural('Year', $schoolPref->num_years) }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-gray-400 italic text-center py-4">No first preference provided</p>
+                @endif
+            </div>
+
+            <!-- Second Preference -->
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-teal-500">
+                <div class="flex items-center mb-5">
+                    <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mr-4">
+                        <span class="text-2xl font-bold text-teal-600">2nd</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Second Preference</h3>
+                </div>
+
+                @if($schoolPref)
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">School Address</span>
+                            </div>
+                            <p class="text-sm font-bold text-gray-800">{{ $schoolPref->address2 ?? 'Not specified' }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500 uppercase">Degree/Course</span>
+                            </div>
+                            <p class="text-base font-bold text-gray-800">{{ $schoolPref->degree2 ?? 'Not specified' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">School Type</span>
+                                <p class="text-sm font-bold text-gray-800">{{ $schoolPref->school_type2 ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <span class="text-xs font-semibold text-gray-500 uppercase block mb-1">Years</span>
+                                <p class="text-sm font-bold text-gray-800">
+                                    @if($schoolPref->num_years2)
+                                        {{ $schoolPref->num_years2 }} {{ Str::plural('Year', $schoolPref->num_years2) }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-gray-400 italic text-center py-4">No second preference provided</p>
+                @endif
+            </div>
+        </div>
+
+        <!-- Goals and Aspirations -->
+        @if($schoolPref && ($schoolPref->ques_answer1 || $schoolPref->ques_answer2))
+            <div class="bg-gradient-to-r from-cyan-600 to-teal-600 rounded-xl p-6 text-white shadow-lg">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    Goals & Aspirations
+                </h3>
+
+                @if($schoolPref->ques_answer1)
+                    <div class="mb-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 mr-2 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <span class="text-sm font-semibold uppercase opacity-90">Contribution to Community</span>
+                        </div>
+                        <p class="text-base leading-relaxed bg-white/10 rounded-lg p-4 backdrop-blur-sm">{{ $schoolPref->ques_answer1 }}</p>
+                    </div>
+                @endif
+
+                @if($schoolPref->ques_answer2)
+                    <div>
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 mr-2 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <span class="text-sm font-semibold uppercase opacity-90">Plans After Graduation</span>
+                        </div>
+                        <p class="text-base leading-relaxed bg-white/10 rounded-lg p-4 backdrop-blur-sm">{{ $schoolPref->ques_answer2 }}</p>
+                    </div>
+                @endif
+            </div>
+        @endif
+    </div>
+
+    <!-- Back Button -->
+    <div class="flex justify-center mb-6">
+        <a href="{{ route('staff.dashboard') }}" class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition shadow-lg hover:shadow-xl">
+            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Dashboard
+        </a>
+    </div>
 </div>
 
 <!-- Document Viewer Modal -->
@@ -562,6 +1473,85 @@ if (!window._gradesModalEscapeListener) {
         }
     });
     window._gradesModalEscapeListener = true;
+}
+
+// Scoring system functions
+function calculateScore(userId) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = 'Calculating...';
+    button.disabled = true;
+
+    fetch(`{{ route("staff.scores.calculate", ":id") }}`.replace(':id', userId), {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Score calculated successfully! Priority: ' + data.priority_level);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error calculating score. Please try again.');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function recalculateScore(userId) {
+    if (!confirm('Recalculate the priority score for this applicant?')) {
+        return;
+    }
+    calculateScore(userId);
+}
+
+// Document priority functions
+function recalculateDocumentPriorities() {
+    if (!confirm('Recalculate document priorities for all pending documents? This will update the First Come, First Serve ranking.')) {
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Recalculating...';
+    button.disabled = true;
+
+    fetch('{{ route("staff.documents.recalculate-priorities") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Document priorities recalculated successfully!\nTotal documents: ' + data.total_documents);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error recalculating document priorities. Please try again.');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
 }
 </script>
 @endsection

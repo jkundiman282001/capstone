@@ -53,6 +53,17 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/documents/{document}/update-status', [StaffDashboardController::class, 'updateDocumentStatus'])->name('staff.documents.update-status');
     Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
     Route::get('/staff/grades/{user}', [StaffDashboardController::class, 'extractGrades'])->name('staff.grades.extract');
+    
+    // Scoring system routes
+    Route::post('/staff/scores/calculate-all', [StaffDashboardController::class, 'calculateAllScores'])->name('staff.scores.calculate-all');
+    Route::get('/staff/scores/top-priority', [StaffDashboardController::class, 'getTopPriorityApplicants'])->name('staff.scores.top-priority');
+    Route::get('/staff/scores/statistics', [StaffDashboardController::class, 'getScoringStatistics'])->name('staff.scores.statistics');
+    Route::post('/staff/scores/calculate/{user}', [StaffDashboardController::class, 'calculateApplicantScore'])->name('staff.scores.calculate');
+    
+    // Document priority routes (First Come, First Serve)
+    Route::post('/staff/documents/recalculate-priorities', [StaffDashboardController::class, 'recalculateDocumentPriorities'])->name('staff.documents.recalculate-priorities');
+    Route::get('/staff/documents/prioritized', [StaffDashboardController::class, 'getPrioritizedDocuments'])->name('staff.documents.prioritized');
+    Route::get('/staff/documents/priority-statistics', [StaffDashboardController::class, 'getDocumentPriorityStatistics'])->name('staff.documents.priority-statistics');
 });
 
 // Geographic API Routes (Public)

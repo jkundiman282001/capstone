@@ -166,6 +166,280 @@
         <x-metric-card title="Inactive Scholars" :value="$inactiveScholars" icon="user-x" />
     </div>
 
+    <!-- Prioritized Documents Section (First Come, First Serve) -->
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-xl p-6 mb-6 border-2 border-blue-200">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-800">Document Review Queue</h2>
+                    <p class="text-blue-600 text-sm">First Come, First Serve • {{ $priorityStatistics['total_pending'] ?? 0 }} Pending Documents</p>
+                </div>
+            </div>
+            <button onclick="recalculateDocumentPriorities()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Recalculate
+            </button>
+        </div>
+
+        @if($prioritizedDocuments && $prioritizedDocuments->count() > 0)
+            <div class="bg-white rounded-xl p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">{{ $priorityStatistics['total_pending'] ?? 0 }}</div>
+                        <div class="text-sm text-gray-600">Total Pending</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ $priorityStatistics['ranked_pending'] ?? 0 }}</div>
+                        <div class="text-sm text-gray-600">Ranked Documents</div>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-orange-600">
+                            @if($priorityStatistics['oldest_submission'])
+                                {{ $priorityStatistics['oldest_submission']['hours_waiting'] ?? 0 }}
+                            @else
+                                0
+                            @endif
+                        </div>
+                        <div class="text-sm text-gray-600">Longest Wait (Hours)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Priority Rank</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Applicant</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Document Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Submitted</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Waiting Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($prioritizedDocuments->take(10) as $document)
+                                @php
+                                    $waitingHours = $document->waiting_hours ?? 0;
+                                    $priorityRank = $document->priority_rank ?? 'N/A';
+                                    $submittedAt = $document->submitted_at ?? $document->created_at;
+                                    
+                                    // Document type labels
+                                    $docTypes = [
+                                        'birth_certificate' => 'Birth Certificate',
+                                        'income_document' => 'Income Document',
+                                        'tribal_certificate' => 'Tribal Certificate',
+                                        'endorsement' => 'Endorsement',
+                                        'good_moral' => 'Good Moral',
+                                        'grades' => 'Grades'
+                                    ];
+                                    $docTypeLabel = $docTypes[$document->type] ?? ucwords(str_replace('_', ' ', $document->type));
+                                @endphp
+                                <tr class="hover:bg-blue-50 transition-colors
+                                    @if($priorityRank <= 5) bg-red-50 border-l-4 border-red-500
+                                    @elseif($priorityRank <= 10) bg-orange-50 border-l-4 border-orange-500
+                                    @elseif($priorityRank <= 20) bg-yellow-50 border-l-4 border-yellow-500
+                                    @endif">
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        @if($priorityRank && $priorityRank != 'N/A')
+                                            <div class="flex items-center">
+                                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                                    @if($priorityRank <= 5) bg-red-600 text-white
+                                                    @elseif($priorityRank <= 10) bg-orange-600 text-white
+                                                    @elseif($priorityRank <= 20) bg-yellow-600 text-white
+                                                    @else bg-gray-600 text-white
+                                                    @endif">
+                                                    #{{ $priorityRank }}
+                                                </span>
+                                                @if($priorityRank <= 10)
+                                                    <span class="ml-2 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold">HIGH</span>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="text-gray-400 text-xs">Not Ranked</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                @if($document->user->profile_pic)
+                                                    <img class="h-10 w-10 rounded-full" src="{{ asset('storage/' . $document->user->profile_pic) }}" alt="Profile">
+                                                @else
+                                                    <div class="h-10 w-10 rounded-full bg-blue-300 flex items-center justify-center">
+                                                        <span class="text-blue-700 font-medium text-sm">
+                                                            {{ substr($document->user->first_name, 0, 1) }}{{ substr($document->user->last_name, 0, 1) }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ $document->user->first_name }} {{ $document->user->last_name }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">ID: {{ $document->user_id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                                            {{ $docTypeLabel }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ $submittedAt->format('M d, Y') }}</div>
+                                        <div class="text-xs text-gray-500">{{ $submittedAt->format('g:i A') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium 
+                                                @if($waitingHours >= 72) text-red-600 font-bold
+                                                @elseif($waitingHours >= 48) text-orange-600 font-bold
+                                                @else text-gray-700
+                                                @endif">
+                                                {{ $waitingHours }} {{ Str::plural('hour', $waitingHours) }}
+                                            </span>
+                                            @if($waitingHours >= 72)
+                                                <span class="ml-2 px-2 py-0.5 bg-red-600 text-white rounded text-xs font-bold">URGENT!</span>
+                                            @elseif($waitingHours >= 48)
+                                                <span class="ml-2 px-2 py-0.5 bg-orange-600 text-white rounded text-xs font-bold">PRIORITY</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                        <a href="{{ route('staff.applications.view', $document->user_id) }}" 
+                                           class="text-blue-600 hover:text-blue-900 font-semibold">
+                                            Review →
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @if($prioritizedDocuments->count() > 10)
+                    <div class="bg-gray-50 px-4 py-3 text-center text-sm text-gray-600">
+                        Showing top 10 of {{ $prioritizedDocuments->count() }} prioritized documents
+                        <a href="{{ route('staff.applicants.list') }}" class="text-blue-600 hover:text-blue-800 font-semibold ml-2">
+                            View All →
+                        </a>
+                    </div>
+                @endif
+            </div>
+        @else
+            <div class="bg-white rounded-xl p-8 text-center shadow-lg">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p class="text-gray-500 text-lg">No pending documents to review</p>
+                <p class="text-gray-400 text-sm mt-2">All documents have been reviewed!</p>
+            </div>
+        @endif
+    </div>
+
+    <!-- Top Priority in IP Group (B'laan, Bagobo, Kalagan, Kaulo) -->
+    @php
+        $priorityGroupsSet = ["b'laan", 'bagobo', 'kalagan', 'kaulo'];
+        $priorityIpDocs = ($prioritizedDocuments ?? collect())->filter(function($doc) use ($priorityGroupsSet) {
+            $eth = optional(optional($doc->user)->ethno)->ethnicity;
+            return $eth && in_array(strtolower(trim($eth)), $priorityGroupsSet, true);
+        });
+    @endphp
+    <div class="bg-gradient-to-br from-amber-50 to-yellow-100 rounded-2xl shadow-xl p-6 mb-6 border-2 border-amber-200">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l9-4 9 4-9 4-9-4zm0 0v10l9 4 9-4V7" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-amber-800">Top Priority in IP Group</h2>
+                    <p class="text-amber-700 text-sm">B'laan • Bagobo • Kalagan • Kaulo</p>
+                </div>
+            </div>
+        </div>
+
+        @if($priorityIpDocs->count() > 0)
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gradient-to-r from-amber-600 to-yellow-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Applicant</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">IP Group</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Document Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Submitted</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Waiting</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($priorityIpDocs->take(10) as $document)
+                                @php
+                                    $ethLabel = optional(optional($document->user)->ethno)->ethnicity;
+                                    $submittedAt = $document->submitted_at ?? $document->created_at;
+                                    $waitingHours = $document->waiting_hours ?? 0;
+                                    $docTypes = [
+                                        'birth_certificate' => 'Birth Certificate',
+                                        'income_document' => 'Income Document',
+                                        'tribal_certificate' => 'Tribal Certificate',
+                                        'endorsement' => 'Endorsement',
+                                        'good_moral' => 'Good Moral',
+                                        'grades' => 'Grades'
+                                    ];
+                                    $docTypeLabel = $docTypes[$document->type] ?? ucwords(str_replace('_', ' ', $document->type));
+                                @endphp
+                                <tr class="hover:bg-amber-50 transition-colors">
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ $document->user->first_name }} {{ $document->user->last_name }}</div>
+                                        <div class="text-xs text-gray-500">ID: {{ $document->user_id }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">{{ $ethLabel }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">{{ $docTypeLabel }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ $submittedAt->format('M d, Y') }}</div>
+                                        <div class="text-xs text-gray-500">{{ $submittedAt->format('g:i A') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="text-sm font-medium 
+                                            @if($waitingHours >= 72) text-red-600 font-bold
+                                            @elseif($waitingHours >= 48) text-orange-600 font-bold
+                                            @else text-gray-700
+                                            @endif">
+                                            {{ $waitingHours }} {{ Str::plural('hour', $waitingHours) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                        <a href="{{ route('staff.applications.view', $document->user_id) }}" class="text-amber-700 hover:text-amber-900 font-semibold">Review →</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @else
+            <div class="bg-white rounded-xl p-6 text-center shadow">
+                <p class="text-gray-500">No prioritized IP Group submissions in the queue.</p>
+            </div>
+        @endif
+    </div>
+
     <!-- Data Visualizations -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white p-4 rounded shadow">
@@ -369,5 +643,43 @@
             }
         });
     });
+
+    // Document priority functions
+    function recalculateDocumentPriorities() {
+        if (!confirm('Recalculate document priorities for all pending documents? This will update the First Come, First Serve ranking.')) {
+            return;
+        }
+
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Recalculating...';
+        button.disabled = true;
+
+        fetch('{{ route("staff.documents.recalculate-priorities") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Document priorities recalculated successfully!\nTotal documents: ' + data.total_documents);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error recalculating document priorities. Please try again.');
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
 </script>
 @endpush 

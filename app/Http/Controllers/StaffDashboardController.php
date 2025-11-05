@@ -9,6 +9,8 @@ use App\Models\BasicInfo;
 use App\Models\Address;
 use App\Models\Document;
 use App\Models\Ethno;
+use App\Models\ApplicantScore;
+use App\Services\ApplicantScoringService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -114,12 +116,40 @@ class StaffDashboardController extends Controller
         // Fetch unread notifications for staff
         $notifications = $user->unreadNotifications()->take(10)->get();
 
+        // Get prioritized documents (First Come, First Serve)
+        $priorityService = new \App\Services\DocumentPriorityService();
+        
+        // Initialize submitted_at and priorities for existing documents that don't have them
+        $uninitializedDocs = \App\Models\Document::where('status', 'pending')
+            ->where(function($query) {
+                $query->whereNull('submitted_at')
+                      ->orWhereNull('priority_score');
+            })
+            ->whereNotNull('created_at')
+            ->get();
+        
+        foreach ($uninitializedDocs as $doc) {
+            if (!$doc->submitted_at) {
+                $doc->submitted_at = $doc->created_at;
+            }
+            $priorityService->calculateDocumentPriority($doc);
+        }
+        
+        // Recalculate ranks if needed
+        if ($uninitializedDocs->count() > 0) {
+            $priorityService->recalculateAllPriorities();
+        }
+        
+        $prioritizedDocuments = $priorityService->getPrioritizedDocuments('pending', 20);
+        $priorityStatistics = $priorityService->getPriorityStatistics();
+
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'totalScholars', 'newApplicants', 'activeScholars', 'inactiveScholars',
             'alerts', 'barChartData', 'pieChartData', 'performanceChartData',
             'pendingRequirements', 'feedbacks', 'notifications',
-            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
+            'prioritizedDocuments', 'priorityStatistics'
         ));
     }
 
@@ -221,6 +251,7 @@ class StaffDashboardController extends Controller
             'basicInfo.fullAddress.address', 
             'ethno', 
             'documents',
+            'applicantScore',
             'basicInfo.education',
             'basicInfo.family.ethno',
             'basicInfo.siblings',
@@ -252,8 +283,13 @@ class StaffDashboardController extends Controller
         // School preference data
         $schoolPref = $basicInfo->schoolPref ?? null;
         
-        // Documents data
-        $documents = $user->documents ?? collect();
+        // Documents data - ordered by priority (First Come, First Serve)
+        // Oldest submissions = Highest priority = Rank #1
+        $documents = $user->documents()
+            ->orderByRaw('CASE WHEN submitted_at IS NOT NULL THEN 0 ELSE 1 END') // NULLs last
+            ->orderBy('submitted_at', 'asc') // Earliest first = Highest priority
+            ->orderBy('created_at', 'asc') // Tiebreaker
+            ->get();
         
         // Required document types
         $requiredTypes = [
@@ -287,9 +323,10 @@ class StaffDashboardController extends Controller
         $selectedBarangay = $request->get('barangay');
         $selectedEthno = $request->get('ethno');
         $selectedStatus = $request->get('status');
+        $selectedPriority = $request->get('priority');
 
         // Build query for applicants
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
@@ -324,6 +361,26 @@ class StaffDashboardController extends Controller
             }
         }
 
+        // Apply priority filtering
+        if ($selectedPriority) {
+            $applicantsQuery->whereHas('applicantScore', function($query) use ($selectedPriority) {
+                switch ($selectedPriority) {
+                    case 'high':
+                        $query->where('total_score', '>=', 80);
+                        break;
+                    case 'medium':
+                        $query->whereBetween('total_score', [60, 79]);
+                        break;
+                    case 'low':
+                        $query->whereBetween('total_score', [40, 59]);
+                        break;
+                    case 'very_low':
+                        $query->where('total_score', '<', 40);
+                        break;
+                }
+            });
+        }
+
         $applicants = $applicantsQuery->paginate(20);
 
         // Get geographic data for filters
@@ -334,7 +391,7 @@ class StaffDashboardController extends Controller
 
         return view('staff.applicants-list', compact(
             'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
-            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedStatus'
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedStatus', 'selectedPriority'
         ));
     }
 
@@ -371,5 +428,150 @@ class StaffDashboardController extends Controller
         } else {
             return response()->json(['success' => false, 'error' => 'No grades document found.'], 404);
         }
+    }
+
+    /**
+     * Calculate scores for all applicants
+     */
+    public function calculateAllScores()
+    {
+        try {
+            $scoringService = new ApplicantScoringService();
+            $results = $scoringService->calculateAllApplicantScores();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Scores calculated successfully for ' . count($results) . ' applicants',
+                'results' => $results
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error calculating scores: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get top priority applicants
+     */
+    public function getTopPriorityApplicants(Request $request)
+    {
+        $limit = $request->get('limit', 10);
+        $scoringService = new ApplicantScoringService();
+        $topApplicants = $scoringService->getTopPriorityApplicants($limit);
+        
+        return response()->json([
+            'success' => true,
+            'applicants' => $topApplicants
+        ]);
+    }
+
+    /**
+     * Get scoring statistics
+     */
+    public function getScoringStatistics()
+    {
+        $scoringService = new ApplicantScoringService();
+        $statistics = $scoringService->getScoringStatistics();
+        
+        return response()->json([
+            'success' => true,
+            'statistics' => $statistics
+        ]);
+    }
+
+    /**
+     * Calculate score for a specific applicant
+     */
+    public function calculateApplicantScore($userId)
+    {
+        try {
+            $user = User::with(['basicInfo', 'documents', 'ethno', 'basicInfo.family', 'basicInfo.siblings', 'basicInfo.education'])
+                ->findOrFail($userId);
+            
+            $scoringService = new ApplicantScoringService();
+            $score = $scoringService->calculateApplicantScore($user);
+            
+            return response()->json([
+                'success' => true,
+                'score' => $score,
+                'priority_level' => $score->priority_level,
+                'priority_color' => $score->priority_color
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error calculating score: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Recalculate document priorities (First Come, First Serve)
+     */
+    public function recalculateDocumentPriorities()
+    {
+        try {
+            $priorityService = new \App\Services\DocumentPriorityService();
+            $results = $priorityService->recalculateAllPriorities();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Document priorities recalculated successfully',
+                'total_documents' => $results['total_documents'],
+                'documents' => $results['documents']
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error recalculating priorities: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get prioritized documents for review
+     */
+    public function getPrioritizedDocuments(Request $request)
+    {
+        $status = $request->get('status', 'pending');
+        $limit = $request->get('limit', 20);
+        
+        $priorityService = new \App\Services\DocumentPriorityService();
+        $documents = $priorityService->getPrioritizedDocuments($status, $limit);
+        
+        return response()->json([
+            'success' => true,
+            'documents' => $documents->map(function($doc) {
+                return [
+                    'id' => $doc->id,
+                    'type' => $doc->type,
+                    'filename' => $doc->filename,
+                    'applicant_name' => $doc->user->first_name . ' ' . $doc->user->last_name,
+                    'applicant_id' => $doc->user_id,
+                    'priority_rank' => $doc->priority_rank,
+                    'priority_score' => $doc->priority_score,
+                    'priority_level' => $doc->priority_level,
+                    'waiting_hours' => $doc->waiting_hours,
+                    'submitted_at' => $doc->submitted_at ? $doc->submitted_at->format('Y-m-d H:i:s') : null,
+                    'status' => $doc->status,
+                ];
+            })
+        ]);
+    }
+
+    /**
+     * Get document priority statistics
+     */
+    public function getDocumentPriorityStatistics()
+    {
+        $priorityService = new \App\Services\DocumentPriorityService();
+        $statistics = $priorityService->getPriorityStatistics();
+        
+        return response()->json([
+            'success' => true,
+            'statistics' => $statistics
+        ]);
     }
 }
