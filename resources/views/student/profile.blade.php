@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - IP Scholar Portal</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
-    <!-- Cropper.js CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
-    <!-- Cropper.js JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
-    <style>
+@extends('layouts.student')
+
+@section('title', 'Profile - IP Scholar Portal')
+
+@push('styles')
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+<style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         body {
@@ -97,67 +90,15 @@
             }
         }
     </style>
-</head>
-<body class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen">
-    <!-- Enhanced Navigation Header -->
-    <nav x-data="{ open: false }" class="shadow-2xl sticky top-0 z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo and Brand -->
-                <div class="flex items-center space-x-4">
-                    <div class="text-2xl font-bold">
-                        <span class="text-orange-400">IndiGenSys</span>
-                    </div>
-                </div>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="{{ route('student.dashboard') }}" class="text-gray-600 hover:text-orange-600 transition">Home</a>
-                    <a href="{{ route('student.profile') }}" class="text-gray-600 hover:text-orange-600 transition">Profile</a>
-                    <a href="{{ route('student.performance') }}" class="text-gray-600 hover:text-orange-600 transition">Performance</a>
-                    <a href="{{ route('student.notifications') }}" class="text-gray-600 hover:text-orange-600 transition">Notification</a>
-                    <a href="{{ route('student.support') }}" class="text-gray-600 hover:text-orange-600 transition">Support/Help</a>
-                </div>
-                <div class="hidden md:flex items-center space-x-4">
-                        @guest
-                            <a href="{{ url('/auth') }}" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Login</a>
-                            <a href="{{ url('/auth') }}" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 transition-all glow-effect">Sign Up</a>
-                        @endguest
-                        @auth
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Log Out</button>
-                            </form>
-                        @endauth
-                </div>
-                <!-- Hamburger Button (Mobile) -->
-                <button @click="open = !open" class="md:hidden text-orange-400 focus:outline-none">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        <path :class="{'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <!-- Mobile Menu -->
-        <div x-show="open" @click.away="open = false" class="md:hidden bg-black/90 backdrop-blur-md border-t border-white/10 px-6 py-4">
-            <div class="flex flex-col space-y-4">
-                <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors">Home</a>
-                <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
-                <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
-                <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
-                <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
-                @guest
-                    <a href="{{ url('/auth') }}" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Login</a>
-                    <a href="{{ url('/auth') }}" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 transition-all glow-effect">Sign Up</a>
-                @endguest
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full text-left px-0 text-orange-400 hover:text-white transition-all">Log Out</button>
-                    </form>
-                @endauth
-            </div>
-        </div>
-    </nav>
+@endpush
+
+@push('head-scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+@endpush
+
+@section('content')
+<div class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen pt-20">
 
     <!-- Hero Section with Cultural Elements -->
     <div class="relative overflow-hidden">
@@ -191,7 +132,9 @@
                         <p class="text-blue-400 text-lg mb-1">Student ID: 2024-001</p>
                         <p class="text-blue-500 font-medium mb-3">Indigenous Youth Scholar</p>
                         <div class="flex flex-wrap justify-center md:justify-start gap-2">
-                            <span class="bg-white bg-opacity-20 text-black px-3 py-1 rounded-full text-sm">Computer Science</span>
+                            <span class="bg-white bg-opacity-20 text-black px-3 py-1 rounded-full text-sm">
+                                {{ auth()->user()->course ? auth()->user()->course : 'Course not set' }}
+                            </span>
                             <span class="bg-white bg-opacity-20 text-black px-3 py-1 rounded-full text-sm">Class of 2025</span>
                             <span class="bg-white bg-opacity-20 text-black px-3 py-1 rounded-full text-sm">Dean's List</span>
                         </div>
@@ -505,7 +448,23 @@
         </div>
     </div>
 
-    <script>
+    <!-- Crop Modal -->
+    <div id="cropper-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:20px; border-radius:10px; max-width:90vw; max-height:90vh;">
+            <div>
+                <img id="cropper-image" style="max-width:70vw; max-height:60vh;">
+            </div>
+            <div style="margin-top:10px; text-align:right;">
+                <button onclick="closeCropper()" style="margin-right:10px;">Cancel</button>
+                <button onclick="cropAndUpload()">Crop & Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
     let cropper;
     let selectedFile;
 
@@ -611,19 +570,5 @@
             }, 300);
         }, 3000);
     }
-    </script>
-
-    <!-- Crop Modal -->
-    <div id="cropper-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
-        <div style="background:#fff; padding:20px; border-radius:10px; max-width:90vw; max-height:90vh;">
-            <div>
-                <img id="cropper-image" style="max-width:70vw; max-height:60vh;">
-            </div>
-            <div style="margin-top:10px; text-align:right;">
-                <button onclick="closeCropper()" style="margin-right:10px;">Cancel</button>
-                <button onclick="cropAndUpload()">Crop & Upload</button>
-            </div>
-        </div>
-    </div>
-</body>
-</html> 
+</script>
+@endpush 

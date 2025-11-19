@@ -1213,6 +1213,165 @@
         @endif
     </div>
 
+    <!-- Course Prioritization Section -->
+    @if(isset($coursePrioritization) && $coursePrioritization['has_courses'])
+        <div class="bg-gradient-to-br from-purple-50 to-pink-100 rounded-2xl shadow-xl p-6 mb-6 border-2 border-purple-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-purple-800">Course Prioritization</h2>
+                        <p class="text-purple-600 text-sm">Priority Analysis for {{ $user->first_name }} {{ $user->last_name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applicant Score Summary -->
+            <div class="bg-white rounded-xl p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-600">{{ number_format($coursePrioritization['applicant_score'], 1) }}</div>
+                        <div class="text-sm text-gray-600">Applicant Score</div>
+                        @if($coursePrioritization['applicant_rank'])
+                            <div class="text-xs text-purple-500 mt-1">Rank #{{ $coursePrioritization['applicant_rank'] }}</div>
+                        @endif
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">{{ $coursePrioritization['total_courses'] }}</div>
+                        <div class="text-sm text-gray-600">Preferred Courses</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">
+                            @php
+                                $topCourse = !empty($coursePrioritization['courses']) ? $coursePrioritization['courses'][0] : null;
+                                echo $topCourse ? number_format($topCourse['priority_score'], 1) : '0';
+                            @endphp
+                        </div>
+                        <div class="text-sm text-gray-600">Top Course Priority</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($coursePrioritization['courses'] as $course)
+                    @php
+                        $priorityLevel = $course['priority_level'] ?? 'Low Priority';
+                        $priorityScore = $course['priority_score'] ?? 0;
+                        $matchQuality = $course['match_quality'] ?? 'Fair Match';
+                        $isHighPriority = $priorityScore >= 70;
+                        $borderColor = $isHighPriority ? 'border-purple-500' : ($priorityScore >= 60 ? 'border-blue-500' : 'border-gray-300');
+                        $bgGradient = $isHighPriority ? 'from-purple-50 to-pink-50' : 'from-blue-50 to-cyan-50';
+                    @endphp
+                    <div class="bg-gradient-to-br {{ $bgGradient }} rounded-xl shadow-lg p-6 border-l-4 {{ $borderColor }}">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                                    <span class="text-white font-bold">{{ $course['preference_rank'] }}</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800">{{ $course['course_name'] }}</h3>
+                                    <p class="text-xs text-gray-600 uppercase">{{ $course['preference'] }} Preference</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="px-3 py-1 rounded-full text-xs font-bold
+                                    @if($priorityScore >= 80) bg-red-600 text-white
+                                    @elseif($priorityScore >= 70) bg-purple-600 text-white
+                                    @elseif($priorityScore >= 60) bg-blue-600 text-white
+                                    @else bg-gray-600 text-white
+                                    @endif">
+                                    {{ number_format($priorityScore, 1) }}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">{{ $priorityLevel }}</div>
+                            </div>
+                        </div>
+
+                        <!-- School Information -->
+                        <div class="bg-white/60 rounded-lg p-3 mb-3">
+                            <div class="text-xs text-gray-600 mb-1">
+                                <span class="font-semibold">School:</span> {{ $course['school_address'] }}
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-gray-600">
+                                    <span class="font-semibold">Type:</span> {{ $course['school_type'] }}
+                                </span>
+                                @if($course['num_years'])
+                                    <span class="text-gray-600">
+                                        <span class="font-semibold">Duration:</span> {{ $course['num_years'] }} {{ Str::plural('Year', $course['num_years']) }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Score Breakdown -->
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div class="bg-white/60 rounded p-2 text-center">
+                                <div class="text-xs text-gray-600">Academic</div>
+                                <div class="text-sm font-bold text-blue-600">{{ number_format($course['academic_score'], 1) }}</div>
+                            </div>
+                            <div class="bg-white/60 rounded p-2 text-center">
+                                <div class="text-xs text-gray-600">Financial</div>
+                                <div class="text-sm font-bold text-green-600">{{ number_format($course['financial_score'], 1) }}</div>
+                            </div>
+                            <div class="bg-white/60 rounded p-2 text-center">
+                                <div class="text-xs text-gray-600">Geographic</div>
+                                <div class="text-sm font-bold text-orange-600">{{ number_format($course['geographic_score'], 1) }}</div>
+                            </div>
+                            <div class="bg-white/60 rounded p-2 text-center">
+                                <div class="text-xs text-gray-600">Heritage</div>
+                                <div class="text-sm font-bold text-purple-600">{{ number_format($course['heritage_score'], 1) }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Match Quality -->
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-semibold text-gray-700">Match Quality:</span>
+                                <span class="px-2 py-1 rounded text-xs font-bold
+                                    @if($matchQuality === 'Excellent Match') bg-green-600 text-white
+                                    @elseif($matchQuality === 'Good Match') bg-blue-600 text-white
+                                    @elseif($matchQuality === 'Fair Match') bg-yellow-600 text-white
+                                    @else bg-gray-600 text-white
+                                    @endif">
+                                    {{ $matchQuality }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        @if(!empty($course['recommendations']))
+                            <div class="border-t border-gray-200 pt-3">
+                                <div class="text-xs font-semibold text-gray-700 mb-2">Recommendations:</div>
+                                <ul class="space-y-1">
+                                    @foreach($course['recommendations'] as $recommendation)
+                                        <li class="text-xs text-gray-600 flex items-start">
+                                            <span class="text-purple-600 mr-2">•</span>
+                                            <span>{{ $recommendation }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @elseif(isset($coursePrioritization) && !$coursePrioritization['has_courses'])
+        <div class="bg-white rounded-xl p-6 shadow-lg mb-6 border-2 border-gray-200">
+            <div class="text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <p class="text-gray-500 text-lg">{{ $coursePrioritization['message'] ?? 'No course information available for this applicant.' }}</p>
+            </div>
+        </div>
+    @endif
+
     <!-- Back Button -->
     <div class="flex justify-center mb-6">
         <a href="{{ route('staff.dashboard') }}" class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition shadow-lg hover:shadow-xl">

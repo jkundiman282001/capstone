@@ -1,82 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performance - IP Scholar Portal</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen">
-    <!-- Enhanced Navigation Header -->
-    <nav x-data="{ open: false }" class="shadow-2xl sticky top-0 z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo and Brand -->
-                <div class="flex items-center space-x-4">
-                    <div class="text-2xl font-bold">
-                        <span class="text-orange-400">IndiGenSys</span>
-                    </div>
-                </div>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="{{ route('student.dashboard') }}" class="text-gray-600 hover:text-orange-600 transition">Home</a>
-                    <a href="{{ route('student.profile') }}" class="text-gray-600 hover:text-orange-600 transition">Profile</a>
-                    <a href="{{ route('student.performance') }}" class="text-gray-600 hover:text-orange-600 transition">Performance</a>
-                    <a href="{{ route('student.notifications') }}" class="text-gray-600 hover:text-orange-600 transition">Notification</a>
-                    <a href="{{ route('student.support') }}" class="text-gray-600 hover:text-orange-600 transition">Support/Help</a>
-                </div>
-                <div class="hidden md:flex items-center space-x-4">
-                        @guest
-                            <a href="{{ url('/auth') }}" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Login</a>
-                            <a href="{{ url('/auth') }}" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 transition-all glow-effect">Sign Up</a>
-                        @endguest
-                        @auth
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Log Out</button>
-                            </form>
-                        @endauth
-                </div>
-                <!-- Hamburger Button (Mobile) -->
-                <button @click="open = !open" class="md:hidden text-orange-400 focus:outline-none">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        <path :class="{'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <!-- Mobile Menu -->
-        <div x-show="open" @click.away="open = false" class="md:hidden bg-black/90 backdrop-blur-md border-t border-white/10 px-6 py-4">
-            <div class="flex flex-col space-y-4">
-                <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors">Home</a>
-                <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
-                <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
-                <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
-                <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
-                @guest
-                    <a href="{{ url('/auth') }}" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Login</a>
-                    <a href="{{ url('/auth') }}" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 transition-all glow-effect">Sign Up</a>
-                @endguest
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full text-left px-0 text-orange-400 hover:text-white transition-all">Log Out</button>
-                    </form>
-                @endauth
-            </div>
-        </div>
-    </nav>
-     <!-- Main Content Wrapper -->
+@extends('layouts.student')
+
+@section('title', 'Performance - IP Scholar Portal')
+
+@push('head-scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+@endpush
+
+@section('content')
+<div class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen pt-20">
+ <!-- Main Content Wrapper -->
   <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
 <!-- Academic Performance Header -->
@@ -89,6 +23,42 @@
   <div class="mt-6 md:mt-0 text-right">
     <p class="font-bold text-lg">Current Semester</p>
     <p class="text-2xl font-extrabold tracking-tight">Fall 2024</p>
+  </div>
+</section>
+
+<!-- Priority Rank Container -->
+<section class="bg-gradient-to-br from-orange-100 to-amber-100 rounded-lg shadow-lg border-2 border-orange-300 p-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold text-orange-900">Application Priority Rank</h3>
+        <p class="text-sm text-orange-700 mt-1">Your position in the scholarship applicant queue</p>
+      </div>
+    </div>
+    <div class="text-center md:text-right">
+      @if(isset($priorityRank) && $priorityRank)
+        <div class="inline-block">
+          <p class="text-sm font-semibold text-orange-700 mb-1">Current Rank</p>
+          <div class="bg-white rounded-xl px-8 py-4 shadow-lg border-2 border-orange-400">
+            <p class="text-5xl font-extrabold text-orange-600">#{{ $priorityRank }}</p>
+          </div>
+          <p class="text-xs text-orange-600 mt-2 font-medium">In applicant queue</p>
+        </div>
+      @else
+        <div class="inline-block">
+          <p class="text-sm font-semibold text-orange-700 mb-1">Current Rank</p>
+          <div class="bg-white rounded-xl px-8 py-4 shadow-lg border-2 border-orange-300">
+            <p class="text-2xl font-bold text-orange-500">Not yet ranked</p>
+          </div>
+          <p class="text-xs text-orange-600 mt-2 font-medium">Complete application to be ranked</p>
+        </div>
+      @endif
+    </div>
   </div>
 </section>
 <!-- Show Type of Assistance if application is complete -->
@@ -422,6 +392,5 @@
   </div>
 </section>
 </main>
-</body>
-
-</html> 
+</div>
+@endsection 

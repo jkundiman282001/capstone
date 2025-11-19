@@ -68,6 +68,20 @@ class DocumentController extends Controller
             'good_moral' => 'Certificate of Good Moral',
             'grades' => 'Latest Copy of Grades',
         ];
-        return view('student.performance', compact('documents', 'requiredTypes', 'basicInfo'));
+
+        // Calculate priority rank for the student
+        $priorityRank = null;
+        $priorityService = new \App\Services\ApplicantPriorityService();
+        $prioritizedApplicants = $priorityService->getPrioritizedApplicants();
+        
+        // Find the student's rank in the prioritized list
+        foreach ($prioritizedApplicants as $applicantData) {
+            if ($applicantData['user_id'] == $user->id) {
+                $priorityRank = $applicantData['priority_rank'] ?? null;
+                break;
+            }
+        }
+
+        return view('student.performance', compact('documents', 'requiredTypes', 'basicInfo', 'priorityRank'));
     }
 }

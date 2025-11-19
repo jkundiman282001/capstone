@@ -64,6 +64,11 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/documents/recalculate-priorities', [StaffDashboardController::class, 'recalculateDocumentPriorities'])->name('staff.documents.recalculate-priorities');
     Route::get('/staff/documents/prioritized', [StaffDashboardController::class, 'getPrioritizedDocuments'])->name('staff.documents.prioritized');
     Route::get('/staff/documents/priority-statistics', [StaffDashboardController::class, 'getDocumentPriorityStatistics'])->name('staff.documents.priority-statistics');
+    Route::get('/staff/priorities/applicants', [StaffDashboardController::class, 'applicantPriority'])->name('staff.priorities.applicants');
+    Route::get('/staff/priorities/documents', [StaffDashboardController::class, 'documentPriority'])->name('staff.priorities.documents');
+    Route::get('/staff/priorities/ip', [StaffDashboardController::class, 'ipPriority'])->name('staff.priorities.ip');
+    Route::get('/staff/priorities/courses', [StaffDashboardController::class, 'coursePriority'])->name('staff.priorities.courses');
+    Route::get('/staff/priorities/tribal-certificate', [StaffDashboardController::class, 'tribalCertificatePriority'])->name('staff.priorities.tribal-certificate');
 });
 
 // Geographic API Routes (Public)

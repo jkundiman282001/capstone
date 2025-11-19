@@ -1,16 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scholarship Application - IP Scholar Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
+@extends('layouts.student')
+
+@section('title', 'Scholarship Application - IP Scholar Portal')
+
+@push('styles')
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #fbeee6 0%, #f7caca 100%);
             min-height: 100vh;
+        }
+        /* Progress Chips */
+        [id^="chip-"] {
+            transition: all .2s ease;
         }
         .glass-card {
             background: rgba(255,255,255,0.7);
@@ -201,8 +203,10 @@
             text-align: left;
         }
     </style>
-</head>
-<body>
+@endpush
+
+@section('content')
+<div class="min-h-screen pt-20 text-gray-800">
     <div class="decor-header">
         <img src="/National_Commission_on_Indigenous_Peoples_(NCIP).png" alt="" class="decor-logo">
     </div>
@@ -236,9 +240,47 @@
             </div>
         </div>
         <div class="w-full">
-            <a href="{{ route('student.dashboard') }}" class="inline-block mb-6 px-5 py-2 rounded-lg border border-yellow-400 text-yellow-700 bg-white hover:bg-yellow-50 font-semibold transition-all">&larr; Back to Dashboard</a>
+            <a href="{{ route('student.dashboard') }}" class="inline-flex items-center mb-6 px-5 py-2 rounded-lg border border-yellow-400 text-yellow-700 bg-white hover:bg-yellow-50 font-semibold transition-all">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to Dashboard
+            </a>
+
+            <!-- Hero Banner -->
+            <div class="mb-6 rounded-2xl overflow-hidden shadow-lg border border-orange-200 bg-gradient-to-r from-amber-100 via-orange-100 to-red-100">
+                <div class="px-6 py-5 flex items-start justify-between">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-orange-700">NCIP-EAP Scholarship Application</h2>
+                        <p class="text-sm md:text-base text-orange-800/80 mt-1">Complete all steps below. You can navigate back and forth before submitting.</p>
+                    </div>
+                    <div class="hidden md:flex items-center bg-white/70 backdrop-blur px-3 py-1 rounded-full border border-orange-200 text-orange-700 text-sm font-semibold">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Estimated time: 5-10 mins
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Progress Bar -->
+            <div class="mb-6">
+                <div class="w-full h-3 bg-orange-200/60 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-300" style="width: 20%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-orange-700 mt-1">
+                    <span id="progressLabel">Step 1 of 5</span>
+                    <span id="progressPercent">20%</span>
+                </div>
+            </div>
+
             <div class="glass-card">
                 <div class="form-title text-center">SCHOLARSHIP APPLICATION FORM</div>
+
+                <!-- Progress Chips -->
+                <div class="flex items-center justify-center gap-2 mb-6 flex-wrap">
+                    <span id="chip-1" class="px-3 py-1 rounded-full text-xs font-bold border border-orange-300 bg-white text-orange-700">1 • Personal Info</span>
+                    <span id="chip-2" class="px-3 py-1 rounded-full text-xs font-bold border border-orange-200 text-orange-500">2 • Address</span>
+                    <span id="chip-3" class="px-3 py-1 rounded-full text-xs font-bold border border-orange-200 text-orange-500">3 • Education</span>
+                    <span id="chip-4" class="px-3 py-1 rounded-full text-xs font-bold border border-orange-200 text-orange-500">4 • Family</span>
+                    <span id="chip-5" class="px-3 py-1 rounded-full text-xs font-bold border border-orange-200 text-orange-500">5 • School Pref</span>
+                </div>
                 @if ($errors->any())
                     <div class="mb-4 text-red-600">
                         <ul>
@@ -252,7 +294,10 @@
                     @csrf
                     <!-- Step 1: Personal Info -->
                     <div class="form-step" id="step1">
-                        <div class="section-header mb-6">Personal Info</div>
+                        <div class="section-header mb-6 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A4 4 0 017 17h10a4 4 0 011.879.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Personal Info
+                        </div>
                         <!-- Progress Steps (already above) -->
                         <!-- Personal Info Section (Merged Design) -->
                         <div class="space-y-6">
@@ -340,7 +385,10 @@
                     </div>
                     <!-- Step 2: Address/Origin Info -->
                     <div class="form-step hidden" id="step2">
-                        <div class="section-header mb-6">Address</div>
+                        <div class="section-header mb-6 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12.414a4 4 0 10-5.657 5.657L12 22l5.657-5.343z"/></svg>
+                            Address
+                        </div>
                         <div class="mb-6">
                             <div class="form-title text-lg mb-2">Mailing Address</div>
                             <label class="form-label">Province</label>
@@ -422,7 +470,10 @@
                     </div>
                     <!-- Step 3: Educational Background Info -->
                     <div class="form-step hidden" id="step3">
-                        <div class="section-header mb-6">Education</div>
+                        <div class="section-header mb-6 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6"/></svg>
+                            Education
+                        </div>
                         <h2 class="text-xl font-semibold text-orange-500 mb-6">Educational Attainment</h2>
                         <div class="space-y-8">
                             <!-- Elementary -->
@@ -591,7 +642,10 @@
                     </div>
                     <!-- Step 4: Family Background Info -->
                     <div class="form-step hidden" id="step4">
-                        <div class="section-header mb-6">Family</div>
+                        <div class="section-header mb-6 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0m8 0a4 4 0 11-8 0m8 0v6m-8-6v6M12 6V4m0 0a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            Family
+                        </div>
                         <!-- Father's Info -->
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">FATHER'S STATUS <span class="text-red-500">*</span></label>
@@ -737,7 +791,10 @@
                     </div>
                     <!-- Step 5: Intended School Preference Info -->
                     <div class="form-step hidden" id="step5">
-                        <div class="section-header mb-6">School Pref</div>
+                        <div class="section-header mb-6 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2v6h6v-6c0-1.105-1.343-2-3-2z"/></svg>
+                            School Pref
+                        </div>
                         <div class="mb-4 font-semibold text-orange-700">INDICATE INTENDED SCHOOL AND COURSE BY PREFERENCE: <span class="text-red-500">*</span></div>
                         <!-- School's First Preference -->
                         <div class="mb-4">
@@ -792,10 +849,21 @@
                             <textarea name="plans_after_grad" class="form-textarea" rows="4" required>{{ old('plans_after_grad', $school_pref->ques_answer2 ?? '') }}</textarea>
                         </div>
                     </div>
-                    <div class="flex justify-between mt-6">
-                        <button type="button" class="submit-btn" id="prevBtn">Back</button>
-                        <button type="button" class="submit-btn" id="nextBtn">Next</button>
-                        <button type="submit" class="submit-btn hidden" id="submitBtn" onclick="return confirm('Are you sure you want to submit your application?')">Submit Application</button>
+                    <div class="flex justify-between mt-6 md:mt-8 md:sticky md:bottom-4 bg-white/60 backdrop-blur rounded-xl p-3 md:p-4 border border-orange-100 shadow">
+                        <button type="button" class="submit-btn inline-flex items-center" id="prevBtn">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Back
+                        </button>
+                        <div class="space-x-3">
+                            <button type="button" class="submit-btn inline-flex items-center" id="nextBtn">
+                                Next
+                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                            <button type="submit" class="submit-btn hidden inline-flex items-center" id="submitBtn" onclick="return confirm('Are you sure you want to submit your application?')">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Submit Application
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -815,6 +883,26 @@
             document.getElementById('nextBtn').style.display = step === 5 ? 'none' : 'inline-block';
             document.getElementById('submitBtn').classList.toggle('hidden', step !== 5);
             updateStepper(step);
+            // Update chips
+            for (let i = 1; i <= 5; i++) {
+                const chip = document.getElementById('chip-' + i);
+                if (!chip) continue;
+                if (i === step) {
+                    chip.classList.remove('text-orange-500','border-orange-200','bg-transparent');
+                    chip.classList.add('bg-white','text-orange-700','border-orange-300');
+                } else {
+                    chip.classList.remove('bg-white','text-orange-700','border-orange-300');
+                    chip.classList.add('text-orange-500','border-orange-200');
+                }
+            }
+            // Update progress bar
+            const percent = Math.round((step / 5) * 100);
+            const bar = document.getElementById('progressBar');
+            const label = document.getElementById('progressLabel');
+            const pct = document.getElementById('progressPercent');
+            if (bar) bar.style.width = percent + '%';
+            if (label) label.textContent = `Step ${step} of 5`;
+            if (pct) pct.textContent = percent + '%';
         };
 
         // Restrict barangay options based on selected municipality
@@ -949,5 +1037,11 @@
         // Initial call
         updateModernVerticalStepper(currentStep);
     </script>
-</body>
-</html> 
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // All the stepper logic is already in the content section above
+</script>
+@endpush 

@@ -143,13 +143,25 @@ class StaffDashboardController extends Controller
         $prioritizedDocuments = $priorityService->getPrioritizedDocuments('pending', 20);
         $priorityStatistics = $priorityService->getPriorityStatistics();
 
+        // Get overall course prioritization
+        $coursePriorityService = new \App\Services\CoursePriorityService();
+        $overallCoursePrioritization = $coursePriorityService->getOverallCoursePrioritization();
+        $courseStatistics = $coursePriorityService->getCourseStatistics();
+
+        // Get prioritized applicants (FCFS → IP Group → Course)
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $prioritizedApplicants = $applicantPriorityService->getTopPriorityApplicants(50);
+        $applicantPriorityStatistics = $applicantPriorityService->getPriorityStatistics();
+
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'totalScholars', 'newApplicants', 'activeScholars', 'inactiveScholars',
             'alerts', 'barChartData', 'pieChartData', 'performanceChartData',
             'pendingRequirements', 'feedbacks', 'notifications',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
-            'prioritizedDocuments', 'priorityStatistics'
+            'prioritizedDocuments', 'priorityStatistics',
+            'overallCoursePrioritization', 'courseStatistics',
+            'prioritizedApplicants', 'applicantPriorityStatistics'
         ));
     }
 
@@ -306,10 +318,15 @@ class StaffDashboardController extends Controller
         $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
         $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
 
+        // Get course prioritization for this specific applicant
+        $coursePriorityService = new \App\Services\CoursePriorityService();
+        $coursePrioritization = $coursePriorityService->getApplicantCoursePrioritization($user);
+
         return view('staff.application-view', compact(
             'user', 'basicInfo', 'ethno', 'mailing', 'permanent', 'origin',
             'education', 'familyFather', 'familyMother', 'siblings', 'schoolPref',
-            'documents', 'requiredTypes', 'totalRequired', 'approvedCount', 'progressPercent'
+            'documents', 'requiredTypes', 'totalRequired', 'approvedCount', 'progressPercent',
+            'coursePrioritization'
         ));
     }
 
@@ -392,6 +409,182 @@ class StaffDashboardController extends Controller
         return view('staff.applicants-list', compact(
             'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedStatus', 'selectedPriority'
+        ));
+    }
+
+    public function applicantPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $prioritizedApplicants = $applicantPriorityService->getTopPriorityApplicants(50);
+        $applicantPriorityStatistics = $applicantPriorityService->getPriorityStatistics();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.applicants', compact(
+            'name',
+            'assignedBarangay',
+            'prioritizedApplicants',
+            'applicantPriorityStatistics',
+            'notifications'
+        ));
+    }
+
+    public function documentPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        $priorityService = new \App\Services\DocumentPriorityService();
+
+        $uninitializedDocs = \App\Models\Document::where('status', 'pending')
+            ->where(function($query) {
+                $query->whereNull('submitted_at')
+                      ->orWhereNull('priority_score');
+            })
+            ->whereNotNull('created_at')
+            ->get();
+
+        foreach ($uninitializedDocs as $doc) {
+            if (!$doc->submitted_at) {
+                $doc->submitted_at = $doc->created_at;
+            }
+            $priorityService->calculateDocumentPriority($doc);
+        }
+
+        if ($uninitializedDocs->count() > 0) {
+            $priorityService->recalculateAllPriorities();
+        }
+
+        $prioritizedDocuments = $priorityService->getPrioritizedDocuments('pending', 50);
+        $priorityStatistics = $priorityService->getPriorityStatistics();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.documents', compact(
+            'name',
+            'assignedBarangay',
+            'prioritizedDocuments',
+            'priorityStatistics',
+            'notifications'
+        ));
+    }
+
+    public function ipPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        $priorityService = new \App\Services\DocumentPriorityService();
+
+        $uninitializedDocs = \App\Models\Document::where('status', 'pending')
+            ->where(function($query) {
+                $query->whereNull('submitted_at')
+                      ->orWhereNull('priority_score');
+            })
+            ->whereNotNull('created_at')
+            ->get();
+
+        foreach ($uninitializedDocs as $doc) {
+            if (!$doc->submitted_at) {
+                $doc->submitted_at = $doc->created_at;
+            }
+            $priorityService->calculateDocumentPriority($doc);
+        }
+
+        if ($uninitializedDocs->count() > 0) {
+            $priorityService->recalculateAllPriorities();
+        }
+
+        $prioritizedDocuments = $priorityService->getPrioritizedDocuments('pending', 100);
+
+        $priorityGroupsSet = ["b'laan", 'bagobo', 'kalagan', 'kaulo'];
+        $priorityIpDocs = $prioritizedDocuments->filter(function($doc) use ($priorityGroupsSet) {
+            $eth = optional(optional($doc->user)->ethno)->ethnicity;
+            return $eth && in_array(strtolower(trim($eth)), $priorityGroupsSet, true);
+        });
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.ip', compact(
+            'name',
+            'assignedBarangay',
+            'priorityIpDocs',
+            'notifications'
+        ));
+    }
+
+    public function coursePriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        $coursePriorityService = new \App\Services\CoursePriorityService();
+        $overallCoursePrioritization = $coursePriorityService->getOverallCoursePrioritization();
+        $courseStatistics = $coursePriorityService->getCourseStatistics();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.courses', compact(
+            'name',
+            'assignedBarangay',
+            'overallCoursePrioritization',
+            'courseStatistics',
+            'notifications'
+        ));
+    }
+
+    public function tribalCertificatePriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Get all users who have approved tribal certificates
+        $usersWithApprovedTribalCert = User::whereHas('documents', function($query) {
+            $query->where('type', 'tribal_certificate')
+                  ->where('status', 'approved');
+        })
+        ->with(['documents' => function($query) {
+            $query->where('type', 'tribal_certificate')
+                  ->where('status', 'approved')
+                  ->orderBy('created_at', 'desc');
+        }, 'ethno', 'basicInfo'])
+        ->get();
+
+        // Sort by when the certificate was approved (most recently approved first)
+        $prioritizedUsers = $usersWithApprovedTribalCert->sortByDesc(function($user) {
+            $approvedCert = $user->documents->where('type', 'tribal_certificate')
+                                          ->where('status', 'approved')
+                                          ->first();
+            return $approvedCert ? $approvedCert->updated_at : null;
+        })->values();
+
+        // Get statistics
+        $totalApproved = $prioritizedUsers->count();
+        $recentlyApproved = $prioritizedUsers->filter(function($user) {
+            $approvedCert = $user->documents->where('type', 'tribal_certificate')
+                                          ->where('status', 'approved')
+                                          ->first();
+            if (!$approvedCert) return false;
+            return $approvedCert->updated_at->isAfter(now()->subDays(7));
+        })->count();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.tribal-certificate', compact(
+            'name',
+            'assignedBarangay',
+            'prioritizedUsers',
+            'totalApproved',
+            'recentlyApproved',
+            'notifications'
         ));
     }
 

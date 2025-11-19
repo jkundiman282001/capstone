@@ -179,6 +179,38 @@
               <option value="{{ $ethno->id }}">{{ $ethno->ethnicity }}</option>
             @endforeach
           </select>
+          <div class="grid grid-cols-1">
+            <label for="register_course" class="text-sm text-gray-700 mb-1">Course</label>
+            <select name="course" id="register_course" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+              <option value="">Select your course</option>
+              <option value="Agriculture">Agriculture</option>
+              <option value="Aqua-Culture and Fisheries">Aqua-Culture and Fisheries</option>
+              <option value="Anthropology">Anthropology</option>
+              <option value="Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)">Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Community Development">Community Development</option>
+              <option value="Criminology">Criminology</option>
+              <option value="Education">Education</option>
+              <option value="Foreign Service">Foreign Service</option>
+              <option value="Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)">Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)</option>
+              <option value="Geodetic Engineering">Geodetic Engineering</option>
+              <option value="Geology">Geology</option>
+              <option value="Law">Law</option>
+              <option value="Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)">Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Mining Engineering">Mining Engineering</option>
+              <option value="Social Sciences (AB courses)">Social Sciences (AB courses)</option>
+              <option value="Social Work">Social Work</option>
+              <option value="BS Information Technology">BS Information Technology</option>
+              <option value="BS Computer Science">BS Computer Science</option>
+              <option value="BS Accountancy">BS Accountancy</option>
+              <option value="BS Nursing">BS Nursing</option>
+              <option value="BS Education">BS Education</option>
+              <option value="BA Political Science">BA Political Science</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="text" id="register_course_other" name="course_other" placeholder="If Other, please specify" class="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 hidden" />
+          </div>
           <input type="email" name="email" id="register_email" required autofocus placeholder="Enter your email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
           <div class="relative">
             <input type="password" name="password" id="register_password" required placeholder="Enter your password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 pr-10" />
@@ -225,6 +257,34 @@
         btn.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' /></svg>`;
       }
     }
+
+    // Course selector: show "Other" input
+    document.addEventListener('DOMContentLoaded', function() {
+      const courseSelect = document.getElementById('register_course');
+      const courseOther = document.getElementById('register_course_other');
+      const signupForm = document.querySelector("form[action='{{ url('/register') }}']");
+      if (courseSelect) {
+        courseSelect.addEventListener('change', function() {
+          if (this.value === 'Other') {
+            courseOther.classList.remove('hidden');
+          } else {
+            courseOther.classList.add('hidden');
+          }
+        });
+      }
+      if (signupForm && courseSelect && courseOther) {
+        signupForm.addEventListener('submit', function() {
+          if (courseSelect.value === 'Other' && courseOther.value.trim() !== '') {
+            // inject other value into course field so backend receives it
+            const opt = document.createElement('option');
+            opt.value = courseOther.value.trim();
+            opt.text = courseOther.value.trim();
+            opt.selected = true;
+            courseSelect.appendChild(opt);
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>

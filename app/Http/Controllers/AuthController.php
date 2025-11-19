@@ -52,7 +52,14 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'min:8', 'confirmed'],
             'ethno_id' => ['required', 'exists:ethno,id'], // Add validation for ethno_id
+            'course' => ['nullable', 'string', 'max:150'],
+            'course_other' => ['nullable', 'string', 'max:150'],
         ]);
+
+        $course = $request->input('course');
+        if ($course === 'Other') {
+            $course = trim((string) $request->input('course_other')) ?: null;
+        }
 
         $user = User::create([
             'first_name' => $validated['first_name'],
@@ -62,6 +69,7 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'ethno_id' => $validated['ethno_id'], // Save ethno_id
+            'course' => $course,
         ]);
 
         return redirect('/auth')->with('success', 'Account created successfully! Please log in.');

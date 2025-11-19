@@ -1,82 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Support & Help - IP Scholar Portal</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'ip-cyan': '#06B6D4',
-                        'ip-dark': '#0F172A',
-                        'ip-card': '#1E293B'
-                    }
+@extends('layouts.student')
+
+@section('title', 'Support & Help - IP Scholar Portal')
+
+@push('head-scripts')
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'ip-cyan': '#06B6D4',
+                    'ip-dark': '#0F172A',
+                    'ip-card': '#1E293B'
                 }
             }
         }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-</head>
-<body class="min-h-screen bg-gray-50">
-    <!-- Navigation -->
-    <nav x-data="{ open: false }" class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="text-2xl font-bold">
-                        <span class="text-orange-400">IP Scholar</span>
-                        <span class="text-orange-400/80 text-lg ml-2">Portal</span>
-                    </div>
-                </div>
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="{{ route('student.dashboard') }}" class="text-gray-600 hover:text-orange-400 transition-colors">Home</a>
-                    <a href="{{ route('student.profile') }}" class="text-gray-600 hover:text-orange-400 transition-colors">Profile</a>
-                    <a href="{{ route('student.performance') }}" class="text-gray-600 hover:text-orange-400 transition-colors">Performance</a>
-                    <a href="{{ route('student.notifications') }}" class="text-gray-600 hover:text-orange-400 transition-colors">Notifications</a>
-                    <a href="{{ route('student.support') }}" class="text-gray-600 hover:text-orange-400 transition-colors">Support/Help</a>
-                </div>
-                <div class="hidden md:flex items-center space-x-4">
-                    @auth
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="px-6 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-700 hover:text-white transition-all">Log Out</button>
-                        </form>
-                    @endauth
-                </div>
-                <!-- Hamburger Button (Mobile) -->
-                <button @click="open = !open" class="md:hidden text-orange-400 focus:outline-none">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        <path :class="{'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <!-- Mobile Menu -->
-        <div x-show="open" @click.away="open = false" class="md:hidden bg-white border-t border-orange-100 px-6 py-4">
-            <div class="flex flex-col space-y-4">
-                <a href="{{ route('student.dashboard') }}" class="text-orange-600 hover:text-orange-400 transition-colors">Home</a>
-                <a href="{{ route('student.profile') }}" class="text-orange-600 hover:text-orange-400 transition-colors">Profile</a>
-                <a href="{{ route('student.performance') }}" class="text-orange-600 hover:text-orange-400 transition-colors">Performance</a>
-                <a href="{{ route('student.notifications') }}" class="text-orange-600 hover:text-orange-400 transition-colors">Notifications</a>
-                <a href="{{ route('student.support') }}" class="text-orange-600 hover:text-orange-400 transition-colors">Support/Help</a>
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full text-left px-0 text-red-400 hover:text-white transition-all">Log Out</button>
-                    </form>
-                @endauth
-            </div>
-        </div>
-    </nav>
+    }
+</script>
+@endpush
+
+@push('styles')
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+</style>
+@endpush
+
+@section('content')
+<div class="min-h-screen bg-gray-50 pt-20">
 
     <!-- Header -->
     <div class="bg-gradient-to-r from-orange-500 to-red-600 text-white py-12 mb-8">
@@ -141,5 +92,5 @@
             </div>
         </div>
     </div>
-</body>
-</html> 
+</div>
+@endsection 
