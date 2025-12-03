@@ -22,6 +22,8 @@ class BasicInfo extends Model
         'civil_status',
         'school_pref_id',
         'type_assist',
+        'assistance_for',
+        'application_status',
     ];
 
     public function user()

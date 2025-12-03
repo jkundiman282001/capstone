@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Document;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
@@ -55,6 +56,36 @@ class DocumentController extends Controller
         return back()->with('success', 'PDF document uploaded successfully! Please wait for staff review.');
     }
 
+    public function show(Document $document)
+    {
+        if ($document->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!Storage::disk('public')->exists($document->filepath)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('public')->path($document->filepath));
+    }
+
+    public function destroy(Document $document)
+    {
+        // Check if user owns the document
+        if ($document->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // Delete file from storage
+        if (Storage::disk('public')->exists($document->filepath)) {
+            Storage::disk('public')->delete($document->filepath);
+        }
+
+        $document->delete();
+
+        return back()->with('success', 'Document deleted successfully.');
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -71,17 +102,43 @@ class DocumentController extends Controller
 
         // Calculate priority rank for the student
         $priorityRank = null;
+        $acceptancePercent = null;
+        $priorityFactors = [];
         $priorityService = new \App\Services\ApplicantPriorityService();
         $prioritizedApplicants = $priorityService->getPrioritizedApplicants();
+        $priorityStatistics = $priorityService->getPriorityStatistics();
         
         // Find the student's rank in the prioritized list
         foreach ($prioritizedApplicants as $applicantData) {
             if ($applicantData['user_id'] == $user->id) {
                 $priorityRank = $applicantData['priority_rank'] ?? null;
+                $priorityScore = $applicantData['priority_score'] ?? null;
+                if ($priorityScore !== null) {
+                    $acceptancePercent = (int) round($priorityScore);
+                }
+                $priorityFactors = [
+                    'is_priority_ethno' => $applicantData['is_priority_ethno'] ?? false,
+                    'is_priority_course' => $applicantData['is_priority_course'] ?? false,
+                    'has_approved_tribal_cert' => $applicantData['has_approved_tribal_cert'] ?? false,
+                    'has_approved_income_tax' => $applicantData['has_approved_income_tax'] ?? false,
+                    'has_approved_grades' => $applicantData['has_approved_grades'] ?? false,
+                    'has_all_other_requirements' => $applicantData['has_all_other_requirements'] ?? false,
+                ];
                 break;
             }
         }
 
-        return view('student.performance', compact('documents', 'requiredTypes', 'basicInfo', 'priorityRank'));
+        return view(
+            'student.performance',
+            compact(
+                'documents',
+                'requiredTypes',
+                'basicInfo',
+                'priorityRank',
+                'acceptancePercent',
+                'priorityFactors',
+                'priorityStatistics'
+            )
+        );
     }
 }

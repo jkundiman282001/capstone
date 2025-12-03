@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\BasicInfo;
+use App\Models\Document;
 
 class StudentController extends Controller
 {
@@ -12,12 +14,18 @@ class StudentController extends Controller
     {
         // In a real app, fetch the student's application status from DB
         $application = null; // Replace with actual application model if exists
-        return view('student.dashboard', compact('application'));
+        $hasApplied = BasicInfo::where('user_id', $request->user()->id)->exists();
+
+        return view('student.dashboard', compact('application', 'hasApplied'));
     }
 
     public function apply(Request $request)
     {
         $user = auth()->user();
+
+        $request->validate([
+            'documents.*' => 'nullable|file|mimes:pdf|max:10240',
+        ]);
 
     
         // Get the selected type of assistance (only one allowed)
@@ -76,12 +84,16 @@ class StudentController extends Controller
 
         // 5. Save School Preference
         $schoolPref = \App\Models\SchoolPref::create([
+            'school_name' => $request->school1_name,
             'address' => $request->school1_address,
             'degree' => $request->school1_course1,
+            'alt_degree' => $request->school1_course_alt,
             'school_type' => $request->school1_type,
             'num_years' => $request->school1_years,
+            'school_name2' => $request->school2_name,
             'address2' => $request->school2_address,
             'degree2' => $request->school2_course1,
+            'alt_degree2' => $request->school2_course_alt,
             'school_type2' => $request->school2_type,
             'num_years2' => $request->school2_years,
             'ques_answer1' => $request->contribution,
@@ -89,6 +101,11 @@ class StudentController extends Controller
         ]);
 
         // 6. Save Basic Info (linking all the above)
+        $assistanceFor = null;
+        if (is_array($request->assistance_for) && count($request->assistance_for) > 0) {
+            $assistanceFor = implode(',', $request->assistance_for);
+        }
+
         $basicInfo = \App\Models\BasicInfo::create([
             'user_id' => $user->id,
             'house_num' => $request->mailing_house_num,
@@ -100,6 +117,7 @@ class StudentController extends Controller
             // 'family_id' => will be set after creating family records
             'school_pref_id' => $schoolPref->id,
             'type_assist' => $typeAssist,
+            'assistance_for' => $assistanceFor,
         ]);
 
         // 2. Save Education (each level as a separate row, linked to BasicInfo)
@@ -176,6 +194,35 @@ class StudentController extends Controller
 
         $request->session()->flash('status', 'Your IP Scholarship application has been submitted!');
 
+        // Handle document uploads submitted with the form
+        if ($request->hasFile('documents')) {
+            foreach ($request->file('documents') as $type => $file) {
+                if (!$file) {
+                    continue;
+                }
+
+                $path = $file->store('documents', 'public');
+
+                $document = new Document();
+                $document->user_id = $user->id;
+                $document->filename = $file->getClientOriginalName();
+                $document->filepath = $path;
+                $document->filetype = $file->getClientMimeType();
+                $document->filesize = $file->getSize();
+                $document->description = null;
+                $document->status = 'pending';
+                $document->type = $type;
+                $document->save();
+
+                $priorityService = new \App\Services\DocumentPriorityService();
+                $priorityService->onDocumentUploaded($document);
+
+                foreach (\App\Models\Staff::all() as $staff) {
+                    $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                }
+            }
+        }
+
         // Notify all staff
         foreach (\App\Models\Staff::all() as $staff) {
             $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
@@ -187,8 +234,13 @@ class StudentController extends Controller
     public function profile(Request $request)
     {
         // In a real app, fetch the student's profile data from DB
-        $student = Auth::user(); // Get the authenticated user
-        return view('student.profile', compact('student'));
+        $student = Auth::user()->load('documents', 'basicInfo'); // Get the authenticated user with documents and basic info
+
+        // Check application status from basic_info table
+        $basicInfo = $student->basicInfo;
+        $applicationStatus = $basicInfo ? ($basicInfo->application_status ?? 'pending') : 'pending';
+
+        return view('student.profile', compact('student', 'applicationStatus'));
     }
 
     public function performance(Request $request)
@@ -286,6 +338,24 @@ class StudentController extends Controller
             'profile_pic_url' => Storage::url($path)
         ]);
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'contact_num' => 'required|string|max:20',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+        ]);
+
+        $user->update($validated);
+
+        return back()->with('success', 'Profile updated successfully!');
+    }
+
 
     public function typeOfAssistance()
     {

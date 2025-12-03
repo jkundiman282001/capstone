@@ -143,7 +143,7 @@
           </div>
           <div class="flex items-center justify-between">
             <label class="flex items-center text-sm text-gray-700">
-              <input type="checkbox" class="checkbox-orange h-4 w-4 border-gray-300 rounded mr-2"> Remember me
+              <input type="checkbox" name="remember" value="1" class="checkbox-orange h-4 w-4 border-gray-300 rounded mr-2"> Remember me
             </label>
             <a href="#" class="text-sm text-orange-600 hover:underline">Forgot password?</a>
           </div>
@@ -180,7 +180,6 @@
             @endforeach
           </select>
           <div class="grid grid-cols-1">
-            <label for="register_course" class="text-sm text-gray-700 mb-1">Course</label>
             <select name="course" id="register_course" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
               <option value="">Select your course</option>
               <option value="Agriculture">Agriculture</option>

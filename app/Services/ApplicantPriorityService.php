@@ -9,6 +9,17 @@ use Carbon\Carbon;
 class ApplicantPriorityService
 {
     /**
+     * Weight allocation (must total 1.0 / 100%)
+     */
+    private array $priorityWeights = [
+        'ip' => 0.30,          // 30%
+        'course' => 0.25,      // 25%
+        'tribal' => 0.20,      // 20%
+        'income_tax' => 0.15,  // 15%
+        'academic_performance' => 0.05,  // 5%
+        'other_requirements' => 0.05,  // 5%
+    ];
+    /**
      * Priority Indigenous Groups (2nd priority tier)
      */
     private $priorityEthnoGroups = [
@@ -147,7 +158,49 @@ class ApplicantPriorityService
     }
 
     /**
-     * Get prioritized applicants based on: IP Group (1st) → Course (2nd) → Tribal Certificate (3rd) → FCFS (Tiebreaker)
+     * Check if applicant has approved income tax document
+     */
+    private function hasApprovedIncomeTax(User $applicant): bool
+    {
+        return $applicant->documents()
+            ->where('type', 'income_document')
+            ->where('status', 'approved')
+            ->exists();
+    }
+
+    /**
+     * Check if applicant has approved grades document (Academic Performance)
+     */
+    private function hasApprovedGrades(User $applicant): bool
+    {
+        return $applicant->documents()
+            ->where('type', 'grades')
+            ->where('status', 'approved')
+            ->exists();
+    }
+
+    /**
+     * Check if applicant has all other required documents approved (Birth Certificate, Endorsement, Good Moral)
+     */
+    private function hasAllOtherRequirements(User $applicant): bool
+    {
+        $otherRequiredTypes = ['birth_certificate', 'endorsement', 'good_moral'];
+        
+        $approvedDocs = $applicant->documents()
+            ->whereIn('type', $otherRequiredTypes)
+            ->where('status', 'approved')
+            ->get();
+        
+        // Check if all three documents are approved
+        $hasBirthCert = $approvedDocs->where('type', 'birth_certificate')->isNotEmpty();
+        $hasEndorsement = $approvedDocs->where('type', 'endorsement')->isNotEmpty();
+        $hasGoodMoral = $approvedDocs->where('type', 'good_moral')->isNotEmpty();
+        
+        return $hasBirthCert && $hasEndorsement && $hasGoodMoral;
+    }
+
+    /**
+     * Get prioritized applicants based on: IP Group (1st) → Course (2nd) → Tribal Certificate (3rd) → Income Tax (4th) → Academic Performance (5th) → FCFS (Tiebreaker)
      */
     public function getPrioritizedApplicants(): array
     {
@@ -182,10 +235,28 @@ class ApplicantPriorityService
             // Check for approved tribal certificate (Rank 3)
             $hasApprovedTribalCert = $this->hasApprovedTribalCertificate($applicant);
 
+            // Check for approved income tax document (Rank 4)
+            $hasApprovedIncomeTax = $this->hasApprovedIncomeTax($applicant);
+
+            // Check for approved grades document (Rank 5 - Academic Performance)
+            $hasApprovedGrades = $this->hasApprovedGrades($applicant);
+
+            // Check for all other required documents (Rank 6 - Other Requirements)
+            $hasAllOtherRequirements = $this->hasAllOtherRequirements($applicant);
+
             // Get course
             $courseName = $this->getApplicantCourse($applicant);
             $normalizedCourse = $this->normalizeCourseName($courseName);
             $isPriorityCourse = $this->isPriorityCourse($courseName);
+
+            $priorityScore = $this->calculatePriorityScore(
+                $isPriorityEthno,
+                $isPriorityCourse,
+                $hasApprovedTribalCert,
+                $hasApprovedIncomeTax,
+                $hasApprovedGrades,
+                $hasAllOtherRequirements
+            );
 
             $prioritizedApplicants[] = [
                 'user_id' => $applicant->id,
@@ -194,45 +265,30 @@ class ApplicantPriorityService
                 'ethnicity' => $ethnicity,
                 'is_priority_ethno' => $isPriorityEthno,
                 'has_approved_tribal_cert' => $hasApprovedTribalCert,
+                'has_approved_income_tax' => $hasApprovedIncomeTax,
+                'has_approved_grades' => $hasApprovedGrades,
+                'has_all_other_requirements' => $hasAllOtherRequirements,
                 'course' => $courseName,
                 'normalized_course' => $normalizedCourse ?? 'Other',
                 'is_priority_course' => $isPriorityCourse,
                 'priority_rank' => null, // Will be assigned after sorting
+                'priority_score' => $priorityScore,
             ];
         }
 
-        // Sort applicants by priority:
-        // 1. IP Group (priority IP groups first) - 1st Priority
-        // 2. Course (priority courses first) - 2nd Priority
-        // 3. Certificate of Tribal Membership (approved first) - 3rd Priority
-        // 4. FCFS (earliest submission as tiebreaker)
+        // Sort applicants by weighted score first, then FCFS as tie breaker
         usort($prioritizedApplicants, function($a, $b) {
-            // 1st Priority: IP Group (priority groups first)
-            $aIsPriorityEthno = $a['is_priority_ethno'] ? 1 : 0;
-            $bIsPriorityEthno = $b['is_priority_ethno'] ? 1 : 0;
-            if ($aIsPriorityEthno != $bIsPriorityEthno) {
-                return $bIsPriorityEthno <=> $aIsPriorityEthno; // Descending = priority first
+            // Weighted score (descending)
+            $scoreComparison = $b['priority_score'] <=> $a['priority_score'];
+            if ($scoreComparison !== 0) {
+                return $scoreComparison;
             }
 
-            // 2nd Priority: Course (priority courses first)
-            $aIsPriorityCourse = $a['is_priority_course'] ? 1 : 0;
-            $bIsPriorityCourse = $b['is_priority_course'] ? 1 : 0;
-            if ($aIsPriorityCourse != $bIsPriorityCourse) {
-                return $bIsPriorityCourse <=> $aIsPriorityCourse; // Descending = priority first
-            }
-
-            // 3rd Priority: Certificate of Tribal Membership (approved first)
-            $aHasTribalCert = $a['has_approved_tribal_cert'] ? 1 : 0;
-            $bHasTribalCert = $b['has_approved_tribal_cert'] ? 1 : 0;
-            if ($aHasTribalCert != $bHasTribalCert) {
-                return $bHasTribalCert <=> $aHasTribalCert; // Descending = approved first
-            }
-
-            // 4th Priority: FCFS (application submission time - earliest first) - Tiebreaker
+            // FCFS (earliest submission wins)
             $aTime = $a['application_submitted_at']->timestamp;
             $bTime = $b['application_submitted_at']->timestamp;
-            if ($aTime != $bTime) {
-                return $aTime <=> $bTime; // Ascending = earliest first
+            if ($aTime !== $bTime) {
+                return $aTime <=> $bTime;
             }
 
             // Final tiebreaker: user ID (stable sort)
@@ -249,6 +305,43 @@ class ApplicantPriorityService
         }
 
         return $prioritizedApplicants;
+    }
+
+    private function calculatePriorityScore(
+        bool $isPriorityEthno,
+        bool $isPriorityCourse,
+        bool $hasApprovedTribalCert,
+        bool $hasApprovedIncomeTax,
+        bool $hasApprovedGrades,
+        bool $hasAllOtherRequirements
+    ): float {
+        $score = 0;
+
+        if ($isPriorityEthno) {
+            $score += $this->priorityWeights['ip'] * 100;
+        }
+
+        if ($isPriorityCourse) {
+            $score += $this->priorityWeights['course'] * 100;
+        }
+
+        if ($hasApprovedTribalCert) {
+            $score += $this->priorityWeights['tribal'] * 100;
+        }
+
+        if ($hasApprovedIncomeTax) {
+            $score += $this->priorityWeights['income_tax'] * 100;
+        }
+
+        if ($hasApprovedGrades) {
+            $score += $this->priorityWeights['academic_performance'] * 100;
+        }
+
+        if ($hasAllOtherRequirements) {
+            $score += $this->priorityWeights['other_requirements'] * 100;
+        }
+
+        return round($score, 2);
     }
 
     /**
@@ -274,6 +367,15 @@ class ApplicantPriorityService
         $tribalCertCount = count(array_filter($applicants, function($a) {
             return $a['has_approved_tribal_cert'];
         }));
+        $incomeTaxCount = count(array_filter($applicants, function($a) {
+            return $a['has_approved_income_tax'];
+        }));
+        $academicPerformanceCount = count(array_filter($applicants, function($a) {
+            return $a['has_approved_grades'];
+        }));
+        $otherRequirementsCount = count(array_filter($applicants, function($a) {
+            return $a['has_all_other_requirements'];
+        }));
         $priorityCourseCount = count(array_filter($applicants, function($a) {
             return $a['is_priority_course'];
         }));
@@ -285,6 +387,9 @@ class ApplicantPriorityService
             'total_applicants' => $totalApplicants,
             'priority_ethno_count' => $priorityEthnoCount,
             'tribal_cert_count' => $tribalCertCount,
+            'income_tax_count' => $incomeTaxCount,
+            'academic_performance_count' => $academicPerformanceCount,
+            'other_requirements_count' => $otherRequirementsCount,
             'priority_course_count' => $priorityCourseCount,
             'oldest_application' => $oldestApplication ? [
                 'user_id' => $oldestApplication['user_id'],

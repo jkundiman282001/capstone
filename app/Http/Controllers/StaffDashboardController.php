@@ -68,43 +68,90 @@ class StaffDashboardController extends Controller
 
         // Get scholars per barangay for chart
         $scholarsPerBarangay = $users->groupBy(function($user) {
-            return $user->basicInfo->fullAddress->address->barangay ?? 'Unknown';
-        })->map->count();
+            return optional(optional(optional($user->basicInfo)->fullAddress)->address)->barangay ?? 'Unknown';
+        })->map->count()->sortDesc()->take(10);
 
         $barChartData = [
             'labels' => $scholarsPerBarangay->keys()->toArray(),
             'datasets' => [[
-                'label' => 'Scholars',
-                'backgroundColor' => ['#3b82f6', '#f59e42', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16'],
+                'label' => 'Scholars per Barangay',
+                'backgroundColor' => 'rgba(99, 102, 241, 0.8)',
+                'borderColor' => 'rgba(99, 102, 241, 1)',
+                'borderWidth' => 2,
+                'borderRadius' => 8,
                 'data' => $scholarsPerBarangay->values()->toArray()
             ]]
         ];
 
         // Get application status breakdown
-        $statusBreakdown = $users->groupBy(function($user) {
-            return $user->basicInfo->type_assist ? 'Applied' : 'Not Applied';
+        $statusBreakdown = $users->filter(function($user) {
+            return $user->basicInfo !== null;
+        })->groupBy(function($user) {
+            $status = optional($user->basicInfo)->application_status ?? 'pending';
+            if ($status === 'validated') {
+                return 'Validated';
+            } elseif ($user->basicInfo->type_assist) {
+                return 'Applied - Pending';
+            } else {
+                return 'Not Applied';
+            }
         })->map->count();
 
         $pieChartData = [
             'labels' => $statusBreakdown->keys()->toArray(),
             'datasets' => [[
-                'backgroundColor' => ['#10b981', '#f59e42', '#ef4444', '#3b82f6'],
+                'backgroundColor' => [
+                    'rgba(16, 185, 129, 0.9)',  // Green for Validated
+                    'rgba(245, 158, 66, 0.9)',  // Orange for Applied
+                    'rgba(239, 68, 68, 0.9)',   // Red for Not Applied
+                    'rgba(59, 130, 246, 0.9)'   // Blue
+                ],
+                'borderColor' => ['#ffffff', '#ffffff', '#ffffff', '#ffffff'],
+                'borderWidth' => 3,
                 'data' => $statusBreakdown->values()->toArray()
             ]]
         ];
 
-        // Get academic performance data (mock for now)
-        $performanceChartData = [
-            'labels' => ['1st Sem 2024', '2nd Sem 2024', '1st Sem 2025'],
+        // Get IP Group distribution for chart
+        $ipGroupDistribution = $users->groupBy(function($user) {
+            return optional($user->ethno)->ethnicity ?? 'Not Specified';
+        })->map->count()->sortDesc();
+
+        $ipChartData = [
+            'labels' => $ipGroupDistribution->keys()->toArray(),
             'datasets' => [[
-                'label' => 'Average GWA',
-                'borderColor' => '#6366f1',
-                'backgroundColor' => 'rgba(99,102,241,0.2)',
-                'data' => [1.75, 1.85, 1.80]
+                'label' => 'Applicants per IP Group',
+                'backgroundColor' => [
+                    'rgba(139, 92, 246, 0.8)',  // Purple
+                    'rgba(236, 72, 153, 0.8)',  // Pink
+                    'rgba(59, 130, 246, 0.8)',  // Blue
+                    'rgba(16, 185, 129, 0.8)',  // Green
+                    'rgba(245, 158, 66, 0.8)',  // Orange
+                    'rgba(239, 68, 68, 0.8)',   // Red
+                    'rgba(6, 182, 212, 0.8)',   // Cyan
+                    'rgba(132, 204, 22, 0.8)',  // Lime
+                    'rgba(168, 85, 247, 0.8)',  // Violet
+                    'rgba(234, 179, 8, 0.8)'    // Yellow
+                ],
+                'borderColor' => [
+                    'rgba(139, 92, 246, 1)',
+                    'rgba(236, 72, 153, 1)',
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(16, 185, 129, 1)',
+                    'rgba(245, 158, 66, 1)',
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(6, 182, 212, 1)',
+                    'rgba(132, 204, 22, 1)',
+                    'rgba(168, 85, 247, 1)',
+                    'rgba(234, 179, 8, 1)'
+                ],
+                'borderWidth' => 2,
+                'borderRadius' => 8,
+                'data' => $ipGroupDistribution->values()->toArray()
             ]]
         ];
 
-        // Get real pending requirements
+        // Get real pending requirements (still needed for notification bar)
         $pendingRequirements = $this->getPendingRequirements($users);
 
         // Get real alerts
@@ -156,7 +203,7 @@ class StaffDashboardController extends Controller
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'totalScholars', 'newApplicants', 'activeScholars', 'inactiveScholars',
-            'alerts', 'barChartData', 'pieChartData', 'performanceChartData',
+            'alerts', 'barChartData', 'pieChartData', 'ipChartData',
             'pendingRequirements', 'feedbacks', 'notifications',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
             'prioritizedDocuments', 'priorityStatistics',
@@ -588,6 +635,172 @@ class StaffDashboardController extends Controller
         ));
     }
 
+    public function incomeTaxPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Get all users who have approved income tax documents
+        $usersWithApprovedIncomeTax = User::whereHas('documents', function($query) {
+            $query->where('type', 'income_document')
+                  ->where('status', 'approved');
+        })
+        ->with(['documents' => function($query) {
+            $query->where('type', 'income_document')
+                  ->where('status', 'approved')
+                  ->orderBy('created_at', 'desc');
+        }, 'ethno', 'basicInfo'])
+        ->get();
+
+        // Sort by when the income tax document was approved (most recently approved first)
+        $prioritizedUsers = $usersWithApprovedIncomeTax->sortByDesc(function($user) {
+            $approvedDoc = $user->documents->where('type', 'income_document')
+                                          ->where('status', 'approved')
+                                          ->first();
+            return $approvedDoc ? $approvedDoc->updated_at : null;
+        })->values();
+
+        // Get statistics
+        $totalApproved = $prioritizedUsers->count();
+        $recentlyApproved = $prioritizedUsers->filter(function($user) {
+            $approvedDoc = $user->documents->where('type', 'income_document')
+                                          ->where('status', 'approved')
+                                          ->first();
+            if (!$approvedDoc) return false;
+            return $approvedDoc->updated_at->isAfter(now()->subDays(7));
+        })->count();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.income-tax', compact(
+            'name',
+            'assignedBarangay',
+            'prioritizedUsers',
+            'totalApproved',
+            'recentlyApproved',
+            'notifications'
+        ));
+    }
+
+    public function academicPerformancePriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Get all users who have approved grades documents
+        $usersWithApprovedGrades = User::whereHas('documents', function($query) {
+            $query->where('type', 'grades')
+                  ->where('status', 'approved');
+        })
+        ->with(['documents' => function($query) {
+            $query->where('type', 'grades')
+                  ->where('status', 'approved')
+                  ->orderBy('created_at', 'desc');
+        }, 'ethno', 'basicInfo'])
+        ->get();
+
+        // Sort by when the grades document was approved (most recently approved first)
+        $prioritizedUsers = $usersWithApprovedGrades->sortByDesc(function($user) {
+            $approvedDoc = $user->documents->where('type', 'grades')
+                                          ->where('status', 'approved')
+                                          ->first();
+            return $approvedDoc ? $approvedDoc->updated_at : null;
+        })->values();
+
+        // Get statistics
+        $totalApproved = $prioritizedUsers->count();
+        $recentlyApproved = $prioritizedUsers->filter(function($user) {
+            $approvedDoc = $user->documents->where('type', 'grades')
+                                          ->where('status', 'approved')
+                                          ->first();
+            if (!$approvedDoc) return false;
+            return $approvedDoc->updated_at->isAfter(now()->subDays(7));
+        })->count();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.academic-performance', compact(
+            'name',
+            'assignedBarangay',
+            'prioritizedUsers',
+            'totalApproved',
+            'recentlyApproved',
+            'notifications'
+        ));
+    }
+
+    public function otherRequirementsPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Other required documents: birth_certificate, endorsement, good_moral
+        $otherRequiredTypes = ['birth_certificate', 'endorsement', 'good_moral'];
+
+        // Get all users who have ALL other required documents approved
+        $usersWithAllOtherDocs = User::whereHas('documents', function($query) use ($otherRequiredTypes) {
+            $query->whereIn('type', $otherRequiredTypes)
+                  ->where('status', 'approved');
+        })
+        ->with(['documents' => function($query) use ($otherRequiredTypes) {
+            $query->whereIn('type', $otherRequiredTypes)
+                  ->where('status', 'approved')
+                  ->orderBy('created_at', 'desc');
+        }, 'ethno', 'basicInfo'])
+        ->get();
+
+        // Filter to only include users who have ALL three documents approved
+        $prioritizedUsers = $usersWithAllOtherDocs->filter(function($user) use ($otherRequiredTypes) {
+            $approvedDocs = $user->documents
+                ->whereIn('type', $otherRequiredTypes)
+                ->where('status', 'approved');
+            
+            // Check if user has all three required documents approved
+            $hasBirthCert = $approvedDocs->where('type', 'birth_certificate')->isNotEmpty();
+            $hasEndorsement = $approvedDocs->where('type', 'endorsement')->isNotEmpty();
+            $hasGoodMoral = $approvedDocs->where('type', 'good_moral')->isNotEmpty();
+            
+            return $hasBirthCert && $hasEndorsement && $hasGoodMoral;
+        });
+
+        // Sort by when the last document was approved (most recently completed first)
+        $prioritizedUsers = $prioritizedUsers->sortByDesc(function($user) use ($otherRequiredTypes) {
+            $approvedDocs = $user->documents
+                ->whereIn('type', $otherRequiredTypes)
+                ->where('status', 'approved');
+            
+            // Get the most recent approval date among all three documents
+            $latestApproval = $approvedDocs->max('updated_at');
+            return $latestApproval;
+        })->values();
+
+        // Get statistics
+        $totalApproved = $prioritizedUsers->count();
+        $recentlyApproved = $prioritizedUsers->filter(function($user) use ($otherRequiredTypes) {
+            $approvedDocs = $user->documents
+                ->whereIn('type', $otherRequiredTypes)
+                ->where('status', 'approved');
+            
+            $latestApproval = $approvedDocs->max('updated_at');
+            if (!$latestApproval) return false;
+            return $latestApproval->isAfter(now()->subDays(7));
+        })->count();
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.other-requirements', compact(
+            'name',
+            'assignedBarangay',
+            'prioritizedUsers',
+            'totalApproved',
+            'recentlyApproved',
+            'notifications'
+        ));
+    }
+
     public function updateDocumentStatus(Request $request, $document)
     {
         $document = Document::findOrFail($document);
@@ -603,6 +816,28 @@ class StaffDashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Document status updated successfully'
+        ]);
+    }
+
+    public function updateApplicationStatus(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        
+        $validated = $request->validate([
+            'status' => 'required|in:pending,validated'
+        ]);
+        
+        $basicInfo->update([
+            'application_status' => $validated['status']
+        ]);
+        
+        // Send notification to user
+        $user->notify(new \App\Notifications\ApplicationStatusUpdated($validated['status']));
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Application status updated successfully'
         ]);
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\BasicInfo;
 
 class AuthController extends Controller
 {
@@ -27,31 +28,44 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $credentials = $request->validateWithBag('login', [
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $remember = $request->boolean('remember');
+
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+
+            $user = Auth::user();
+            if ($user && ! $user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+
+            // Redirect to apply if not yet applied, otherwise dashboard
+            if (!BasicInfo::where('user_id', $user->id)->exists()) {
+                return redirect()->route('student.apply');
+            }
+
             return redirect()->route('student.dashboard');
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
-        ]);
+        ], 'login');
     }
 
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $request->validateWithBag('register', [
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'contact_num' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'min:8', 'confirmed'],
-            'ethno_id' => ['required', 'exists:ethno,id'], // Add validation for ethno_id
+            'ethno_id' => ['required', 'exists:ethno,id'],
             'course' => ['nullable', 'string', 'max:150'],
             'course_other' => ['nullable', 'string', 'max:150'],
         ]);
@@ -68,11 +82,14 @@ class AuthController extends Controller
             'contact_num' => $validated['contact_num'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'ethno_id' => $validated['ethno_id'], // Save ethno_id
+            'ethno_id' => $validated['ethno_id'],
             'course' => $course,
         ]);
 
-        return redirect('/auth')->with('success', 'Account created successfully! Please log in.');
+        Auth::login($user);
+        $user->sendEmailVerificationNotification();
+
+        return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
     }
 
     public function logout(Request $request)
@@ -82,4 +99,4 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/');
     }
-} 
+}

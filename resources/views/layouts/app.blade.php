@@ -8,21 +8,27 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body class="bg-indigo-50 min-h-screen font-sans">
+<body class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen font-sans">
     <!-- Header -->
-    <header class="bg-indigo-600 shadow-xl border-b border-indigo-400/20">
-        <div class="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+    <header class="bg-gradient-to-r from-orange-700 via-orange-600 to-orange-500 shadow-2xl border-b border-white/10 relative overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+        </div>
+        
+        <div class="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-5 relative z-10">
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <img src="{{ asset('National_Commission_on_Indigenous_Peoples_(NCIP).png') }}" alt="NCIP Logo" class="h-12 w-12 rounded-xl bg-white p-1.5 shadow-lg ring-2 ring-white/50">
+                    <div class="absolute inset-0 bg-white/20 rounded-2xl blur-md"></div>
+                    <img src="{{ asset('National_Commission_on_Indigenous_Peoples_(NCIP).png') }}" alt="NCIP Logo" class="relative h-14 w-14 rounded-2xl bg-white p-2 shadow-2xl ring-4 ring-white/30">
                 </div>
                 <div class="flex flex-col">
-                    <span class="text-white text-xl sm:text-2xl font-bold tracking-tight">NCIP Scholarship System</span>
-                    <span class="text-indigo-100 text-xs sm:text-sm font-medium">Staff Portal</span>
+                    <span class="text-white text-xl sm:text-2xl font-black tracking-tight">NCIP-EAP</span>
+                    <span class="text-orange-100 text-xs sm:text-sm font-bold tracking-wide">Admin</span>
                 </div>
             </div>
             <!-- Mobile Menu Button -->
-            <button id="mobile-menu-btn" class="md:hidden text-white hover:text-indigo-100 p-2 rounded-lg hover:bg-white/10 transition-colors" onclick="toggleSidebar()">
+            <button id="mobile-menu-btn" class="md:hidden text-white hover:text-white p-3 rounded-xl hover:bg-white/15 transition-all backdrop-blur-sm border border-white/20 shadow-lg" onclick="toggleSidebar()">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
@@ -31,47 +37,45 @@
     </header>
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-72 bg-white shadow-2xl border-r border-indigo-200/50 hidden md:block fixed md:static h-screen md:h-auto z-40 overflow-y-auto">
-            <nav class="flex flex-col h-full py-6 px-4 space-y-6">
+        <aside id="sidebar" class="w-80 bg-gradient-to-b from-slate-50 to-white shadow-2xl border-r border-slate-200 hidden md:block fixed md:static h-screen md:h-auto z-40 overflow-y-auto">
+            <nav class="flex flex-col h-full py-8 px-5 space-y-8">
                 <!-- Main Navigation -->
                 <section>
-                    <div class="flex items-center px-4 mb-4">
-                        <div class="h-px flex-1 bg-indigo-200"></div>
-                        <h2 class="px-3 text-xs font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 rounded-lg py-1">Main</h2>
-                        <div class="h-px flex-1 bg-indigo-200"></div>
+                    <div class="mb-5">
+                        <h2 class="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Main Menu</h2>
                     </div>
                     <div class="space-y-2">
-                        <a href="{{ route('staff.dashboard') }}" class="flex items-center px-4 py-3 rounded-xl text-indigo-700 bg-indigo-100 font-semibold shadow-md hover:shadow-lg transition-all duration-200 border-l-4 border-indigo-600 group">
-                            <svg class="w-5 h-5 mr-3 text-indigo-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H7m6 0v6m0 0H7m6 0h6"></path>
-                            </svg>
-                            Dashboard Overview
+                        <a href="{{ route('staff.dashboard') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.dashboard') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Dashboard Overview</span>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.dashboard') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
                         </a>
-                        <a href="{{ route('staff.applicants.list') }}" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 transition-all duration-200 group border-l-4 border-transparent hover:border-indigo-400">
-                            <svg class="w-5 h-5 mr-3 text-gray-500 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            View Applicants
+                        <a href="{{ route('staff.applicants.list') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.applicants.*') || request()->routeIs('staff.applications.*') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">View Applicants</span>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.applicants.*') || request()->routeIs('staff.applications.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
                         </a>
-                        <a href="{{ route('staff.reports.download') }}" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 transition-all duration-200 group border-l-4 border-transparent hover:border-indigo-400">
-                            <svg class="w-5 h-5 mr-3 text-gray-500 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Download Reports
+                        <a href="{{ route('staff.reports.download') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.reports.*') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Download Reports</span>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.reports.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
                         </a>
-                        <a href="#feedback-section" class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 transition-all duration-200 group border-l-4 border-transparent hover:border-indigo-400">
-                            <svg class="w-5 h-5 mr-3 text-gray-500 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                            </svg>
-                            Feedback & Support
+                        <a href="#feedback-section" class="group block px-5 py-4 rounded-2xl bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Feedback & Support</span>
+                                <div class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-orange-500 transition-colors"></div>
+                            </div>
                         </a>
-                        <form method="POST" action="{{ route('staff.logout') }}" class="inline">
+                        <form method="POST" action="{{ route('staff.logout') }}" class="inline w-full">
                             @csrf
-                            <button type="submit" class="w-full flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-rose-50 transition-all duration-200 group border-l-4 border-transparent hover:border-rose-400">
-                                <svg class="w-5 h-5 mr-3 text-gray-500 group-hover:text-rose-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                </svg>
-                                Logout
+                            <button type="submit" class="group w-full px-5 py-4 rounded-2xl bg-white hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-50 border-2 border-slate-200 hover:border-rose-300 font-semibold text-slate-700 hover:text-rose-700 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm tracking-wide">Logout</span>
+                                    <div class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-rose-500 transition-colors"></div>
+                                </div>
                             </button>
                         </form>
                     </div>
@@ -79,41 +83,57 @@
 
                 <!-- Priorities Section -->
                 <section>
-                    <div class="flex items-center px-4 mb-4">
-                        <div class="h-px flex-1 bg-purple-200"></div>
-                        <h2 class="px-3 text-xs font-bold uppercase tracking-widest text-purple-600 bg-purple-50 rounded-lg py-1">Priorities</h2>
-                        <div class="h-px flex-1 bg-purple-200"></div>
+                    <div class="mb-5">
+                        <h2 class="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Priority Management</h2>
                     </div>
-                    <div class="space-y-2">
-                        <a href="{{ route('staff.priorities.applicants') }}" class="flex items-center px-4 py-3 rounded-xl text-emerald-700 hover:bg-emerald-50 transition-all duration-200 group border-l-4 border-transparent hover:border-emerald-400">
-                            <svg class="w-5 h-5 mr-3 text-emerald-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Applicant Priority
+                    <div class="space-y-1.5">
+                        <a href="{{ route('staff.priorities.applicants') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.applicants') ? 'bg-emerald-500 border-emerald-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 font-medium text-slate-700 hover:text-emerald-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Applicant Priority</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.applicants') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200' }}">TOP</span>
+                            </div>
                         </a>
-                        <a href="{{ route('staff.priorities.documents') }}" class="flex items-center px-4 py-3 rounded-xl text-cyan-700 hover:bg-cyan-50 transition-all duration-200 group border-l-4 border-transparent hover:border-cyan-400">
-                            <svg class="w-5 h-5 mr-3 text-cyan-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Document Queue
+                        <a href="{{ route('staff.priorities.documents') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.documents') ? 'bg-cyan-500 border-cyan-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-cyan-400 hover:bg-cyan-50 font-medium text-slate-700 hover:text-cyan-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Document Queue</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.documents') ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-700 group-hover:bg-cyan-200' }}">FCFS</span>
+                            </div>
                         </a>
-                        <a href="{{ route('staff.priorities.ip') }}" class="flex items-center px-4 py-3 rounded-xl text-amber-700 hover:bg-amber-50 transition-all duration-200 group border-l-4 border-transparent hover:border-amber-400">
-                            <svg class="w-5 h-5 mr-3 text-amber-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Indigenous Priority
+                        <a href="{{ route('staff.priorities.ip') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.ip') ? 'bg-amber-500 border-amber-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-amber-400 hover:bg-amber-50 font-medium text-slate-700 hover:text-amber-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Indigenous Priority</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.ip') ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 group-hover:bg-amber-200' }}">30%</span>
+                            </div>
                         </a>
-                        <a href="{{ route('staff.priorities.tribal-certificate') }}" class="flex items-center px-4 py-3 rounded-xl text-orange-700 hover:bg-orange-50 transition-all duration-200 group border-l-4 border-transparent hover:border-orange-400">
-                            <svg class="w-5 h-5 mr-3 text-orange-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Tribal Certificate
+                        <a href="{{ route('staff.priorities.tribal-certificate') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.tribal-certificate') ? 'bg-orange-500 border-orange-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-orange-400 hover:bg-orange-50 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Tribal Certificate</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.tribal-certificate') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700 group-hover:bg-orange-200' }}">20%</span>
+                            </div>
                         </a>
-                        <a href="{{ route('staff.priorities.courses') }}" class="flex items-center px-4 py-3 rounded-xl text-purple-700 hover:bg-purple-50 transition-all duration-200 group border-l-4 border-transparent hover:border-purple-400">
-                            <svg class="w-5 h-5 mr-3 text-purple-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                            Course Demand
+                        <a href="{{ route('staff.priorities.income-tax') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.income-tax') ? 'bg-green-500 border-green-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-green-400 hover:bg-green-50 font-medium text-slate-700 hover:text-green-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Income Tax</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.income-tax') ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700 group-hover:bg-green-200' }}">15%</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('staff.priorities.academic-performance') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.academic-performance') ? 'bg-blue-500 border-blue-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-blue-50 font-medium text-slate-700 hover:text-blue-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Academic Performance</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.academic-performance') ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700 group-hover:bg-blue-200' }}">5%</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('staff.priorities.other-requirements') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.other-requirements') ? 'bg-slate-500 border-slate-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-slate-400 hover:bg-slate-50 font-medium text-slate-700 hover:text-slate-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Other Requirements</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.other-requirements') ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200' }}">5%</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('staff.priorities.courses') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.courses') ? 'bg-purple-500 border-purple-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-purple-400 hover:bg-purple-50 font-medium text-slate-700 hover:text-purple-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs tracking-wide">Course Demand</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.courses') ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700 group-hover:bg-purple-200' }}">25%</span>
+                            </div>
                         </a>
                     </div>
                 </section>

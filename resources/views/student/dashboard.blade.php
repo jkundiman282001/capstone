@@ -109,6 +109,46 @@
     </section>
 </div>
 
+@if (isset($hasApplied) && ! $hasApplied)
+<div id="performance-lock-overlay" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div id="performance-lock-modal" class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-orange-200 p-8 space-y-5 z-10">
+        <button id="performance-lock-close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center h-14 w-14 rounded-full bg-orange-100 text-orange-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-xl font-semibold text-orange-600">Performance dashboard locked</p>
+                <p class="text-sm text-gray-700">Submit your NCIP-EAP application to unlock your performance analytics and document checklist.</p>
+            </div>
+        </div>
+        <div class="space-y-2 text-sm text-gray-600">
+            <p>Once your application is submitted, you’ll gain access to:</p>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>Real-time performance metrics and scoring insights</li>
+                <li>Document checklist and tracking</li>
+                <li>Priority status updates</li>
+            </ul>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="window.location.href='{{ url('student/apply') }}'" class="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold px-5 py-3 rounded-xl shadow hover:from-orange-600 hover:to-red-700 transition-all">
+                Complete application
+            </button>
+            <button id="performance-lock-later" class="flex-1 border border-orange-200 text-orange-600 font-semibold px-5 py-3 rounded-xl hover:bg-orange-50 transition-all">
+                Maybe later
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Latest Announcements Section -->
 <section class="py-20 px-6 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
     <div class="max-w-4xl mx-auto">
@@ -198,3 +238,45 @@
     </div>
 </section>
 @endsection
+
+@if (isset($hasApplied) && ! $hasApplied)
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('performance-lock-overlay');
+        const closeButtons = ['performance-lock-close', 'performance-lock-later']
+            .map(id => document.getElementById(id))
+            .filter(Boolean);
+
+        const showOverlay = () => {
+            if (!overlay) return;
+            overlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        const hideOverlay = () => {
+            if (!overlay) return;
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        closeButtons.forEach(btn => btn.addEventListener('click', hideOverlay));
+        overlay?.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                hideOverlay();
+            }
+        });
+
+        const performanceLinks = document.querySelectorAll('a[href="{{ route('student.performance') }}"]');
+        performanceLinks.forEach(link => {
+            link.classList.add('opacity-50', 'cursor-not-allowed');
+            link.setAttribute('aria-disabled', 'true');
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                showOverlay();
+            }, { capture: true });
+        });
+    });
+</script>
+@endpush
+@endif

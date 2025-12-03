@@ -98,8 +98,20 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors">Home</a>
                     @auth
+                        @php
+                            $hasApplied = \App\Models\BasicInfo::where('user_id', auth()->id())->exists();
+                        @endphp
                         <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
-                        <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
+                        
+                        @if($hasApplied)
+                            <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
+                        @else
+                            <button onclick="document.getElementById('performance-lock-overlay')?.classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="text-white/50 hover:text-orange-400 transition-colors cursor-not-allowed flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z"/></svg>
+                                Performance
+                            </button>
+                        @endif
+
                         <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
                         <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
                     @else
@@ -137,8 +149,20 @@
             <div class="flex flex-col space-y-4">
                 <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors">Home</a>
                 @auth
+                    @php
+                        $hasAppliedMobile = \App\Models\BasicInfo::where('user_id', auth()->id())->exists();
+                    @endphp
                     <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
-                    <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
+                    
+                    @if($hasAppliedMobile)
+                        <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
+                    @else
+                        <button onclick="document.getElementById('performance-lock-overlay')?.classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="text-white/50 hover:text-orange-400 transition-colors cursor-not-allowed text-left flex items-center gap-2">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z"/></svg>
+                            Performance (Locked)
+                        </button>
+                    @endif
+
                     <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
                     <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
                     <form method="POST" action="{{ route('logout') }}">
@@ -173,4 +197,3 @@
     @stack('scripts')
 </body>
 </html>
-
