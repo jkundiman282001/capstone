@@ -8,9 +8,9 @@
 </div>
 
 <!-- Notification Bar -->
-<div class="bg-gradient-to-r from-orange-700 via-orange-600 to-orange-500 text-white shadow-2xl mb-8 relative overflow-hidden">
+<div class="bg-gradient-to-r from-orange-700 via-orange-600 to-orange-500 text-white shadow-2xl mb-8 relative">
     <!-- Decorative Pattern -->
-    <div class="absolute inset-0 opacity-10">
+    <div class="absolute inset-0 opacity-10 overflow-hidden">
         <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
     </div>
     
@@ -40,7 +40,7 @@
             </div>
             <div class="flex items-center space-x-3">
                 <!-- Notification Bell -->
-                <div class="relative">
+                <div class="relative z-[9999]">
                     <button class="text-white hover:text-white transition-all duration-200 relative p-2.5 rounded-xl hover:bg-white/15 backdrop-blur-sm border border-white/20 shadow-lg" onclick="toggleNotifDropdown()" aria-label="Notifications">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -50,21 +50,59 @@
                         @endif
                     </button>
                     <!-- Dropdown -->
-                    <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white text-gray-800 rounded-2xl shadow-2xl z-50 border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b bg-gradient-to-r from-orange-50 to-amber-50 font-bold text-orange-700 flex items-center justify-between">
-                            <span>Notifications</span>
-                            <span class="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-lg">{{ $notifications->count() }} new</span>
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-96 bg-white text-gray-800 rounded-2xl shadow-2xl z-[9999] border border-orange-200 overflow-hidden">
+                        <div class="p-5 border-b border-orange-200 bg-gradient-to-r from-orange-600 to-amber-600 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span class="font-bold text-white">Notifications</span>
+                            </div>
+                            @if($notifications->count() > 0)
+                                <span class="text-xs font-bold text-orange-700 bg-white px-3 py-1.5 rounded-full shadow-sm">{{ $notifications->count() }} new</span>
+                            @else
+                                <span class="text-xs font-semibold text-white/70 bg-white/20 px-3 py-1.5 rounded-full">All caught up!</span>
+                            @endif
                         </div>
-                        <ul class="max-h-72 overflow-y-auto">
+                        <ul class="max-h-80 overflow-y-auto">
                             @forelse($notifications as $notif)
-                                <li class="px-4 py-3 border-b border-slate-100 hover:bg-orange-50 cursor-pointer transition-all duration-150">
-                                    <div class="text-sm text-slate-700 font-medium">{{ $notif->data['message'] ?? '' }}</div>
-                                    <div class="text-xs text-slate-400 mt-1">{{ $notif->created_at->diffForHumans() }}</div>
+                                <li class="px-5 py-4 border-b border-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 cursor-pointer transition-all duration-200 group">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-2 h-2 bg-orange-500 rounded-full mt-1.5 group-hover:animate-pulse"></div>
+                                        <div class="flex-1">
+                                            <div class="text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">{{ $notif->data['message'] ?? '' }}</div>
+                                            <div class="flex items-center gap-2 mt-1.5">
+                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <div class="text-xs text-slate-500 font-medium">{{ $notif->created_at->diffForHumans() }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </li>
                             @empty
-                                <li class="px-4 py-6 text-center text-slate-400">No new notifications.</li>
+                                <li class="px-5 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-600 font-semibold">All caught up!</p>
+                                            <p class="text-xs text-slate-400 mt-1">No new notifications at this time</p>
+                                        </div>
+                                    </div>
+                                </li>
                             @endforelse
                         </ul>
+                        @if($notifications->count() > 0)
+                        <div class="p-3 border-t border-slate-100 bg-gradient-to-r from-orange-50 to-amber-50">
+                            <button onclick="markAllRead()" class="w-full text-center text-sm font-bold text-orange-600 hover:text-orange-700 py-2 rounded-lg hover:bg-white transition-all">
+                                Mark all as read
+                            </button>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 <!-- End Notification Bell -->
@@ -141,29 +179,6 @@
                         <span class="font-semibold text-white">{{ $assignedBarangay }}</span>
                     </div>
                 </div>
-            </div>
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('staff.applicants.list') }}" class="group bg-white text-orange-600 hover:bg-orange-50 font-bold px-6 py-3 rounded-xl shadow-xl transition-all duration-200 hover:shadow-2xl hover:-translate-y-0.5 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    View Applicants
-                </a>
-                <a href="{{ route('staff.reports.download') }}" class="group bg-gradient-to-r from-amber-600 to-orange-700 text-white hover:from-amber-700 hover:to-orange-800 font-bold px-6 py-3 rounded-xl shadow-xl transition-all duration-200 hover:shadow-2xl hover:-translate-y-0.5 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download Report
-                </a>
-                <form method="POST" action="{{ route('staff.logout') }}" class="inline">
-                    @csrf
-                    <button type="submit" class="group bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 font-bold px-6 py-3 rounded-xl shadow-xl transition-all duration-200 hover:shadow-2xl hover:-translate-y-0.5 flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Logout
-                    </button>
-                </form>
             </div>
         </div>
     </div>
@@ -567,12 +582,39 @@
     function toggleNotifDropdown() {
         const dropdown = document.getElementById('notif-dropdown');
         dropdown.classList.toggle('hidden');
+        
+        // Add smooth animation
+        if (!dropdown.classList.contains('hidden')) {
+            dropdown.style.opacity = '0';
+            dropdown.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                dropdown.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+                dropdown.style.opacity = '1';
+                dropdown.style.transform = 'translateY(0)';
+            }, 10);
+        }
+        
         // Hide the notification badge when bell is clicked
         const badge = document.getElementById('notif-badge');
-        if (badge) {
+        if (badge && !dropdown.classList.contains('hidden')) {
             badge.style.display = 'none';
         }
+        
         // Mark notifications as read in backend
+        if (!dropdown.classList.contains('hidden')) {
+            fetch("{{ route('staff.notifications.markRead') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    }
+    
+    // Mark all notifications as read
+    function markAllRead() {
         fetch("{{ route('staff.notifications.markRead') }}", {
             method: 'POST',
             headers: {
@@ -580,8 +622,19 @@
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to update notification count
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error marking notifications as read:', error);
         });
     }
+    
     // Hide dropdown when clicking outside
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('notif-dropdown');

@@ -16,7 +16,7 @@
                 </div>
                 <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Priority Course Demand Overview</h1>
                 <p class="max-w-2xl text-sm text-slate-300">
-                    Aggregated demand and priority scoring for scholarship-aligned courses. Excluded programs: BS IT, BS CS, BS Accountancy, BS Nursing, BS Education, BA Political Science.
+                    Aggregated demand and priority scoring for scholarship-aligned courses. Excluded programs: BS IT, BS CS, BS Accountancy, BS Nursing, BS Education, BA Political Science. Demand is driven by the preferred courses declared on scholarship applications, with the sign-up course acting only as a fallback when no preference has been submitted.
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-3 text-sm text-slate-100/80">

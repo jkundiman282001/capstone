@@ -339,113 +339,69 @@ class CoursePriorityService
         // Initialize course data and tracking arrays
         $courseData = [];
         $courseApplicants = []; // Track which applicants we've counted per course
-        
+
         foreach ($priorityCourses as $course) {
             if (in_array($course, $excludedCourses, true)) {
                 continue;
             }
 
-            $courseData[$course] = [
-                'course_name' => $course,
-                'registered_count' => 0, // From user.course field
-                'preference_first_count' => 0,
-                'preference_second_count' => 0,
-                'total_applicants' => 0,
-                'high_priority_applicants' => 0,
-                'medium_priority_applicants' => 0,
-                'low_priority_applicants' => 0,
-                'average_score' => 0,
-                'total_score_sum' => 0,
-                'priority_score' => 0,
-                'priority_rank' => 0,
-                'applicants' => [],
-            ];
-            $courseApplicants[$course] = [];
+            $this->initializeCourseBucket($courseData, $courseApplicants, $course);
         }
-        // Initialize "Other" category tracking
-        $courseApplicants['Other'] = [];
 
-        // Get courses from user registration (user.course field)
+        // Capture preferred courses from scholarship applications (authoritative source)
+        $applicantsWithPreferences = User::whereHas('basicInfo', function($query) {
+                $query->whereHas('schoolPref');
+            })
+            ->with(['basicInfo.schoolPref', 'applicantScore'])
+            ->get();
+
+        foreach ($applicantsWithPreferences as $user) {
+            $schoolPref = $user->basicInfo->schoolPref;
+
+            $this->recordCourseDemand(
+                $courseData,
+                $courseApplicants,
+                $priorityCourses,
+                $excludedCourses,
+                $user,
+                $schoolPref->degree,
+                'preference_first_count',
+                'Preferred Course (1st)'
+            );
+
+            $this->recordCourseDemand(
+                $courseData,
+                $courseApplicants,
+                $priorityCourses,
+                $excludedCourses,
+                $user,
+                $schoolPref->degree2,
+                'preference_second_count',
+                'Preferred Course (2nd)'
+            );
+        }
+
+        // Use the account-level course only when no scholarship preference exists yet
         $usersWithCourse = User::whereNotNull('course')
             ->where('course', '!=', '')
-            ->with(['applicantScore'])
+            ->with(['applicantScore', 'basicInfo.schoolPref'])
             ->get();
 
         foreach ($usersWithCourse as $user) {
-            $originalCourseName = trim($user->course);
-            if ($originalCourseName === '') {
+            if ($user->basicInfo && $user->basicInfo->schoolPref) {
                 continue;
             }
 
-            if (in_array($originalCourseName, $excludedCourses, true)) {
-                continue;
-            }
-
-            $courseName = $originalCourseName;
-
-            if (!isset($courseData[$courseName])) {
-                $matched = false;
-                foreach ($priorityCourses as $priorityCourse) {
-                    if (stripos($courseName, $priorityCourse) !== false || stripos($priorityCourse, $courseName) !== false) {
-                        $courseName = $priorityCourse;
-                        $matched = true;
-                        break;
-                    }
-                }
-
-                if (!$matched) {
-                    if (!isset($courseData['Other'])) {
-                        $courseData['Other'] = [
-                            'course_name' => 'Other',
-                            'registered_count' => 0,
-                            'preference_first_count' => 0,
-                            'preference_second_count' => 0,
-                            'total_applicants' => 0,
-                            'high_priority_applicants' => 0,
-                            'medium_priority_applicants' => 0,
-                            'low_priority_applicants' => 0,
-                            'average_score' => 0,
-                            'total_score_sum' => 0,
-                            'priority_score' => 0,
-                            'priority_rank' => 0,
-                            'applicants' => [],
-                        ];
-                        $courseApplicants['Other'] = [];
-                    }
-                    $courseName = 'Other';
-                }
-            }
-
-            if ($courseName === 'Other' && in_array($originalCourseName, $excludedCourses, true)) {
-                continue;
-            }
-
-            if (!isset($courseApplicants[$courseName])) {
-                $courseApplicants[$courseName] = [];
-            }
-
-            $courseData[$courseName]['registered_count']++;
-
-            // Track this user for this course to avoid double counting
-            if (!in_array($user->id, $courseApplicants[$courseName])) {
-                $courseApplicants[$courseName][] = $user->id;
-                $courseData[$courseName]['total_applicants']++;
-                
-                $applicantScore = $user->applicantScore;
-                $totalScore = $applicantScore ? ($applicantScore->total_score ?? 0) : 0;
-                $courseData[$courseName]['total_score_sum'] += $totalScore;
-
-                // Count by priority level
-                if ($totalScore >= 80) {
-                    $courseData[$courseName]['high_priority_applicants']++;
-                } elseif ($totalScore >= 60) {
-                    $courseData[$courseName]['medium_priority_applicants']++;
-                } else {
-                    $courseData[$courseName]['low_priority_applicants']++;
-                }
-
-                $this->addApplicantToCourse($courseData[$courseName], $user, $totalScore, 'Registered Course', $originalCourseName);
-            }
+            $this->recordCourseDemand(
+                $courseData,
+                $courseApplicants,
+                $priorityCourses,
+                $excludedCourses,
+                $user,
+                $user->course,
+                'registered_count',
+                'Registered Course'
+            );
         }
 
         // Calculate average scores and priority scores
@@ -497,6 +453,125 @@ class CoursePriorityService
         }
 
         return $prioritizedCourses;
+    }
+
+    /**
+     * Initialize the tracking bucket for a course if it does not exist yet.
+     */
+    private function initializeCourseBucket(array &$courseData, array &$courseApplicants, string $courseName): void
+    {
+        if (isset($courseData[$courseName])) {
+            if (!isset($courseApplicants[$courseName])) {
+                $courseApplicants[$courseName] = [];
+            }
+            return;
+        }
+
+        $courseData[$courseName] = [
+            'course_name' => $courseName,
+            'registered_count' => 0,
+            'preference_first_count' => 0,
+            'preference_second_count' => 0,
+            'total_applicants' => 0,
+            'high_priority_applicants' => 0,
+            'medium_priority_applicants' => 0,
+            'low_priority_applicants' => 0,
+            'average_score' => 0,
+            'total_score_sum' => 0,
+            'priority_score' => 0,
+            'priority_rank' => 0,
+            'applicants' => [],
+        ];
+
+        $courseApplicants[$courseName] = [];
+    }
+
+    /**
+     * Resolve a submitted course to a tracked priority course name.
+     */
+    private function resolveCourseName(?string $rawCourseName, array $priorityCourses, array $excludedCourses): ?string
+    {
+        if (!$rawCourseName) {
+            return null;
+        }
+
+        $courseName = trim($rawCourseName);
+        if ($courseName === '') {
+            return null;
+        }
+
+        foreach ($excludedCourses as $excluded) {
+            if (strcasecmp($courseName, $excluded) === 0) {
+                return null;
+            }
+        }
+
+        foreach ($priorityCourses as $priorityCourse) {
+            if (
+                strcasecmp($courseName, $priorityCourse) === 0 ||
+                stripos($priorityCourse, $courseName) !== false ||
+                stripos($courseName, $priorityCourse) !== false
+            ) {
+                if (in_array($priorityCourse, $excludedCourses, true)) {
+                    return null;
+                }
+                return $priorityCourse;
+            }
+        }
+
+        return 'Other';
+    }
+
+    /**
+     * Record demand for a course coming from a specific source.
+     */
+    private function recordCourseDemand(
+        array &$courseData,
+        array &$courseApplicants,
+        array $priorityCourses,
+        array $excludedCourses,
+        User $user,
+        ?string $rawCourseName,
+        string $countKey,
+        string $sourceLabel
+    ): void {
+        if (!$rawCourseName) {
+            return;
+        }
+
+        $normalizedCourse = $this->resolveCourseName($rawCourseName, $priorityCourses, $excludedCourses);
+        if (!$normalizedCourse) {
+            return;
+        }
+
+        $this->initializeCourseBucket($courseData, $courseApplicants, $normalizedCourse);
+
+        $courseData[$normalizedCourse][$countKey]++;
+
+        $applicantScore = $user->applicantScore;
+        $totalScore = $applicantScore ? ($applicantScore->total_score ?? 0) : 0;
+
+        if (!in_array($user->id, $courseApplicants[$normalizedCourse], true)) {
+            $courseApplicants[$normalizedCourse][] = $user->id;
+            $courseData[$normalizedCourse]['total_applicants']++;
+            $courseData[$normalizedCourse]['total_score_sum'] += $totalScore;
+
+            if ($totalScore >= 80) {
+                $courseData[$normalizedCourse]['high_priority_applicants']++;
+            } elseif ($totalScore >= 60) {
+                $courseData[$normalizedCourse]['medium_priority_applicants']++;
+            } else {
+                $courseData[$normalizedCourse]['low_priority_applicants']++;
+            }
+        }
+
+        $this->addApplicantToCourse(
+            $courseData[$normalizedCourse],
+            $user,
+            $totalScore,
+            $sourceLabel,
+            $rawCourseName
+        );
     }
 
     /**

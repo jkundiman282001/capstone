@@ -182,6 +182,7 @@
           <div class="grid grid-cols-1">
             <select name="course" id="register_course" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
               <option value="">Select your course</option>
+              <option value="Undecided">Undecided / Grade 12 exploring options</option>
               <option value="Agriculture">Agriculture</option>
               <option value="Aqua-Culture and Fisheries">Aqua-Culture and Fisheries</option>
               <option value="Anthropology">Anthropology</option>

@@ -237,68 +237,6 @@
                     </div>
                 </div>
 
-                <!-- Priority Score Section -->
-                <div id="priority-section" class="scroll-mt-6">
-                    @if($user->applicantScore)
-                    <div class="bg-gradient-to-br from-orange-500 to-amber-600 rounded-3xl shadow-xl p-6 text-white">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-black flex items-center gap-2">
-                                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                </div>
-                                Priority Score
-                            </h2>
-                            <div class="text-right">
-                                <div class="text-4xl font-black">{{ number_format($user->applicantScore->total_score, 1) }}</div>
-                                <div class="text-sm opacity-90">Rank #{{ $user->applicantScore->priority_rank ?? '-' }}</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                                <div class="text-xs opacity-80 mb-1">Financial Need</div>
-                                <div class="text-xl font-black">{{ number_format($user->applicantScore->financial_need_score, 1) }}</div>
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                                <div class="text-xs opacity-80 mb-1">Academic</div>
-                                <div class="text-xl font-black">{{ number_format($user->applicantScore->academic_performance_score, 1) }}</div>
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                                <div class="text-xs opacity-80 mb-1">Documents</div>
-                                <div class="text-xl font-black">{{ number_format($user->applicantScore->document_completeness_score, 1) }}</div>
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                                <div class="text-xs opacity-80 mb-1">Geographic</div>
-                                <div class="text-xl font-black">{{ number_format($user->applicantScore->geographic_priority_score, 1) }}</div>
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                                <div class="text-xs opacity-80 mb-1">Heritage</div>
-                                <div class="text-xl font-black">{{ number_format($user->applicantScore->indigenous_heritage_score, 1) }}</div>
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                                <div class="text-xs opacity-80 mb-1">Family</div>
-                                <div class="text-xl font-black">{{ number_format($user->applicantScore->family_situation_score, 1) }}</div>
-                            </div>
-                        </div>
-
-                        <button onclick="recalculateScore({{ $user->id }})" class="mt-4 w-full px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-bold transition-all border border-white/30">
-                            Recalculate Score
-                        </button>
-                    </div>
-                    @else
-                    <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 text-center">
-                        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2">No Priority Score</h3>
-                        <p class="text-sm text-slate-500 mb-4">Calculate the priority score for this applicant</p>
-                        <button onclick="calculateScore({{ $user->id }})" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg">
-                            Calculate Score
-                        </button>
-                    </div>
-                    @endif
-                </div>
-
                 <!-- Personal Information -->
                 <div id="personal-section" class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 scroll-mt-6">
                     <h2 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
@@ -759,10 +697,6 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 Documents
                             </a>
-                            <a href="#priority-section" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition-all text-sm font-medium text-slate-700 hover:text-orange-600">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                Priority Score
-                            </a>
                             <a href="#personal-section" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition-all text-sm font-medium text-slate-700 hover:text-orange-600">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 Personal Info
@@ -925,44 +859,6 @@ function printDocument() {
     if (iframe) {
         iframe.contentWindow.print();
     }
-}
-
-function calculateScore(userId) {
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = 'Calculating...';
-    button.disabled = true;
-
-    fetch(`{{ route("staff.scores.calculate", ":id") }}`.replace(':id', userId), {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Score calculated successfully!');
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error calculating score');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-function recalculateScore(userId) {
-    if (!confirm('Recalculate the priority score for this applicant?')) return;
-    calculateScore(userId);
 }
 
 function recalculateDocumentPriorities() {

@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\DB;
 class ApplicantScoringService
 {
     // Weight configuration for different scoring criteria
+    // IP Group Priority is Rank 1 (Highest Priority) = 30%
     private $weights = [
-        'financial_need' => 0.25,      // 25% - Most important for scholarship
-        'academic_performance' => 0.20,  // 20% - Academic merit
+        'indigenous_heritage' => 0.30,  // 30% - IP Group Priority (Rank 1 - Highest Priority)
+        'financial_need' => 0.20,      // 20% - Financial need consideration
+        'academic_performance' => 0.15,  // 15% - Academic merit
         'document_completeness' => 0.15, // 15% - Administrative compliance
-        'geographic_priority' => 0.15,   // 15% - Geographic equity
-        'indigenous_heritage' => 0.15,  // 15% - Cultural heritage priority
+        'geographic_priority' => 0.10,   // 10% - Geographic equity
         'family_situation' => 0.10,     // 10% - Family circumstances
     ];
 
@@ -297,36 +298,124 @@ class ApplicantScoringService
 
     /**
      * Calculate indigenous heritage score (0-100)
-     * Higher score = stronger indigenous heritage
+     * Based on NCIP IP Group Priority Rubric (Rank 1 - Highest Priority)
+     * 
+     * Scoring Rubric (0-10 scale, normalized to 0-100):
+     * 
+     * Score 100 (10/10): VALIDATED DOCUMENTATION
+     *   - Applicant belongs to a recognized IP Group AND has validated documentation
+     *   - All 3 key documents approved: Tribal Certificate + Endorsement + Birth Certificate
+     *   - OR at minimum: Tribal Certificate + Endorsement both approved
+     * 
+     * Score 80 (8/10): MISSING 1 SUPPORTING DOCUMENT
+     *   - Applicant belongs to IP group but missing 1 supporting document
+     *   - Has Tribal Certificate approved OR has 2 out of 3 documents approved
+     *   - Needs revalidation or one more document for full verification
+     * 
+     * Score 60 (6/10): QUESTIONABLE/INCOMPLETE BUT PARTIALLY VERIFIABLE
+     *   - Claims IP group but documentation is questionable or incomplete
+     *   - Has 1 approved document (but not the main tribal cert), OR
+     *   - Has multiple documents submitted but still pending review, OR
+     *   - Has rejected documents but shows effort to verify (resubmission)
+     * 
+     * Score 40 (4/10): SELF-DECLARED ONLY
+     *   - No IP documents submitted
+     *   - But appears on list of potential IP community (has ethnicity declared in system)
+     *   - Self-declared only, no supporting evidence
+     * 
+     * Score 0 (0/10): NO IP AFFILIATION
+     *   - No IP affiliation declared and no documentation
+     * 
+     * Key IP Verification Documents:
+     * 1. Tribal Certificate - Certificate of Tribal Membership/Confirmation (PRIMARY)
+     * 2. Endorsement - Endorsement of the IPS/IP Traditional Leaders
+     * 3. Birth Certificate - Can show birthplace/indigenous origin
      */
     private function calculateIndigenousHeritageScore(User $user): float
     {
-        $score = 0;
+        // No IP affiliation
+        if (!$user->ethno || !$user->ethno->ethnicity) {
+            return 0;
+        }
+
+        $documents = $user->documents ?? collect();
         
-        // Check if user has indigenous ethnicity
-        if ($user->ethno && $user->ethno->ethnicity) {
-            $score += 40; // Base score for having indigenous ethnicity
-            
-            // Priority indigenous groups (customize based on NCIP priorities)
-            $priorityGroups = [
-                'Lumad', 'Manobo', 'T\'boli', 'B\'laan', 'Bagobo',
-                'Maguindanao', 'Maranao', 'Tausug', 'Yakan', 'Subanen'
-            ];
-            
-            if (in_array($user->ethno->ethnicity, $priorityGroups)) {
-                $score += 30;
+        // IP verification documents in the system:
+        // 1. tribal_certificate - Certificate of Tribal Membership/Confirmation
+        // 2. endorsement - Endorsement of the IPS/IP Traditional Leaders
+        // 3. birth_certificate - Can show birthplace/indigenous origin
+        $ipDocuments = [
+            'tribal_certificate' => $documents->where('type', 'tribal_certificate')->first(),
+            'endorsement' => $documents->where('type', 'endorsement')->first(),
+            'birth_certificate' => $documents->where('type', 'birth_certificate')->first(),
+        ];
+
+        // Count document statuses
+        $approvedDocs = 0;
+        $pendingDocs = 0;
+        $rejectedDocs = 0;
+        $totalSubmitted = 0;
+
+        foreach ($ipDocuments as $docType => $document) {
+            if ($document) {
+                $totalSubmitted++;
+                if ($document->status === 'approved') {
+                    $approvedDocs++;
+                } elseif ($document->status === 'pending') {
+                    $pendingDocs++;
+                } elseif ($document->status === 'rejected') {
+                    $rejectedDocs++;
+                }
             }
         }
 
-        // Check family indigenous heritage
-        $basicInfo = $user->basicInfo;
-        if ($basicInfo && $basicInfo->family) {
-            $familyMembers = $basicInfo->family;
-            $indigenousFamilyCount = $familyMembers->where('ethno_id', '!=', null)->count();
-            $score += min($indigenousFamilyCount * 10, 30); // Max 30 points
+        // Apply rubric scoring (0-10 scale)
+        // The rubric score is then normalized to 0-100 for calculation
+        // Final contribution = (rubric_score / 10) × 100 × 0.30 (30% weight)
+        // Simplified: rubric_score × 10 × 0.30
+        
+        $rubricScore = 0; // Base score on 0-10 scale
+        
+        // Rubric 10/10: All 3 key IP documents approved, OR tribal cert + endorsement approved
+        if ($approvedDocs >= 3 || 
+            ($ipDocuments['tribal_certificate']?->status === 'approved' && 
+             $ipDocuments['endorsement']?->status === 'approved')) {
+            $rubricScore = 10; // 10/10 → normalized to 100
         }
-
-        return min($score, 100);
+        // Rubric 8/10: Missing 1 supporting document - has tribal cert approved OR has 2 approved docs
+        elseif ($approvedDocs === 2 || 
+            ($approvedDocs === 1 && $ipDocuments['tribal_certificate']?->status === 'approved')) {
+            $rubricScore = 8; // 8/10 → normalized to 80
+        }
+        // Rubric 6/10: Documentation questionable or incomplete but partially verifiable
+        // - Has 1 approved document (not the main tribal cert), or
+        // - Has multiple documents submitted but pending/mixed status
+        // - OR has rejected documents but is attempting verification (shows effort)
+        elseif ($approvedDocs === 1 || 
+            ($totalSubmitted >= 2 && $pendingDocs >= 1) ||
+            ($rejectedDocs > 0 && $totalSubmitted >= 1)) {
+            $rubricScore = 6; // 6/10 → normalized to 60
+        }
+        // Rubric 4/10: Claims IP group but no supporting documents (self-declared only)
+        // - Has ethnicity declared but no documents submitted
+        elseif ($user->ethno && $user->ethno->ethnicity && $totalSubmitted === 0) {
+            $rubricScore = 4; // 4/10 → normalized to 40
+        }
+        // Rubric 0/10: No IP affiliation
+        else {
+            $rubricScore = 0; // 0/10 → normalized to 0
+        }
+        
+        // Convert rubric score (0-10) to normalized score (0-100)
+        // This will then be multiplied by 0.30 (30% weight) in the main calculation
+        // Example: 10/10 → 100 → 100 × 0.30 = 30 points contribution to total
+        //          8/10 → 80 → 80 × 0.30 = 24 points contribution to total
+        //          6/10 → 60 → 60 × 0.30 = 18 points contribution to total
+        //          4/10 → 40 → 40 × 0.30 = 12 points contribution to total
+        //          0/10 → 0 → 0 × 0.30 = 0 points contribution to total
+        $normalizedScore = $rubricScore * 10;
+        
+        return $normalizedScore;
     }
 
     /**
@@ -406,8 +495,16 @@ class ApplicantScoringService
         }
 
         // Indigenous heritage notes
-        if ($scores['heritage'] >= 70) {
-            $notes[] = "Strong indigenous heritage";
+        if ($scores['heritage'] >= 100) {
+            $notes[] = "Validated IP documentation - Full verification";
+        } elseif ($scores['heritage'] >= 80) {
+            $notes[] = "IP group verified - Minor documentation pending";
+        } elseif ($scores['heritage'] >= 60) {
+            $notes[] = "IP group claimed - Partial verification";
+        } elseif ($scores['heritage'] >= 40) {
+            $notes[] = "IP group self-declared - Documentation required";
+        } elseif ($scores['heritage'] > 0) {
+            $notes[] = "IP status pending verification";
         }
 
         // Family situation notes

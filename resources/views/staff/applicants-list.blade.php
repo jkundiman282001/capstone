@@ -17,16 +17,6 @@
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-3">
-                <button onclick="calculateAllScores()" class="group bg-white border-2 border-slate-200 text-slate-700 hover:border-orange-500 hover:bg-orange-50 shadow-sm hover:shadow-md rounded-xl px-5 py-3 text-sm font-bold transition-all flex items-center gap-2">
-                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    <span>Recalculate</span>
-                </button>
-                <button onclick="showTopPriority()" class="group bg-gradient-to-r from-orange-600 to-amber-600 text-white hover:from-orange-700 hover:to-amber-700 shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-300/50 rounded-xl px-5 py-3 text-sm font-bold transition-all flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-                    <span>Top Priority</span>
-                </button>
-            </div>
         </div>
 
         <!-- Filters Card -->
@@ -40,7 +30,7 @@
             </div>
             
             <form method="GET" action="{{ route('staff.applicants.list') }}">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Province</label>
                         <select name="province" id="province-filter" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
@@ -77,16 +67,6 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Priority</label>
-                        <select name="priority" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
-                            <option value="">All Levels</option>
-                            <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>High Priority (80+)</option>
-                            <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Medium Priority (60-79)</option>
-                            <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>Low Priority (40-59)</option>
-                            <option value="very_low" {{ request('priority') == 'very_low' ? 'selected' : '' }}>Very Low (<40)</option>
-                        </select>
-                    </div>
                 </div>
                 <div class="mt-5 flex justify-end">
                     <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-6 py-2.5 text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2">
@@ -114,26 +94,6 @@
                 <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 hover:border-orange-200 overflow-hidden transition-all duration-300 hover:-translate-y-1">
                     <!-- Card Header with Gradient -->
                     <div class="relative h-24 bg-gradient-to-br from-orange-500 via-amber-500 to-red-500 p-4">
-                        <div class="absolute top-3 right-3">
-                            @if($applicant->applicantScore)
-                                <div class="bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
-                                    <div class="text-center">
-                                        <div class="text-xl font-black
-                                            @if($applicant->applicantScore->total_score >= 80) text-emerald-600
-                                            @elseif($applicant->applicantScore->total_score >= 60) text-amber-500
-                                            @else text-slate-400 @endif">
-                                            {{ number_format($applicant->applicantScore->total_score, 0) }}
-                                        </div>
-                                        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Score</div>
-                                    </div>
-                                </div>
-                            @else
-                                <button onclick="calculateScore({{ $applicant->id }})" class="bg-white/95 backdrop-blur-sm text-orange-600 hover:bg-white rounded-lg px-2.5 py-1 text-[10px] font-bold transition-all shadow-lg">
-                                    Calculate
-                                </button>
-                            @endif
-                        </div>
-                        
                         <!-- Status Badge -->
                         @if($applicant->basicInfo && $applicant->basicInfo->type_assist)
                             @php
@@ -174,18 +134,6 @@
                             </h3>
                             <p class="text-[11px] font-medium text-slate-400 mt-0.5">ID: {{ $applicant->id }}</p>
                         </div>
-
-                        <!-- Rank Badge -->
-                        @if($applicant->applicantScore)
-                            <div class="flex justify-center mb-3">
-                                <span class="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full
-                                    @if($applicant->applicantScore->total_score >= 80) bg-emerald-50 text-emerald-700 border border-emerald-200
-                                    @elseif($applicant->applicantScore->total_score >= 60) bg-amber-50 text-amber-700 border border-amber-200
-                                    @else bg-slate-100 text-slate-600 border border-slate-200 @endif">
-                                    Rank #{{ $applicant->applicantScore->priority_rank ?? '-' }}
-                                </span>
-                            </div>
-                        @endif
 
                         <!-- Contact Info -->
                         <div class="space-y-2 mb-3">
@@ -313,61 +261,6 @@
         });
     });
 
-    function calculateAllScores() {
-        if (!confirm('Recalculate all applicant scores? This may take a moment.')) return;
-        
-        const button = event.currentTarget;
-        const originalContent = button.innerHTML;
-        button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
-        button.disabled = true;
-
-        fetch('{{ route("staff.scores.calculate-all") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(r => r.json())
-        .then(d => {
-            if(d.success) location.reload();
-            else alert(d.message);
-        })
-        .finally(() => {
-            button.innerHTML = originalContent;
-            button.disabled = false;
-        });
-    }
-
-    function calculateScore(userId) {
-        const button = event.currentTarget;
-        button.innerText = '...';
-        button.disabled = true;
-
-        fetch(`{{ route("staff.scores.calculate", ":id") }}`.replace(':id', userId), {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(d => {
-            if(d.success) location.reload();
-        });
-    }
-
-    function showTopPriority() {
-        fetch('{{ route("staff.scores.top-priority") }}?limit=10')
-        .then(r => r.json())
-        .then(d => {
-            if(d.success) {
-                let msg = 'Top Priority Applicants:\n\n';
-                d.applicants.forEach((a, i) => {
-                    msg += `${i+1}. ${a.user.first_name} ${a.user.last_name} - Score: ${a.total_score}\n`;
-                });
-                alert(msg);
-            }
-        });
-    }
 </script>
 @endpush
 @endsection

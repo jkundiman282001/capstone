@@ -28,7 +28,8 @@ class ApplicantPriorityService
 
     /**
      * Priority courses (3rd priority tier)
-     * Based on courses from registration form
+     * Based on preferred courses declared in the scholarship form
+     * (registration-time course value is only used as a fallback)
      */
     private $priorityCourses = [
         'Agriculture',
@@ -73,21 +74,108 @@ class ApplicantPriorityService
     }
 
     /**
+     * Calculate IP Group rubric score (0-10 scale)
+     * Based on NCIP IP Group Priority Rubric (Rank 1 - Highest Priority)
+     * 
+     * Scoring Rubric:
+     * - 10/10: Validated documentation (tribal cert + endorsement + birth cert all approved)
+     * - 8/10: Missing 1 supporting document (tribal cert approved OR 2 docs approved)
+     * - 6/10: Questionable/incomplete but partially verifiable
+     * - 4/10: Self-declared only (no documents submitted)
+     * - 0/10: No IP affiliation
+     */
+    private function calculateIpRubricScore(User $user): float
+    {
+        // No IP affiliation
+        if (!$user->ethno || !$user->ethno->ethnicity) {
+            return 0;
+        }
+
+        $documents = $user->documents ?? collect();
+        
+        // IP verification documents:
+        // 1. tribal_certificate - Certificate of Tribal Membership/Confirmation (PRIMARY)
+        // 2. endorsement - Endorsement of the IPS/IP Traditional Leaders
+        // 3. birth_certificate - Can show birthplace/indigenous origin
+        $ipDocuments = [
+            'tribal_certificate' => $documents->where('type', 'tribal_certificate')->first(),
+            'endorsement' => $documents->where('type', 'endorsement')->first(),
+            'birth_certificate' => $documents->where('type', 'birth_certificate')->first(),
+        ];
+
+        // Count document statuses
+        $approvedDocs = 0;
+        $pendingDocs = 0;
+        $rejectedDocs = 0;
+        $totalSubmitted = 0;
+
+        foreach ($ipDocuments as $docType => $document) {
+            if ($document) {
+                $totalSubmitted++;
+                if ($document->status === 'approved') {
+                    $approvedDocs++;
+                } elseif ($document->status === 'pending') {
+                    $pendingDocs++;
+                } elseif ($document->status === 'rejected') {
+                    $rejectedDocs++;
+                }
+            }
+        }
+
+        // Apply rubric scoring (0-10 scale)
+        
+        // Rubric 10/10: All 3 key IP documents approved, OR tribal cert + endorsement approved
+        if ($approvedDocs >= 3 || 
+            ($ipDocuments['tribal_certificate']?->status === 'approved' && 
+             $ipDocuments['endorsement']?->status === 'approved')) {
+            return 10;
+        }
+        
+        // Rubric 8/10: Missing 1 supporting document - has tribal cert approved OR has 2 approved docs
+        if ($approvedDocs === 2 || 
+            ($approvedDocs === 1 && $ipDocuments['tribal_certificate']?->status === 'approved')) {
+            return 8;
+        }
+
+        // Rubric 6/10: Documentation questionable or incomplete but partially verifiable
+        if ($approvedDocs === 1 || 
+            ($totalSubmitted >= 2 && $pendingDocs >= 1) ||
+            ($rejectedDocs > 0 && $totalSubmitted >= 1)) {
+            return 6;
+        }
+
+        // Rubric 4/10: Claims IP group but no supporting documents (self-declared only)
+        if ($user->ethno && $user->ethno->ethnicity && $totalSubmitted === 0) {
+            return 4;
+        }
+
+        // Rubric 0/10: No affiliation
+        return 0;
+    }
+
+    /**
      * Get applicant's course (from registration or school preference)
      */
     private function getApplicantCourse(User $user): ?string
     {
-        // First, check user's registered course
-        if ($user->course) {
-            return trim($user->course);
+        // Prefer the scholarship form's preferred courses (first, then second)
+        $basicInfo = $user->basicInfo;
+        $schoolPref = $basicInfo?->schoolPref;
+
+        if ($schoolPref) {
+            if ($schoolPref->degree) {
+                return trim($schoolPref->degree);
+            }
+
+            if ($schoolPref->degree2) {
+                return trim($schoolPref->degree2);
+            }
         }
 
-        // Then, check school preference
-        $basicInfo = $user->basicInfo;
-        if ($basicInfo && $basicInfo->schoolPref) {
-            if ($basicInfo->schoolPref->degree) {
-                return trim($basicInfo->schoolPref->degree);
-            }
+        // Fall back to the course captured during account creation
+        if ($user->course) {
+            $registeredCourse = trim($user->course);
+            return $registeredCourse !== '' ? $registeredCourse : null;
         }
 
         return null;
@@ -228,9 +316,10 @@ class ApplicantPriorityService
                 $applicationSubmittedAt = now();
             }
 
-            // Get IP group
+            // Get IP group and calculate rubric score (0-10 scale)
             $ethnicity = optional($applicant->ethno)->ethnicity ?? null;
             $isPriorityEthno = $this->isPriorityEthno($ethnicity);
+            $ipRubricScore = $this->calculateIpRubricScore($applicant); // 0-10 scale
 
             // Check for approved tribal certificate (Rank 3)
             $hasApprovedTribalCert = $this->hasApprovedTribalCertificate($applicant);
@@ -250,7 +339,7 @@ class ApplicantPriorityService
             $isPriorityCourse = $this->isPriorityCourse($courseName);
 
             $priorityScore = $this->calculatePriorityScore(
-                $isPriorityEthno,
+                $ipRubricScore, // Now passing rubric score (0-10) instead of boolean
                 $isPriorityCourse,
                 $hasApprovedTribalCert,
                 $hasApprovedIncomeTax,
@@ -264,6 +353,7 @@ class ApplicantPriorityService
                 'application_submitted_at' => $applicationSubmittedAt,
                 'ethnicity' => $ethnicity,
                 'is_priority_ethno' => $isPriorityEthno,
+                'ip_rubric_score' => $ipRubricScore, // 0-10 scale rubric score
                 'has_approved_tribal_cert' => $hasApprovedTribalCert,
                 'has_approved_income_tax' => $hasApprovedIncomeTax,
                 'has_approved_grades' => $hasApprovedGrades,
@@ -308,7 +398,7 @@ class ApplicantPriorityService
     }
 
     private function calculatePriorityScore(
-        bool $isPriorityEthno,
+        float $ipRubricScore, // Now accepts 0-10 rubric score instead of boolean
         bool $isPriorityCourse,
         bool $hasApprovedTribalCert,
         bool $hasApprovedIncomeTax,
@@ -317,9 +407,15 @@ class ApplicantPriorityService
     ): float {
         $score = 0;
 
-        if ($isPriorityEthno) {
-            $score += $this->priorityWeights['ip'] * 100;
-        }
+        // IP Group Priority (30% weight) - Using rubric score (0-10 scale)
+        // Rubric score is normalized to 0-100, then weighted at 30%
+        // Example: 10/10 rubric → 100 → 100 × 0.30 = 30 points
+        //          8/10 rubric → 80 → 80 × 0.30 = 24 points
+        //          6/10 rubric → 60 → 60 × 0.30 = 18 points
+        //          4/10 rubric → 40 → 40 × 0.30 = 12 points
+        //          0/10 rubric → 0 → 0 × 0.30 = 0 points
+        $normalizedIpScore = $ipRubricScore * 10; // Convert 0-10 to 0-100
+        $score += $normalizedIpScore * $this->priorityWeights['ip'];
 
         if ($isPriorityCourse) {
             $score += $this->priorityWeights['course'] * 100;

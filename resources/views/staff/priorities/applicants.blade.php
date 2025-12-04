@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-slate-100">
+<div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
     <div class="mx-auto max-w-7xl px-4 py-10 text-slate-900 sm:px-6 lg:px-8 lg:py-14">
         <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div class="space-y-3">
-                <span class="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-sky-600">
-                    <span class="h-2 w-2 rounded-full bg-sky-500"></span>
+                <span class="inline-flex items-center gap-2 rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-orange-600">
+                    <span class="h-2 w-2 rounded-full bg-orange-500"></span>
                     Applicant Priority
                 </span>
                 <div>
                     <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Applicant Priority Overview</h1>
                     <p class="mt-2 max-w-3xl text-sm text-slate-600">
                         Consolidated priority ladder for applicants under {{ $assignedBarangay }}. Weighted scoring: <strong class="text-slate-900">Priority IP groups 30%</strong>,
-                        <strong class="text-slate-900">priority courses 25%</strong>, <strong class="text-slate-900">Tribal Certificate 20%</strong>, <strong class="text-slate-900">Income Tax Document 15%</strong>, <strong class="text-slate-900">Academic Performance 5%</strong>, <strong class="text-slate-900">Other Requirements 5%</strong>, with <strong class="text-slate-900">FCFS</strong> as the final tiebreaker (excluding BS IT, BS CS, BS Accountancy, BS Nursing, BS Education, BA Political Science).
+                        <strong class="text-slate-900">priority courses 25%</strong>, <strong class="text-slate-900">Tribal Certificate 20%</strong>, <strong class="text-slate-900">Income Tax Document 15%</strong>, <strong class="text-slate-900">Academic Performance 5%</strong>, <strong class="text-slate-900">Other Requirements 5%</strong>, with <strong class="text-slate-900">FCFS</strong> as the final tiebreaker (excluding BS IT, BS CS, BS Accountancy, BS Nursing, BS Education, BA Political Science). Course priority now follows the preferred program in each scholarship form and only uses the registration-time course when no preference exists.
                     </p>
                 </div>
             </div>
@@ -45,8 +45,8 @@
                     'value' => $priorityEthnoCount,
                     'description' => 'High-impact ethnolinguistic groups',
                     'badge' => '30% weight',
-                    'accent' => 'text-sky-600',
-                    'chip' => 'border-sky-100 bg-sky-50 text-sky-700',
+                    'accent' => 'text-orange-600',
+                    'chip' => 'border-orange-100 bg-orange-50 text-orange-700',
                 ],
                 [
                     'label' => 'Priority Courses',
@@ -77,8 +77,8 @@
                     'value' => $academicCount,
                     'description' => 'Grades verified for ranking',
                     'badge' => '5% weight',
-                    'accent' => 'text-sky-600',
-                    'chip' => 'border-sky-100 bg-sky-50 text-sky-700',
+                    'accent' => 'text-blue-600',
+                    'chip' => 'border-blue-100 bg-blue-50 text-blue-700',
                 ],
                 [
                     'label' => 'Other Requirements',
@@ -114,7 +114,7 @@
             ];
 
             $priorityWeights = [
-                ['label' => 'Priority IP groups', 'value' => '30%', 'accent' => 'text-sky-500'],
+                ['label' => 'Priority IP groups', 'value' => '30%', 'accent' => 'text-orange-500'],
                 ['label' => 'Priority courses', 'value' => '25%', 'accent' => 'text-fuchsia-500'],
                 ['label' => 'Tribal certificate', 'value' => '20%', 'accent' => 'text-rose-500'],
                 ['label' => 'Income tax document', 'value' => '15%', 'accent' => 'text-green-500'],
@@ -145,7 +145,7 @@
                                 <span class="text-xs text-slate-500">{{ $priorityEthnoCount }} applicants</span>
                             </div>
                             <div class="mt-2 h-2 rounded-full bg-slate-100">
-                                <div class="h-full rounded-full bg-gradient-to-r from-sky-300 via-sky-400 to-blue-500" style="width: {{ $priorityIpPercent }}%;"></div>
+                                <div class="h-full rounded-full bg-gradient-to-r from-orange-300 via-orange-400 to-amber-500" style="width: {{ $priorityIpPercent }}%;"></div>
                             </div>
                         </div>
                         <div>
@@ -334,7 +334,7 @@
                                         @endif
                                     </td>
                                     <td class="px-5 py-4">
-                                            <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                                            <span class="inline-flex items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 border border-orange-200">
                                             {{ number_format($priorityScore, 0) }} pts
                                         </span>
                                     </td>
@@ -362,10 +362,10 @@
                                     </td>
                                     <td class="px-5 py-4">
                                             <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs
-                                                @if($isPriorityEthno) border-sky-200 bg-sky-50 text-sky-700 @else border-slate-200 bg-white text-slate-600 @endif">
+                                                @if($isPriorityEthno) border-orange-200 bg-orange-50 text-orange-700 font-semibold @else border-slate-200 bg-white text-slate-600 @endif">
                                             {{ $ethnicity }}
                                             @if($isPriorityEthno)
-                                                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-sky-500"></span>
+                                                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-orange-500"></span>
                                             @endif
                                         </span>
                                     </td>
@@ -482,7 +482,7 @@
                                         <p class="text-xl font-semibold text-slate-400">N/A</p>
                                     @endif
                                 </div>
-                                <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                                <span class="inline-flex items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 border border-orange-200">
                                     {{ number_format($priorityScore, 0) }} pts
                                 </span>
                             </div>
@@ -509,13 +509,13 @@
                                     <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Submission</p>
                                     <p class="text-sm font-semibold text-slate-900">{{ $submittedAt->format('M d, Y') }}</p>
                                     <p class="text-[10px]">{{ $submittedAt->format('g:i A') }}</p>
-                                    <p class="text-[10px] text-sky-600">{{ $daysWaiting }} {{ Str::plural('day', $daysWaiting) }} waiting</p>
+                                    <p class="text-[10px] text-orange-600">{{ $daysWaiting }} {{ Str::plural('day', $daysWaiting) }} waiting</p>
                                 </div>
                                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs">
                                     <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">IP Group</p>
                                     <p class="text-sm font-semibold text-slate-900">{{ $ethnicity }}</p>
                                     @if($isPriorityEthno)
-                                        <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700">Priority IP</span>
+                                        <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-700 border border-orange-200">Priority IP</span>
                                     @endif
                                 </div>
                             </div>
