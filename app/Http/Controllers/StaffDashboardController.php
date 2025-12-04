@@ -244,12 +244,12 @@ class StaffDashboardController extends Controller
     private function getDocumentTypeName($type)
     {
         $typeNames = [
-            'birth_certificate' => 'Certified Birth Certificate',
-            'income_document' => 'Certificate of Low Income',
-            'tribal_certificate' => 'Tribal Certificate',
-            'endorsement' => 'Endorsement Letter',
-            'good_moral' => 'Good Moral Certificate',
-            'grades' => 'Grade Slip'
+            'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
+            'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
+            'tribal_certificate' => 'Certificate of Tribal Membership/Certificate of Confirmation COC',
+            'endorsement' => 'Endorsement of the IPS/IP Traditional Leaders',
+            'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
+            'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
         
         return $typeNames[$type] ?? $type;
@@ -352,12 +352,12 @@ class StaffDashboardController extends Controller
         
         // Required document types
         $requiredTypes = [
-            'birth_certificate' => 'Certified Birth Certificate',
-            'income_document' => 'Certificate of Low Income',
-            'tribal_certificate' => 'Tribal Certificate',
-            'endorsement' => 'Endorsement Letter',
-            'good_moral' => 'Good Moral Certificate',
-            'grades' => 'Grade Slip'
+            'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
+            'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
+            'tribal_certificate' => 'Certificate of Tribal Membership/Certificate of Confirmation COC',
+            'endorsement' => 'Endorsement of the IPS/IP Traditional Leaders',
+            'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
+            'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
 
         // Calculate progress variables
@@ -805,17 +805,43 @@ class StaffDashboardController extends Controller
     {
         $document = Document::findOrFail($document);
         
-        $validated = $request->validate([
-            'status' => 'required|in:approved,rejected,pending'
-        ]);
+        // Validate based on status
+        $status = $request->input('status');
         
-        $document->update([
+        if ($status === 'rejected') {
+            $validated = $request->validate([
+                'status' => 'required|in:approved,rejected,pending',
+                'rejection_reason' => 'required|string|min:10|max:1000'
+            ], [
+                'rejection_reason.required' => 'Please provide a reason for rejection.',
+                'rejection_reason.min' => 'Rejection reason must be at least 10 characters long.'
+            ]);
+        } else {
+            $validated = $request->validate([
+                'status' => 'required|in:approved,rejected,pending',
+                'rejection_reason' => 'nullable|string|max:1000'
+            ]);
+        }
+        
+        $updateData = [
             'status' => $validated['status']
-        ]);
+        ];
+        
+        // Handle rejection_reason based on status
+        if ($validated['status'] === 'rejected') {
+            // If status is rejected, save the rejection_reason (trimmed)
+            $updateData['rejection_reason'] = trim($validated['rejection_reason']);
+        } else {
+            // Clear rejection_reason if status is changed to approved or pending
+            $updateData['rejection_reason'] = null;
+        }
+        
+        $document->update($updateData);
         
         return response()->json([
             'success' => true,
-            'message' => 'Document status updated successfully'
+            'message' => 'Document status updated successfully',
+            'rejection_reason' => $updateData['rejection_reason'] ?? null
         ]);
     }
 

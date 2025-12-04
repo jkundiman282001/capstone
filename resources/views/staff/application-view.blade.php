@@ -203,21 +203,32 @@
                                     <div class="flex items-center gap-2">
                                         <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
                                         <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
-                                        <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'rejected')" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
+                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
                                     </div>
                                 </div>
                             @elseif($status === 'rejected')
                                 <div class="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl hover:shadow-md transition-all">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-3 flex-1">
                                         <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </div>
-                                        <div>
+                                        <div class="flex-1">
                                             <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
                                             <p class="text-xs text-red-600 font-medium">Rejected • {{ $uploaded->created_at->diffForHumans() }}</p>
+                                            @if($uploaded->rejection_reason)
+                                                <div class="mt-2 p-2 bg-white rounded-lg border border-red-100">
+                                                    <p class="text-xs text-slate-700"><strong class="text-red-700">Reason:</strong> {{ $uploaded->rejection_reason }}</p>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
-                                    <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                                            Feedback
+                                        </button>
+                                    </div>
                                 </div>
                             @else
                                 <div class="flex items-center justify-between p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl opacity-60">
@@ -755,6 +766,65 @@
     </div>
 </div>
 
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden">
+        <div class="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-orange-500 to-red-500">
+            <div>
+                <h3 class="text-xl font-bold text-white">Document Rejection Feedback</h3>
+                <p id="feedbackDocumentName" class="text-sm text-orange-100 mt-1"></p>
+            </div>
+            <button onclick="closeFeedbackModal()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="feedbackForm" onsubmit="submitFeedback(event)">
+                <input type="hidden" id="feedbackDocumentId" name="document_id">
+                
+                <div class="mb-6">
+                    <label for="rejectionReason" class="block text-sm font-bold text-slate-700 mb-2">
+                        Reason for Rejection <span class="text-red-500">*</span>
+                    </label>
+                    <textarea 
+                        id="rejectionReason" 
+                        name="rejection_reason" 
+                        rows="6" 
+                        required
+                        placeholder="Please provide a clear explanation for why this document was rejected..."
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm resize-none"
+                    ></textarea>
+                    <p class="text-xs text-slate-500 mt-2">This feedback will be visible to the student and help them understand what needs to be corrected.</p>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="text-xs text-amber-800">
+                            <p class="font-bold mb-1">Tips for effective feedback:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Be specific about what's wrong with the document</li>
+                                <li>Suggest what the student needs to do to fix it</li>
+                                <li>Use clear and respectful language</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeFeedbackModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitFeedbackBtn" class="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Submit Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentDocumentUrl = '';
 let currentDocumentName = '';
@@ -937,7 +1007,91 @@ document.getElementById('documentModal').addEventListener('click', function(e) {
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeDocumentModal();
+    if (e.key === 'Escape') {
+        closeDocumentModal();
+        closeFeedbackModal();
+    }
+});
+
+// Feedback Modal Functions
+function showFeedbackModal(documentId, documentName) {
+    const modal = document.getElementById('feedbackModal');
+    const documentIdInput = document.getElementById('feedbackDocumentId');
+    const documentNameText = document.getElementById('feedbackDocumentName');
+    const reasonTextarea = document.getElementById('rejectionReason');
+    
+    documentIdInput.value = documentId;
+    documentNameText.textContent = documentName;
+    reasonTextarea.value = '';
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus on textarea
+    setTimeout(() => reasonTextarea.focus(), 100);
+}
+
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('feedbackForm').reset();
+}
+
+function submitFeedback(event) {
+    event.preventDefault();
+    
+    const rejectionReason = document.getElementById('rejectionReason').value.trim();
+    
+    // Client-side validation
+    if (!rejectionReason || rejectionReason.length < 10) {
+        alert('Please provide a detailed rejection reason (at least 10 characters).');
+        document.getElementById('rejectionReason').focus();
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitFeedbackBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Submitting...';
+    submitBtn.disabled = true;
+    
+    const documentId = document.getElementById('feedbackDocumentId').value;
+    
+    fetch(`/staff/documents/${documentId}/update-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ 
+            status: 'rejected',
+            rejection_reason: rejectionReason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeFeedbackModal();
+            alert('Feedback submitted successfully! The student will be notified.');
+            location.reload();
+        } else {
+            const errorMsg = data.message || data.errors?.rejection_reason?.[0] || 'Unknown error';
+            alert('Error submitting feedback: ' + errorMsg);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting feedback. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Close modal when clicking outside
+document.getElementById('feedbackModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeFeedbackModal();
 });
 </script>
 @endsection

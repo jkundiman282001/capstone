@@ -52,13 +52,15 @@
                     <div class="relative inline-block mx-auto mb-6">
                         <div class="w-36 h-36 rounded-full p-1.5 bg-white shadow-2xl shadow-orange-100/50 cursor-pointer group/avatar relative z-10 transition-transform duration-300 hover:scale-105" onclick="document.getElementById('profile-pic-input').click()">
                             <div class="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
-                                @if($student->profile_pic)
-                                    <img id="profile-pic-image" src="{{ Storage::url($student->profile_pic) }}" alt="Profile" class="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110">
-                            @else
-                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 text-orange-300">
-                                        <i data-lucide="user" class="w-16 h-16"></i>
-                                    </div>
-                                @endif
+                                <img
+                                    id="profile-pic-image"
+                                    src="{{ $student->profile_pic ? Storage::url($student->profile_pic) : '' }}"
+                                    alt="Profile"
+                                    class="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110 {{ $student->profile_pic ? '' : 'hidden' }}"
+                                >
+                                <div id="profile-pic-placeholder" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 text-orange-300 {{ $student->profile_pic ? 'hidden' : 'flex' }}">
+                                    <i data-lucide="user" class="w-16 h-16"></i>
+                                </div>
                                 
                                 <!-- Overlay -->
                                 <div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
@@ -141,6 +143,62 @@
                     </form>
                     </div>
 
+                <!-- Current Academic Performance -->
+                <div class="glass-card rounded-[2rem] shadow-xl shadow-slate-200/40 overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-100 bg-white/50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold text-xl text-slate-800">Current Academic Performance</h3>
+                                <p class="text-slate-500 text-sm mt-1">Track your academic progress and scholarship eligibility</p>
+                            </div>
+                            <span class="text-green-600 bg-green-100 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap select-none">Eligible</span>
+                        </div>
+                    </div>
+
+                    <div class="p-8 space-y-6">
+                        <!-- GPA, Credits Enrolled, Total Credits -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 border border-gray-100 rounded-lg overflow-hidden text-center divide-x divide-gray-100">
+                            <div class="p-6">
+                                <p class="text-4xl font-extrabold text-blue-600">3.85</p>
+                                <p class="font-semibold text-sm text-gray-700 mt-1">Current GPA</p>
+                                <p class="mt-2 text-green-600 text-xs">+0.15 from last semester</p>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-4xl font-extrabold text-blue-700">18</p>
+                                <p class="font-semibold text-sm text-gray-700 mt-1">Credits Enrolled</p>
+                                <a href="#" class="text-blue-600 text-xs mt-2 inline-block hover:underline">Full-time status</a>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-4xl font-extrabold text-purple-700">75</p>
+                                <p class="font-semibold text-sm text-gray-700 mt-1">Total Credits</p>
+                                <p class="mt-2 text-purple-600 text-xs">62.5% complete</p>
+                            </div>
+                        </div>
+
+                        <!-- GPA Progress Bar -->
+                        <div class="pt-2 w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mb-1 px-1">
+                                <span>GPA Progress</span>
+                                <span>Target: 3.5</span>
+                            </div>
+                            <progress class="w-full h-3 rounded bg-blue-100" value="3.85" max="4.0"></progress>
+                        </div>
+
+                        <!-- Academic Standing -->
+                        <div class="bg-green-50 border border-green-200 text-green-700 p-4 rounded-md text-sm">
+                            <div class="flex items-center space-x-2 font-semibold">
+                                <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M9 12l2 2 4-4"></path>
+                                </svg>
+                                <span>Excellent Academic Standing</span>
+                            </div>
+                            <p class="mt-1 text-green-800 text-sm">Your GPA of 3.85 exceeds the minimum requirement of 3.5. You are currently
+                                eligible for all scholarship opportunities and maintaining good academic progress.</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -181,7 +239,11 @@
 
 @push('scripts')
 <script>
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+    } else {
+        console.warn('Lucide icons library not loaded – skipping icon replacement.');
+    }
     // --- Cropper Logic ---
     let cropper;
     let selectedFile;
@@ -200,6 +262,12 @@
 
             if (cropper) cropper.destroy();
         setTimeout(() => {
+            if (typeof Cropper === 'undefined') {
+                console.error('CropperJS library failed to load. Please check your network connection.');
+                alert('Unable to load the photo editor. Please check your internet connection and try again.');
+                closeCropper();
+                return;
+            }
             cropper = new Cropper(img, {
                 aspectRatio: 1,
                 viewMode: 1,
@@ -241,7 +309,14 @@
             .then(data => {
                 if (data.success) {
                     const image = document.getElementById('profile-pic-image');
-                    if (image) image.src = data.profile_pic_url + '?t=' + new Date().getTime();
+                    const placeholder = document.getElementById('profile-pic-placeholder');
+                    if (image) {
+                        image.src = data.profile_pic_url + '?t=' + new Date().getTime();
+                        image.classList.remove('hidden');
+                    }
+                    if (placeholder) {
+                        placeholder.classList.add('hidden');
+                    }
                     closeCropper();
                 } else {
                     alert('Failed to update.');

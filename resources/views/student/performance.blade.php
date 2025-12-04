@@ -163,169 +163,7 @@
         </div>
     @endif
 
-<!-- Current Academic Performance and Quick Stats -->
-<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-  <!-- Left: Current Academic Performance -->
-  <section
-    class="bg-white shadow rounded-lg p-6 col-span-2 space-y-6 border border-gray-200">
 
-    <div class="flex justify-between items-center">
-      <h3 class="font-semibold text-lg text-gray-900">Current Academic Performance</h3>
-      <span
-        class="text-green-600 bg-green-100 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap select-none">Eligible</span>
-    </div>
-
-    <!-- GPA, Credits Enrolled, Total Credits -->
-    <div
-      class="grid grid-cols-1 sm:grid-cols-3 border border-gray-100 rounded-lg overflow-hidden text-center divide-x divide-gray-100">
-      <div class="p-6">
-        <p class="text-4xl font-extrabold text-blue-600">3.85</p>
-        <p class="font-semibold text-sm text-gray-700 mt-1">Current GPA</p>
-        <p class="mt-2 text-green-600 text-xs">+0.15 from last semester</p>
-      </div>
-      <div class="p-6">
-        <p class="text-4xl font-extrabold text-blue-700">18</p>
-        <p class="font-semibold text-sm text-gray-700 mt-1">Credits Enrolled</p>
-        <a href="#" class="text-blue-600 text-xs mt-2 inline-block hover:underline">Full-time status</a>
-      </div>
-      <div class="p-6">
-        <p class="text-4xl font-extrabold text-purple-700">75</p>
-        <p class="font-semibold text-sm text-gray-700 mt-1">Total Credits</p>
-        <p class="mt-2 text-purple-600 text-xs">62.5% complete</p>
-      </div>
-    </div>
-
-    <!-- GPA Progress Bar -->
-    <div class="pt-2 w-full">
-      <div class="flex justify-between text-xs text-gray-500 mb-1 px-1">
-        <span>GPA Progress</span>
-        <span>Target: 3.5</span>
-      </div>
-      <progress class="w-full h-3 rounded bg-blue-100" value="3.85" max="4.0"></progress>
-    </div>
-
-    <!-- Academic Standing -->
-    <div class="bg-green-50 border border-green-200 text-green-700 p-4 rounded-md text-sm">
-      <div class="flex items-center space-x-2 font-semibold">
-        <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M9 12l2 2 4-4"></path>
-        </svg>
-        <span>Excellent Academic Standing</span>
-      </div>
-      <p class="mt-1 text-green-800 text-sm">Your GPA of 3.85 exceeds the minimum requirement of 3.5. You are currently
-        eligible for all scholarship opportunities and maintaining good academic progress.</p>
-    </div>
-  </section>
-
-  <!-- Right: Quick Stats -->
-  <section
-    class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-md mx-auto md:mx-0 flex flex-col space-y-4">
-    <h3 class="font-semibold text-lg text-gray-900">Quick Stats</h3>
-    <dl class="space-y-3">
-      <div class="flex justify-between items-center">
-        <dt>Scholarship Status</dt>
-        <dd><span
-            class="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs font-semibold select-none">Active</span></dd>
-      </div>
-      <div class="flex justify-between items-center">
-        <dt>Academic Warning</dt>
-        <dd class="flex items-center space-x-1 text-green-700 font-semibold text-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
-            stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 6L9 17l-5-5"></path>
-          </svg>
-          <span>None</span>
-        </dd>
-      </div>
-      <div class="flex justify-between items-center">
-        <dt>Probation Status</dt>
-        <dd class="flex items-center space-x-1 text-green-700 font-semibold text-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
-            stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 6L9 17l-5-5"></path>
-          </svg>
-          <span>Clear</span>
-        </dd>
-      </div>
-      <div class="flex justify-between items-center">
-        <dt>Graduation Track</dt>
-        <dd><a href="#" class="text-blue-600 font-semibold hover:underline select-none">On Track</a></dd>
-      </div>
-    </dl>
-  </section>
-</section>
-
-<!-- Semester-by-Semester Breakdown Table -->
-<section
-  class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-4xl mx-auto overflow-x-auto scroll-px-6 scroll-py-2">
-  <h3 class="font-semibold text-lg text-gray-900 mb-6">Semester-by-Semester Breakdown</h3>
-  <table class="w-full min-w-[600px] whitespace-nowrap text-left text-gray-700">
-    <thead class="border-b border-gray-300">
-      <tr>
-        <th class="pb-2">Semester</th>
-        <th class="pb-2">GPA</th>
-        <th class="pb-2">Credits</th>
-        <th class="pb-2">Status</th>
-        <th class="pb-2">Remarks</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      <tr>
-        <td class="py-3">
-          <p class="font-semibold">Fall 2024</p>
-          <p class="text-xs text-gray-500">Current</p>
-        </td>
-        <td class="py-3 text-blue-700 font-semibold">3.85</td>
-        <td class="py-3">18</td>
-        <td class="py-3">
-          <span
-            class="bg-green-100 text-green-700 text-xs font-semibold rounded-full px-3 py-1 select-none whitespace-nowrap">In Progress</span>
-        </td>
-        <td class="py-3">Excellent performance</td>
-      </tr>
-      <tr>
-        <td class="py-3">
-          <p class="font-semibold">Spring 2024</p>
-          <p class="text-xs text-gray-500">Completed</p>
-        </td>
-        <td class="py-3 text-green-700 font-semibold">3.70</td>
-        <td class="py-3">15</td>
-        <td class="py-3">
-          <span
-            class="bg-green-100 text-green-700 text-xs font-semibold rounded-full px-3 py-1 select-none whitespace-nowrap">Completed</span>
-        </td>
-        <td class="py-3">Good academic standing</td>
-      </tr>
-      <tr>
-        <td class="py-3">
-          <p class="font-semibold">Fall 2023</p>
-          <p class="text-xs text-gray-500">Completed</p>
-        </td>
-        <td class="py-3 text-blue-700 font-semibold">3.65</td>
-        <td class="py-3">16</td>
-        <td class="py-3">
-          <span
-            class="bg-green-100 text-green-700 text-xs font-semibold rounded-full px-3 py-1 select-none whitespace-nowrap">Completed</span>
-        </td>
-        <td class="py-3">Satisfactory progress</td>
-      </tr>
-      <tr>
-        <td class="py-3">
-          <p class="font-semibold">Spring 2023</p>
-          <p class="text-xs text-gray-500">Completed</p>
-        </td>
-        <td class="py-3 text-yellow-700 font-semibold">3.45</td>
-        <td class="py-3">14</td>
-        <td class="py-3">
-          <span
-            class="bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full px-3 py-1 select-none whitespace-nowrap">Completed</span>
-        </td>
-        <td class="py-3">Below target, improvement needed</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
 
 <!-- Event Participation & Attendance -->
 <!-- Compliance Checklist & Upload Documents (Glassmorphism Centered) -->
@@ -387,28 +225,32 @@
         <div class="bg-gradient-to-r from-orange-400 to-orange-600 h-3 rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
       </div>
     </div>
-    <ul class="space-y-7">
+    <ul class="space-y-6">
       @foreach($requiredTypes as $typeKey => $typeLabel)
         @php
           $uploaded = $documents->firstWhere('type', $typeKey);
           $status = $uploaded ? $uploaded->status : 'missing';
         @endphp
-        <li class="bg-gradient-to-br from-orange-100/80 via-amber-100/60 to-white/60 border border-orange-200/60 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow-lg hover:shadow-2xl transition-all">
-          <div class="flex items-center gap-5 min-w-0">
+        <li class="bg-gradient-to-br from-orange-100/80 via-amber-100/60 to-white/60 border border-orange-200/60 rounded-2xl p-6 md:p-7 flex flex-col gap-5 shadow-lg hover:shadow-2xl transition-all">
+          <div class="flex items-start gap-4 md:gap-5 min-w-0">
             @if($status === 'approved')
-              <span class="w-12 h-12 rounded-full bg-green-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40">✓</span>
+              <span class="w-12 h-12 rounded-full bg-green-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">✓</span>
             @elseif($status === 'pending')
-              <span class="w-12 h-12 rounded-full bg-yellow-400/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40">!</span>
+              <span class="w-12 h-12 rounded-full bg-yellow-400/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">!</span>
+            @elseif($status === 'rejected')
+              <span class="w-12 h-12 rounded-full bg-red-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">×</span>
             @else
-              <span class="w-12 h-12 rounded-full bg-red-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40">×</span>
+              <span class="w-12 h-12 rounded-full bg-red-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">×</span>
             @endif
-            <div class="flex flex-col min-w-0">
-              <span class="font-extrabold text-lg text-gray-900 truncate tracking-tight">{{ $typeLabel }}</span>
-              <div class="flex items-center gap-2 mt-1">
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="font-extrabold text-base md:text-lg text-gray-900 leading-tight tracking-tight break-words">{{ $typeLabel }}</span>
+              <div class="flex items-center gap-2 mt-2 flex-wrap">
                 @if($status === 'approved')
                   <span class="bg-green-200/80 text-green-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Approved</span>
                 @elseif($status === 'pending')
                   <span class="bg-yellow-200/80 text-yellow-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Pending</span>
+                @elseif($status === 'rejected')
+                  <span class="bg-red-200/80 text-red-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Rejected</span>
                 @else
                   <span class="bg-red-200/80 text-red-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Missing</span>
                 @endif
@@ -418,17 +260,63 @@
               </div>
             </div>
           </div>
-          <div class="flex flex-col md:items-end gap-2 w-full md:w-auto">
-            @if($uploaded)
-              <a href="{{ asset('storage/' . $uploaded->filepath) }}" target="_blank" class="inline-block px-5 py-2 bg-blue-600/90 text-white rounded-full text-xs font-bold shadow hover:bg-blue-700/90 transition">View</a>
+          
+          <!-- Rejection Feedback Display -->
+          @if($status === 'rejected' && $uploaded)
+            @if($uploaded->rejection_reason)
+              <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm">
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-red-900 mb-1">Rejection Feedback from Staff</h4>
+                    <div class="bg-white border border-red-200 rounded-lg p-3 mb-2">
+                      <p class="text-xs font-semibold text-red-700 uppercase tracking-wide mb-1">Staff Feedback:</p>
+                      <p class="text-sm text-red-900 leading-relaxed whitespace-pre-wrap">{{ $uploaded->rejection_reason }}</p>
+                    </div>
+                    <p class="text-xs text-red-700 mt-2 italic">Please review the feedback above and upload a corrected document.</p>
+                  </div>
+                </div>
+              </div>
+            @else
+              <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 shadow-sm">
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-amber-900 mb-1">Document Rejected</h4>
+                    <p class="text-sm text-amber-800">This document has been rejected. Please upload a corrected version.</p>
+                  </div>
+                </div>
+              </div>
             @endif
+          @endif
+          
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full pt-2 border-t border-orange-200/40">
+            <div class="flex flex-col md:items-start gap-2">
+              @if($uploaded)
+                <a href="{{ asset('storage/' . $uploaded->filepath) }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600/90 text-white rounded-full text-xs font-bold shadow hover:bg-blue-700/90 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  View Document
+                </a>
+              @endif
+            </div>
             @if(!$uploaded || ($uploaded && $uploaded->status === 'rejected'))
               <form method="POST" action="{{ route('documents.upload') }}" enctype="multipart/form-data" class="doc-upload-form flex items-center gap-2 w-full md:w-auto" data-type="{{ $typeKey }}" data-label="{{ $typeLabel }}">
                 @csrf
                 <input type="hidden" name="type" value="{{ $typeKey }}">
-                <div class="flex flex-col gap-1">
-                  <input type="file" name="upload-file" required class="doc-file-input block text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf">
-                  <span class="text-xs text-gray-500">Select file then use “Upload All”</span>
+                <div class="flex flex-col gap-1.5 w-full md:w-auto">
+                  <input type="file" name="upload-file" required class="doc-file-input block text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                  <span class="text-xs text-gray-500">Select file then use "Upload All"</span>
                 </div>
               </form>
             @endif
@@ -438,54 +326,6 @@
     </ul>
   </section>
 </div>
-
-
-<!-- System-Generated Feedback -->
-<section class="bg-white shadow rounded-lg p-6 border border-gray-200 max-w-4xl mx-auto select-none">
-  <h3 class="font-semibold text-lg text-gray-900 mb-4">System-Generated Feedback</h3>
-
-  <div class="space-y-4">
-    <article class="border border-green-200 bg-green-50 rounded-md p-4 text-green-700">
-      <div class="flex items-center space-x-2 font-semibold">
-        <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M9 12l2 2 4-4"></path>
-        </svg>
-        <h4>Excellent Academic Performance</h4>
-      </div>
-      <p class="text-sm mt-1">Your GPA of 3.85 demonstrates strong academic commitment. You're exceeding the minimum
-        requirement and maintaining excellent standing for scholarship renewal.</p>
-    </article>
-
-    <article class="border border-blue-300 bg-blue-100 rounded-md p-4 text-blue-700">
-      <div class="flex items-center space-x-2 font-semibold">
-        <svg class="w-5 h-5 flex-shrink-0 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="16" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12" y2="8" />
-        </svg>
-        <h4>Action Required: Community Service Log</h4>
-      </div>
-      <p class="text-sm mt-1 ml-7">Please submit your community service log by December 15, 2024. This is required to
-        maintain full compliance with scholarship requirements.</p>
-    </article>
-
-    <article class="border border-yellow-300 bg-yellow-50 rounded-md p-4 text-yellow-800">
-      <div class="flex items-center space-x-2 font-semibold">
-        <svg class="w-5 h-5 flex-shrink-0 text-yellow-600" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-          <line x1="12" y1="9" x2="12" y2="13" />
-          <line x1="12" y1="17" x2="12" y2="17" />
-        </svg>
-        <h4>Recommendation: Financial Aid Form</h4>
-      </div>
-      <p class="text-sm mt-1 ml-7">Consider submitting your financial aid form early for the next semester to ensure
-        timely processing and avoid delays in scholarship disbursement.</p>
-    </article>
-  </div>
-</section>
 </main>
 </div>
 @endsection 

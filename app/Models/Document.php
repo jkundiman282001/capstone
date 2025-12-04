@@ -18,6 +18,7 @@ class Document extends Model
         'priority_rank',
         'priority_score',
         'submitted_at',
+        'rejection_reason',
     ];
 
     protected $casts = [

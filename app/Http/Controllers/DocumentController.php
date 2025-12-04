@@ -92,12 +92,12 @@ class DocumentController extends Controller
         $documents = Document::where('user_id', $user->id)->latest()->get();
         $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->first();
         $requiredTypes = [
-            'birth_certificate' => 'Certified Birth Certificate',
-            'income_document' => 'Income Tax Return/Tax Exemption/Indigency',
-            'tribal_certificate' => 'Certificate of Tribal Membership/Confirmation',
+            'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
+            'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
+            'tribal_certificate' => 'Certificate of Tribal Membership/Certificate of Confirmation COC',
             'endorsement' => 'Endorsement of the IPS/IP Traditional Leaders',
-            'good_moral' => 'Certificate of Good Moral',
-            'grades' => 'Latest Copy of Grades',
+            'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
+            'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
 
         // Calculate priority rank for the student

@@ -355,9 +355,13 @@
                                             <input type="checkbox" name="type_of_assistance[]" value="Regular" class="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 check-assist" {{ in_array('Regular', old('type_of_assistance', [])) ? 'checked' : '' }}>
                                             <span class="ml-2 text-slate-700">Regular Scholarship</span>
                                 </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="type_of_assistance[]" value="Pamana" class="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 check-assist" {{ in_array('Pamana', old('type_of_assistance', [])) ? 'checked' : '' }}>
-                                            <span class="ml-2 text-slate-700">Pamana Program</span>
+                                        <label class="flex items-center cursor-not-allowed">
+                                            <input type="checkbox" name="type_of_assistance[]" value="Merit-Based" class="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 check-assist" disabled>
+                                            <span class="ml-2 text-slate-400">Merit-Based <span class="text-xs">(Locked)</span></span>
+                                    </label>
+                                        <label class="flex items-center cursor-not-allowed">
+                                            <input type="checkbox" name="type_of_assistance[]" value="PDAF" class="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 check-assist" disabled>
+                                            <span class="ml-2 text-slate-400">PDAF <span class="text-xs">(Locked)</span></span>
                                     </label>
                                     </div>
                                 </div>
@@ -469,9 +473,7 @@
                         <div class="form-step hidden" id="step-3">
                             @php
                                 $yearOptions = range((int)date('Y'), (int)date('Y') - 60);
-                                $gwaOptions = [
-                                    '1.00','1.25','1.50','1.75','2.00','2.25','2.50','2.75','3.00','3.25','3.50','3.75','4.00','5.00'
-                                ];
+                                $gwaOptions = range(75, 100);
                                 $rankOptions = [
                                     'Valedictorian','Salutatorian','With Highest Honors','With High Honors','With Honors',
                                     'Top 10','Dean\'s Lister','Academic Awardee','None'
@@ -715,7 +717,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <div class="text-sm text-blue-800">
-                                    <span class="font-semibold">Upload Instructions:</span> Please upload clear PDF copies of your documents. Maximum file size is 10MB per file.
+                                    <span class="font-semibold">Upload Instructions:</span> Please upload clear PDF files or images (JPG, PNG) of your documents. Maximum file size is 10MB per file.
                             </div>
                             </div>
 
@@ -778,9 +780,9 @@
                                                         <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-orange-50 hover:border-orange-300 transition-colors relative group/upload">
                                                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                                                 <svg class="w-6 h-6 mb-2 text-slate-400 group-hover/upload:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                                                                <p class="text-xs text-slate-500"><span class="font-semibold">Click to upload</span> PDF</p>
+                                                                <p class="text-xs text-slate-500"><span class="font-semibold">Click to upload</span> PDF or Image</p>
                                                             </div>
-                                                            <input type="file" name="documents[{{ $typeKey }}]" class="doc-file-input absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf">
+                                                            <input type="file" name="documents[{{ $typeKey }}]" class="doc-file-input absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.jpg,.jpeg,.png,.gif">
                                 </label>
                                                         <div class="file-name-display text-xs text-slate-600 mt-2 text-center truncate hidden px-2"></div>
                             </div>
@@ -849,6 +851,7 @@
                 <label class="input-label">Present Status</label>
                 <select id="modal_sibling_status" class="form-control">
                     <option value="">Select Status</option>
+                    <option value="None">None</option>
                     <option value="Stopped/Undergraduate">Stopped/Undergraduate</option>
                     <option value="Undergraduate/Married">Undergraduate/Married</option>
                     <option value="Graduated/Married">Graduated/Married</option>
@@ -869,6 +872,7 @@
     const totalSteps = 6;
     const form = document.getElementById('applicationForm');
     const siblingStatusOptions = [
+        'None',
         'Stopped/Undergraduate',
         'Undergraduate/Married',
         'Graduated/Married',
@@ -1395,7 +1399,7 @@
             });
 
             if (uploadsToProcess.length === 0) {
-                alert('Please select at least one PDF document before uploading.');
+                alert('Please select at least one document (PDF or Image) before uploading.');
                 return;
             }
 
