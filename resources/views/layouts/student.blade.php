@@ -188,8 +188,8 @@
     <footer class="py-8 px-6 border-t border-white/10 bg-gray-800">
         <div class="max-w-7xl mx-auto">
             <div class="flex items-center justify-between">
-                <div class="text-orange-400 font-bold text-xl">IndiGenSys</div>
-                <div class="text-orange-400 text-sm">&copy; {{ date('Y') }} IndiGenSys. All rights reserved.</div>
+                <div class="text-orange-400 font-bold text-xl">NCIP-EAP</div>
+                <div class="text-orange-400 text-sm">&copy; {{ date('Y') }} NCIP-EAP. All rights reserved.</div>
             </div>
         </div>
     </footer>

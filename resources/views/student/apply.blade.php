@@ -266,7 +266,7 @@
                             Back to Hub
                         </button>
                         <div class="flex items-center gap-3 mb-2">
-                            <img src="/National_Commission_on_Indigenous_Peoples_(NCIP).png" alt="NCIP" class="h-10 w-10">
+                            <img src="{{ asset('images/National_Commission_on_Indigenous_Peoples_(NCIP).png') }}" alt="NCIP" class="h-10 w-10">
                     <div>
                                 <h1 class="text-lg font-bold text-slate-900 leading-tight">Scholarship<br>Application</h1>
                     </div>

@@ -14,9 +14,23 @@ class StudentController extends Controller
     {
         // In a real app, fetch the student's application status from DB
         $application = null; // Replace with actual application model if exists
-        $hasApplied = BasicInfo::where('user_id', $request->user()->id)->exists();
+        $hasApplied = false;
+        
+        // Check if user is authenticated
+        if ($request->user()) {
+            $hasApplied = BasicInfo::where('user_id', $request->user()->id)->exists();
+        }
 
-        return view('student.dashboard', compact('application', 'hasApplied'));
+        // Get real statistics
+        $totalScholars = BasicInfo::where('application_status', 'validated')->count();
+        $totalPrograms = \App\Models\User::whereNotNull('course')
+            ->select('course')
+            ->distinct()
+            ->get()
+            ->count();
+        $supportAvailable = '24/7'; // Static support availability
+
+        return view('student.dashboard', compact('application', 'hasApplied', 'totalScholars', 'totalPrograms', 'supportAvailable'));
     }
 
     public function apply(Request $request)
@@ -24,7 +38,7 @@ class StudentController extends Controller
         $user = auth()->user();
 
         $request->validate([
-            'documents.*' => 'nullable|file|mimes:pdf|max:10240',
+            'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
         ]);
 
     

@@ -174,7 +174,7 @@
       Compliance Checklist & Uploads
     </h3>
     
-    <!-- PDF Only Notice -->
+    <!-- File Upload Notice -->
     <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-6">
       <div class="flex items-start">
         <div class="flex-shrink-0">
@@ -183,10 +183,11 @@
           </svg>
         </div>
         <div class="ml-3">
-          <h4 class="text-sm font-medium text-blue-800">Important Notice</h4>
+          <h4 class="text-sm font-medium text-blue-800">File Upload Guidelines</h4>
           <div class="mt-1 text-sm text-blue-700">
-            <p><strong>PDF Files Only:</strong> All documents must be uploaded in PDF format. Please convert your documents to PDF before uploading.</p>
+            <p><strong>Accepted Formats:</strong> You can upload documents as <strong>PDF files</strong> or <strong>image files</strong> (JPG, JPEG, PNG, GIF).</p>
             <p class="mt-1"><strong>Maximum Size:</strong> 10MB per file</p>
+            <p class="mt-1 text-xs text-blue-600"><em>Tip: For best results, ensure images are clear and readable. PDF format is recommended for multi-page documents.</em></p>
           </div>
         </div>
       </div>
@@ -264,7 +265,7 @@
           <!-- Rejection Feedback Display -->
           @if($status === 'rejected' && $uploaded)
             @if($uploaded->rejection_reason)
-              <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm">
+              <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm mb-4">
                 <div class="flex items-start gap-3">
                   <div class="flex-shrink-0">
                     <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,12 +278,19 @@
                       <p class="text-xs font-semibold text-red-700 uppercase tracking-wide mb-1">Staff Feedback:</p>
                       <p class="text-sm text-red-900 leading-relaxed whitespace-pre-wrap">{{ $uploaded->rejection_reason }}</p>
                     </div>
-                    <p class="text-xs text-red-700 mt-2 italic">Please review the feedback above and upload a corrected document.</p>
+                    <div class="bg-orange-100 border border-orange-300 rounded-lg p-3 mt-3">
+                      <p class="text-xs font-bold text-orange-900 mb-1 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Action Required: Please upload a corrected document below
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             @else
-              <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 shadow-sm">
+              <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 shadow-sm mb-4">
                 <div class="flex items-start gap-3">
                   <div class="flex-shrink-0">
                     <svg class="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,7 +299,15 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <h4 class="text-sm font-bold text-amber-900 mb-1">Document Rejected</h4>
-                    <p class="text-sm text-amber-800">This document has been rejected. Please upload a corrected version.</p>
+                    <p class="text-sm text-amber-800 mb-2">This document has been rejected. Please upload a corrected version.</p>
+                    <div class="bg-orange-100 border border-orange-300 rounded-lg p-3">
+                      <p class="text-xs font-bold text-orange-900 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        You can resubmit this document below
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -310,13 +326,40 @@
                 </a>
               @endif
             </div>
-            @if(!$uploaded || ($uploaded && $uploaded->status === 'rejected'))
+            @if(!$uploaded || ($uploaded && in_array($uploaded->status, ['rejected', 'pending'])))
               <form method="POST" action="{{ route('documents.upload') }}" enctype="multipart/form-data" class="doc-upload-form flex items-center gap-2 w-full md:w-auto" data-type="{{ $typeKey }}" data-label="{{ $typeLabel }}">
                 @csrf
                 <input type="hidden" name="type" value="{{ $typeKey }}">
                 <div class="flex flex-col gap-1.5 w-full md:w-auto">
-                  <input type="file" name="upload-file" required class="doc-file-input block text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80 focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf,.jpg,.jpeg,.png,.gif">
-                  <span class="text-xs text-gray-500">Select file then use "Upload All"</span>
+                  @if($status === 'rejected')
+                    <div class="mb-2">
+                      <p class="text-xs font-bold text-orange-700 mb-1 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Resubmit Document:
+                      </p>
+                    </div>
+                  @elseif($status === 'pending')
+                    <div class="mb-2">
+                      <p class="text-xs font-bold text-amber-700 mb-1 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Replace Document:
+                      </p>
+                    </div>
+                  @endif
+                  <input type="file" name="upload-file" required class="doc-file-input block text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs {{ $status === 'rejected' ? 'file:bg-red-50/80 file:text-red-700 hover:file:bg-red-100/80' : ($status === 'pending' ? 'file:bg-amber-50/80 file:text-amber-700 hover:file:bg-amber-100/80' : 'file:bg-orange-50/80 file:text-orange-700 hover:file:bg-orange-100/80') }} focus:outline-none focus:ring-2 focus:ring-orange-400/60" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                  <span class="text-xs {{ $status === 'rejected' ? 'text-red-600 font-semibold' : ($status === 'pending' ? 'text-amber-600 font-semibold' : 'text-gray-500') }}">
+                    @if($status === 'rejected')
+                      Select corrected file then use "Upload All"
+                    @elseif($status === 'pending')
+                      Select new file to replace current submission
+                    @else
+                      Select file then use "Upload All"
+                    @endif
+                  </span>
                 </div>
               </form>
             @endif
@@ -356,27 +399,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let hasErrors = false;
 
+    const errorMessages = [];
+    
     for (const form of formsToUpload) {
       const formData = new FormData(form);
+      
+      // Get CSRF token from meta tag or form
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                       form.querySelector('input[name="_token"]')?.value;
+      
+      if (csrfToken) {
+        formData.append('_token', csrfToken);
+      }
+      
       try {
         const response = await fetch(form.action, {
           method: 'POST',
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken || '',
+            'Accept': 'application/json',
           },
           body: formData,
         });
 
-        if (!response.ok) {
+        let responseData;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          responseData = await response.json();
+        } else {
+          // If not JSON, try to get text response
+          const text = await response.text();
+          responseData = { success: response.ok, message: text || response.statusText };
+        }
+        
+        if (!response.ok || (responseData.success === false)) {
           hasErrors = true;
+          const errorMsg = responseData.message || 
+                          (responseData.errors ? Object.values(responseData.errors).flat().join(', ') : '') ||
+                          response.statusText;
+          errorMessages.push(errorMsg);
+          console.error('Upload error:', responseData);
         }
       } catch (error) {
         hasErrors = true;
+        errorMessages.push('Network error: ' + error.message);
+        console.error('Upload exception:', error);
       }
     }
 
     if (hasErrors) {
-      alert('Some documents failed to upload. Please review the selections and try again.');
+      const errorMsg = errorMessages.length > 0 
+        ? 'Upload errors:\n' + errorMessages.join('\n')
+        : 'Some documents failed to upload. Please check:\n- File size is under 10MB\n- File is PDF, JPG, JPEG, PNG, or GIF\n- File is not corrupted\n\nPlease review and try again.';
+      alert(errorMsg);
     } else {
       alert('All selected documents were uploaded successfully!');
     }

@@ -61,11 +61,25 @@
                         </div>
                     </div>
 
-                    <!-- Action Button -->
+                    <!-- Action Buttons -->
                     @if($isValidated)
-                        <button onclick="updateApplicationStatus('pending')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                            Set to Pending
-                        </button>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="updateApplicationStatus('pending')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                Set to Pending
+                            </button>
+                            @if($basicInfo->type_assist !== 'Pamana')
+                                <button onclick="moveToPamana()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                    Move to Pamana
+                                </button>
+                            @else
+                                <div class="px-6 py-3 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 font-bold rounded-xl text-sm text-center border-2 border-purple-200">
+                                    Already in Pamana
+                                </div>
+                            @endif
+                        </div>
                     @else
                         <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
                             Approve Application
@@ -164,7 +178,12 @@
                     <div class="space-y-3">
                         @foreach($requiredTypes as $typeKey => $typeLabel)
                             @php
-                                $uploaded = $documents->firstWhere('type', $typeKey);
+                                // Get the latest document of this type (most recent submission)
+                                // Sort by updated_at (when resubmitted) or created_at (new uploads)
+                                $typeDocuments = $documents->where('type', $typeKey);
+                                $uploaded = $typeDocuments->sortByDesc(function($doc) {
+                                    return $doc->updated_at ?? $doc->created_at;
+                                })->first();
                                 $status = $uploaded ? $uploaded->status : 'missing';
                             @endphp
                             
@@ -179,9 +198,21 @@
                                             <p class="text-xs text-emerald-600 font-medium">Approved • {{ $uploaded->created_at->diffForHumans() }}</p>
                                         </div>
                                     </div>
-                                    <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
-                                        View
-                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        @if($typeKey === 'grades')
+                                            <button onclick="extractGPA({{ $user->id }})" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Extract GPA">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                Extract GPA
+                                            </button>
+                                            <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                Enter GPA
+                                            </button>
+                                        @endif
+                                        <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
+                                            View
+                                        </button>
+                                    </div>
                                 </div>
                             @elseif($status === 'pending')
                                 @php $priorityRank = $uploaded->priority_rank ?? null; @endphp
@@ -201,6 +232,16 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
+                                        @if($typeKey === 'grades')
+                                            <button onclick="extractGPA({{ $user->id }})" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Extract GPA">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                Extract GPA
+                                            </button>
+                                            <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                Enter GPA
+                                            </button>
+                                        @endif
                                         <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
                                         <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
                                         <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
@@ -223,6 +264,16 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
+                                        @if($typeKey === 'grades')
+                                            <button onclick="extractGPA({{ $user->id }})" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Extract GPA">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                Extract GPA
+                                            </button>
+                                            <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                Enter GPA
+                                            </button>
+                                        @endif
                                         <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
                                         <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
@@ -766,6 +817,64 @@
     </div>
 </div>
 
+<!-- Manual GPA Input Modal -->
+<div id="manualGPAModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div class="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-indigo-500 to-purple-500">
+            <div>
+                <h3 class="text-xl font-bold text-white">Enter GPA Manually</h3>
+                <p class="text-sm text-indigo-100 mt-1">Update student's grade average</p>
+            </div>
+            <button onclick="closeManualGPAModal()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="manualGPAForm" onsubmit="submitManualGPA(event)">
+                <input type="hidden" id="manualGPAUserId" name="user_id">
+                
+                <div class="mb-6">
+                    <label for="gpaValue" class="block text-sm font-bold text-slate-700 mb-2">
+                        GPA Value <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="gpaValue" 
+                        name="gpa" 
+                        step="0.01" 
+                        min="1.0" 
+                        max="5.0" 
+                        required
+                        placeholder="e.g., 1.93, 3.85, 4.50"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-lg font-semibold"
+                    >
+                    <p class="text-xs text-slate-500 mt-2">Enter GPA on a scale of 1.0 to 5.0 (Philippine grading system)</p>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="text-xs text-blue-800">
+                            <p class="font-bold mb-1">Note:</p>
+                            <p>This will update the most recent education record's grade average. If the student has multiple education records, the latest one will be updated.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeManualGPAModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitGPABtn" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Save GPA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Feedback Modal -->
 <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden">
@@ -828,6 +937,7 @@
 <script>
 let currentDocumentUrl = '';
 let currentDocumentName = '';
+let currentDocumentType = '';
 
 // Smooth scroll for navigation links
 document.querySelectorAll('.nav-link').forEach(link => {
@@ -850,6 +960,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
 function viewDocument(url, filename, filetype) {
     currentDocumentUrl = url;
     currentDocumentName = filename;
+    currentDocumentType = filetype;
     
     const modal = document.getElementById('documentModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -858,13 +969,51 @@ function viewDocument(url, filename, filetype) {
     modalTitle.textContent = filename;
     documentViewer.innerHTML = '';
     
+    // Check if it's an image
+    const isImage = filetype && filetype.startsWith('image/');
+    
     if (filetype === 'application/pdf') {
+        // PDF viewer using iframe
         const iframe = document.createElement('iframe');
         iframe.src = url;
         iframe.className = 'w-full h-full border-0 rounded-2xl';
         iframe.title = filename;
         documentViewer.appendChild(iframe);
+    } else if (isImage) {
+        // Image viewer
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'w-full h-full flex items-center justify-center bg-slate-100 rounded-2xl overflow-auto p-4';
+        
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = filename;
+        img.className = 'max-w-full max-h-full object-contain rounded-lg shadow-lg';
+        img.style.cursor = 'zoom-in';
+        
+        // Add click to zoom functionality
+        let isZoomed = false;
+        img.addEventListener('click', function() {
+            if (!isZoomed) {
+                img.style.maxWidth = 'none';
+                img.style.maxHeight = 'none';
+                img.style.width = 'auto';
+                img.style.height = 'auto';
+                img.style.cursor = 'zoom-out';
+                isZoomed = true;
+            } else {
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.width = '';
+                img.style.height = '';
+                img.style.cursor = 'zoom-in';
+                isZoomed = false;
+            }
+        });
+        
+        imageContainer.appendChild(img);
+        documentViewer.appendChild(imageContainer);
     } else {
+        // Unsupported file type
         const message = document.createElement('div');
         message.className = 'flex items-center justify-center h-full text-gray-500';
         message.innerHTML = `
@@ -872,8 +1021,8 @@ function viewDocument(url, filename, filetype) {
                 <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <p class="text-lg font-semibold mb-2">Non-PDF File</p>
-                <p class="text-sm mb-4">Only PDF files can be previewed</p>
+                <p class="text-lg font-semibold mb-2">Unsupported File Type</p>
+                <p class="text-sm mb-4">This file type cannot be previewed. Please download to view.</p>
                 <button onclick="downloadDocument()" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition">Download to View</button>
             </div>
         `;
@@ -926,8 +1075,32 @@ function downloadDocument() {
 
 function printDocument() {
     const iframe = document.querySelector('#documentViewer iframe');
+    const img = document.querySelector('#documentViewer img');
+    
     if (iframe) {
+        // Print PDF
         iframe.contentWindow.print();
+    } else if (img) {
+        // Print image
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>${currentDocumentName}</title>
+                    <style>
+                        body { margin: 0; padding: 20px; text-align: center; }
+                        img { max-width: 100%; height: auto; }
+                    </style>
+                </head>
+                <body>
+                    <img src="${currentDocumentUrl}" alt="${currentDocumentName}" />
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.onload = function() {
+            printWindow.print();
+        };
     }
 }
 
@@ -995,6 +1168,76 @@ function updateApplicationStatus(status) {
     .catch(error => {
         console.error('Error:', error);
         alert('Error updating application status');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function moveToPamana() {
+    if (!confirm('Are you sure you want to move this application to Pamana? This will change the scholarship type from Regular to Pamana.')) return;
+
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<svg class="w-4 h-4 animate-spin inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Moving...';
+    button.disabled = true;
+
+    fetch('{{ route("staff.applications.move-to-pamana", $user->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Application moved to Pamana successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to move application'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error moving application to Pamana');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function extractGPA(userId) {
+    if (!confirm('Extract GPA from the grades document? This may take a few moments.')) {
+        return;
+    }
+
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Extracting...';
+    button.disabled = true;
+
+    fetch(`/staff/grades/${userId}`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`GPA Extracted Successfully!\n\nGPA: ${data.gpa}\nFile Type: ${data.file_type || 'Unknown'}`);
+        } else {
+            alert('Error extracting GPA: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error extracting GPA. Please try again.');
     })
     .finally(() => {
         button.innerHTML = originalText;
@@ -1092,6 +1335,90 @@ function submitFeedback(event) {
 // Close modal when clicking outside
 document.getElementById('feedbackModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeFeedbackModal();
+});
+
+// Manual GPA Modal Functions
+function showManualGPAModal(userId) {
+    const modal = document.getElementById('manualGPAModal');
+    const userIdInput = document.getElementById('manualGPAUserId');
+    const gpaInput = document.getElementById('gpaValue');
+    
+    userIdInput.value = userId;
+    gpaInput.value = '';
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus on input
+    setTimeout(() => gpaInput.focus(), 100);
+}
+
+function closeManualGPAModal() {
+    const modal = document.getElementById('manualGPAModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('manualGPAForm').reset();
+}
+
+function submitManualGPA(event) {
+    event.preventDefault();
+    
+    const gpaValue = parseFloat(document.getElementById('gpaValue').value);
+    
+    // Client-side validation
+    if (isNaN(gpaValue) || gpaValue < 1.0 || gpaValue > 5.0) {
+        alert('Please enter a valid GPA between 1.0 and 5.0.');
+        document.getElementById('gpaValue').focus();
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitGPABtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+    submitBtn.disabled = true;
+    
+    const userId = document.getElementById('manualGPAUserId').value;
+    
+    fetch(`/staff/users/${userId}/update-gpa`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ gpa: gpaValue })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeManualGPAModal();
+            alert(`GPA updated successfully to ${gpaValue}!`);
+            location.reload();
+        } else {
+            const errorMsg = data.message || data.errors?.gpa?.[0] || 'Unknown error';
+            alert('Error updating GPA: ' + errorMsg);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating GPA. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Close modal when clicking outside
+document.getElementById('manualGPAModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeManualGPAModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDocumentModal();
+        closeFeedbackModal();
+        closeManualGPAModal();
+    }
 });
 </script>
 @endsection

@@ -389,9 +389,15 @@ class StaffDashboardController extends Controller
         $selectedStatus = $request->get('status');
         $selectedPriority = $request->get('priority');
 
-        // Build query for applicants
+        // Build query for applicants - Exclude validated applicants (they appear in masterlist)
         $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                // Exclude validated applicants - they should only appear in masterlist
+                $query->where(function($q) {
+                    $q->where('application_status', '!=', 'validated')
+                      ->orWhereNull('application_status');
+                });
+                
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
                         $addrQuery->where('province', $selectedProvince);
@@ -867,21 +873,144 @@ class StaffDashboardController extends Controller
         ]);
     }
 
+    public function moveToPamana(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        
+        // Check if application is validated
+        if ($basicInfo->application_status !== 'validated') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Application must be validated before moving to Pamana'
+            ], 400);
+        }
+        
+        // Update type_assist to Pamana
+        $basicInfo->update([
+            'type_assist' => 'Pamana'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Application moved to Pamana successfully'
+        ]);
+    }
+
     public function extractGrades($userId)
     {
         $user = \App\Models\User::with('documents')->findOrFail($userId);
         $gradesDoc = $user->documents->where('type', 'grades')->first();
         if ($gradesDoc) {
-            $pdfPath = storage_path('app/' . $gradesDoc->filepath);
-            $gemini = new \App\Services\GeminiService();
-            if (!file_exists($pdfPath)) {
+            // Use public storage path
+            $filePath = storage_path('app/public/' . $gradesDoc->filepath);
+            
+            // Fallback to app storage if not found in public
+            if (!file_exists($filePath)) {
+                $filePath = storage_path('app/' . $gradesDoc->filepath);
+            }
+            
+            if (!file_exists($filePath)) {
                 return response()->json(['success' => false, 'error' => 'Grades document file not found.'], 404);
             }
-            $text = $gemini->extractGradesTextFromPdf($pdfPath);
-            return response()->json(['success' => true, 'text' => $text]);
+            
+            // Get file type from database (more reliable than detection)
+            $storedFileType = $gradesDoc->filetype;
+            $isImage = $storedFileType && strpos($storedFileType, 'image/') === 0;
+            
+            // Try non-AI extraction service first (OCR + regex parsing)
+            $extractionService = new \App\Services\GradeExtractionService();
+            $gpa = $extractionService->extractGPA($filePath);
+            $extractionMethod = 'ocr';
+            
+            // If OCR extraction fails, fallback to AI service (Gemini)
+            if ($gpa === null) {
+                \Log::info('OCR extraction failed, trying AI fallback', [
+                    'file_path' => $filePath,
+                    'stored_filetype' => $storedFileType
+                ]);
+                
+                try {
+                    $geminiService = new \App\Services\GeminiService();
+                    $gpa = $geminiService->extractGPA($filePath);
+                    $extractionMethod = 'ai';
+                } catch (\Exception $e) {
+                    \Log::error('AI extraction also failed', [
+                        'file_path' => $filePath,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            if ($gpa === null) {
+                // Use stored file type for more accurate error message
+                $errorMsg = $isImage 
+                    ? 'Failed to extract GPA from image. Please ensure Tesseract OCR is installed and the document contains a visible GPA value. Alternatively, the AI extraction may have failed - please check your GEMINI_API_KEY in .env file.'
+                    : 'Failed to extract GPA from PDF. Please ensure pdftotext is available or the PDF has extractable text. Alternatively, the AI extraction may have failed - please check your GEMINI_API_KEY in .env file.';
+                
+                return response()->json([
+                    'success' => false, 
+                    'error' => $errorMsg,
+                    'file_type' => $storedFileType ?? mime_content_type($filePath)
+                ], 500);
+            }
+            
+            return response()->json([
+                'success' => true, 
+                'gpa' => $gpa,
+                'file_type' => $storedFileType ?? mime_content_type($filePath),
+                'method' => $extractionMethod
+            ]);
         } else {
             return response()->json(['success' => false, 'error' => 'No grades document found.'], 404);
         }
+    }
+
+    /**
+     * Update GPA manually for a user
+     */
+    public function updateGPA(Request $request, $userId)
+    {
+        $user = User::with('basicInfo.education')->findOrFail($userId);
+        
+        $validated = $request->validate([
+            'gpa' => 'required|numeric|min:1.0|max:5.0'
+        ], [
+            'gpa.required' => 'GPA value is required.',
+            'gpa.numeric' => 'GPA must be a number.',
+            'gpa.min' => 'GPA must be at least 1.0.',
+            'gpa.max' => 'GPA cannot exceed 5.0.',
+        ]);
+        
+        // Get the most recent education record (usually college level)
+        $education = $user->basicInfo->education ?? collect();
+        
+        if ($education->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No education records found for this student. Please ensure the student has completed their application.'
+            ], 404);
+        }
+        
+        // Update the most recent education record (latest by year_grad or created_at)
+        $latestEducation = $education->sortByDesc('year_grad')->sortByDesc('created_at')->first();
+        
+        if ($latestEducation) {
+            $latestEducation->grade_ave = $validated['gpa'];
+            $latestEducation->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'GPA updated successfully.',
+                'gpa' => $validated['gpa'],
+                'education_id' => $latestEducation->id
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Could not find education record to update.'
+        ], 404);
     }
 
     /**
@@ -1027,5 +1156,113 @@ class StaffDashboardController extends Controller
             'success' => true,
             'statistics' => $statistics
         ]);
+    }
+
+    /**
+     * Masterlist - Regular Scholarship
+     */
+    public function masterlistRegular(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+
+        // Get filters from request
+        $selectedProvince = $request->get('province');
+        $selectedMunicipality = $request->get('municipality');
+        $selectedBarangay = $request->get('barangay');
+        $selectedEthno = $request->get('ethno');
+
+        // Build query for Regular scholarship applicants - Only show approved applications
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                $query->where('type_assist', 'Regular')
+                      ->where('application_status', 'validated'); // Only show validated/approved applications
+                
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
+                        $addrQuery->where('province', $selectedProvince);
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
+                        $addrQuery->where('municipality', $selectedMunicipality);
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
+                        $addrQuery->where('barangay', $selectedBarangay);
+                    });
+                }
+            });
+
+        if ($selectedEthno) {
+            $applicantsQuery->where('ethno_id', $selectedEthno);
+        }
+
+        $applicants = $applicantsQuery->orderBy('created_at', 'desc')->paginate(20);
+
+        // Get geographic data for filters
+        $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
+        $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
+        $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+        $ethnicities = Ethno::orderBy('ethnicity')->get();
+
+        return view('staff.applicants-list', compact(
+            'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
+        ))->with('masterlistType', 'Regular');
+    }
+
+    /**
+     * Masterlist - Pamana Scholarship
+     */
+    public function masterlistPamana(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+
+        // Get filters from request
+        $selectedProvince = $request->get('province');
+        $selectedMunicipality = $request->get('municipality');
+        $selectedBarangay = $request->get('barangay');
+        $selectedEthno = $request->get('ethno');
+
+        // Build query for Pamana scholarship applicants - Only show approved applications
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                $query->where('type_assist', 'Pamana')
+                      ->where('application_status', 'validated'); // Only show validated/approved applications
+                
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
+                        $addrQuery->where('province', $selectedProvince);
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
+                        $addrQuery->where('municipality', $selectedMunicipality);
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
+                        $addrQuery->where('barangay', $selectedBarangay);
+                    });
+                }
+            });
+
+        if ($selectedEthno) {
+            $applicantsQuery->where('ethno_id', $selectedEthno);
+        }
+
+        $applicants = $applicantsQuery->orderBy('created_at', 'desc')->paginate(20);
+
+        // Get geographic data for filters
+        $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
+        $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
+        $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+        $ethnicities = Ethno::orderBy('ethnicity')->get();
+
+        return view('staff.applicants-list', compact(
+            'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
+        ))->with('masterlistType', 'Pamana');
     }
 }

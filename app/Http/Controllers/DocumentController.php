@@ -19,28 +19,79 @@ class DocumentController extends Controller
             'good_moral',
             'grades',
         ];
-        $request->validate([
-            'upload-file' => 'required|file|mimes:pdf|max:10240',
-            'type' => 'required|in:' . implode(',', $requiredTypes),
-        ], [
-            'upload-file.mimes' => 'Only PDF files are allowed. Please convert your document to PDF format before uploading.',
-            'upload-file.max' => 'File size must not exceed 10MB.',
-        ]);
+        try {
+            $request->validate([
+                'upload-file' => 'required|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
+                'type' => 'required|in:' . implode(',', $requiredTypes),
+            ], [
+                'upload-file.required' => 'Please select a file to upload.',
+                'upload-file.file' => 'The uploaded file is invalid.',
+                'upload-file.mimes' => 'Only PDF and image files (JPG, JPEG, PNG, GIF) are allowed.',
+                'upload-file.max' => 'File size must not exceed 10MB.',
+                'type.required' => 'Document type is required.',
+                'type.in' => 'Invalid document type.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        }
 
         $file = $request->file('upload-file');
         $user = Auth::user();
-        $path = $file->store('documents', 'public');
+        
+        // Check if there's an existing document of this type for this user
+        // Get the most recent one in case there are duplicates
+        $existingDocument = Document::where('user_id', $user->id)
+            ->where('type', $request->type)
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->first();
 
-        $document = new Document();
-        $document->user_id = $user->id;
-        $document->filename = $file->getClientOriginalName();
-        $document->filepath = $path;
-        $document->filetype = $file->getClientMimeType();
-        $document->filesize = $file->getSize();
-        $document->description = null;
-        $document->status = 'pending';
-        $document->type = $request->type;
-        $document->save();
+        if ($existingDocument) {
+            // If document exists, update it (resubmission case)
+            // Delete old file from storage
+            if (Storage::disk('public')->exists($existingDocument->filepath)) {
+                Storage::disk('public')->delete($existingDocument->filepath);
+            }
+            
+            // Store new file
+            $path = $file->store('documents', 'public');
+            
+            // Update existing document
+            $existingDocument->filename = $file->getClientOriginalName();
+            $existingDocument->filepath = $path;
+            $existingDocument->filetype = $file->getClientMimeType();
+            $existingDocument->filesize = $file->getSize();
+            $existingDocument->status = 'pending'; // Reset to pending when resubmitted
+            $existingDocument->rejection_reason = null; // Clear rejection reason
+            $existingDocument->priority_rank = null; // Reset priority rank
+            $existingDocument->priority_score = 0; // Reset priority score (default value, not null)
+            $existingDocument->submitted_at = now(); // Update submission timestamp
+            $existingDocument->touch(); // Update timestamps
+            $existingDocument->save();
+            
+            $document = $existingDocument;
+        } else {
+            // Create new document if it doesn't exist
+            $path = $file->store('documents', 'public');
+
+            $document = new Document();
+            $document->user_id = $user->id;
+            $document->filename = $file->getClientOriginalName();
+            $document->filepath = $path;
+            $document->filetype = $file->getClientMimeType();
+            $document->filesize = $file->getSize();
+            $document->description = null;
+            $document->status = 'pending';
+            $document->type = $request->type;
+            $document->save();
+        }
 
         // Calculate document priority (First Come, First Serve)
         $priorityService = new \App\Services\DocumentPriorityService();
@@ -53,7 +104,14 @@ class DocumentController extends Controller
             $staff->notify(new \App\Notifications\StudentUploadedDocument($student, $documentType));
         }
 
-        return back()->with('success', 'PDF document uploaded successfully! Please wait for staff review.');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Document uploaded successfully! Please wait for staff review.'
+            ]);
+        }
+        
+        return back()->with('success', 'Document uploaded successfully! Please wait for staff review.');
     }
 
     public function show(Document $document)

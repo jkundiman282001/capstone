@@ -10,9 +10,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DocumentController;
 use App\Models\BasicInfo;
 
-Route::get('/', function () {
-    return view('student.dashboard');
-})->name('home');
+Route::get('/', [StudentController::class, 'dashboard'])->name('home');
 
 Route::get('/auth', [AuthController::class, 'showFlipForm']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
@@ -104,9 +102,11 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
     Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
     Route::post('/staff/applications/{user}/update-status', [StaffDashboardController::class, 'updateApplicationStatus'])->name('staff.applications.update-status');
+    Route::post('/staff/applications/{user}/move-to-pamana', [StaffDashboardController::class, 'moveToPamana'])->name('staff.applications.move-to-pamana');
     Route::post('/staff/documents/{document}/update-status', [StaffDashboardController::class, 'updateDocumentStatus'])->name('staff.documents.update-status');
     Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
     Route::get('/staff/grades/{user}', [StaffDashboardController::class, 'extractGrades'])->name('staff.grades.extract');
+    Route::post('/staff/users/{user}/update-gpa', [StaffDashboardController::class, 'updateGPA'])->name('staff.users.update-gpa');
     
     // Scoring system routes
     Route::post('/staff/scores/calculate-all', [StaffDashboardController::class, 'calculateAllScores'])->name('staff.scores.calculate-all');
@@ -126,6 +126,10 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/priorities/income-tax', [StaffDashboardController::class, 'incomeTaxPriority'])->name('staff.priorities.income-tax');
     Route::get('/staff/priorities/academic-performance', [StaffDashboardController::class, 'academicPerformancePriority'])->name('staff.priorities.academic-performance');
     Route::get('/staff/priorities/other-requirements', [StaffDashboardController::class, 'otherRequirementsPriority'])->name('staff.priorities.other-requirements');
+    
+    // Masterlist routes
+    Route::get('/staff/masterlist/regular', [StaffDashboardController::class, 'masterlistRegular'])->name('staff.masterlist.regular');
+    Route::get('/staff/masterlist/pamana', [StaffDashboardController::class, 'masterlistPamana'])->name('staff.masterlist.pamana');
 });
 
 // Geographic API Routes (Public)
