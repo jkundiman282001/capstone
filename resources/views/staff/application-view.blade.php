@@ -54,10 +54,19 @@
                     @endphp
                     
                     <!-- Status Badge -->
-                    <div class="text-right">
+                    <div class="text-right mb-4">
                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Application Status</p>
                         <div class="px-6 py-3 rounded-2xl {{ $isValidated ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gradient-to-r from-amber-500 to-orange-600' }} shadow-lg">
                             <p class="text-2xl font-black text-white">{{ $isValidated ? 'Validated' : 'Pending' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Slot Availability -->
+                    <div class="text-right mb-4">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Scholarship Slots</p>
+                        <div class="px-6 py-3 rounded-2xl {{ $isFull ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($availableSlots <= 10 ? 'bg-gradient-to-r from-orange-500 to-amber-600' : 'bg-gradient-to-r from-blue-500 to-cyan-600') }} shadow-lg">
+                            <p class="text-lg font-black text-white mb-1">{{ number_format($availableSlots) }} / {{ number_format($maxSlots) }}</p>
+                            <p class="text-xs text-white/90 font-medium">{{ $isFull ? 'Full' : 'Available' }}</p>
                         </div>
                     </div>
 
@@ -74,6 +83,30 @@
                                     </svg>
                                     Move to Pamana
                                 </button>
+                                @if($basicInfo->grant_status !== 'grantee')
+                                    <button onclick="addToGrantees()" class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Add to Grantees
+                                    </button>
+                                @else
+                                    <div class="px-6 py-3 bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 font-bold rounded-xl text-sm text-center border-2 border-emerald-200">
+                                        Already in Grantees
+                                    </div>
+                                @endif
+                                @if($basicInfo->grant_status !== 'waiting')
+                                    <button onclick="addToWaiting()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Add to Waiting List
+                                    </button>
+                                @else
+                                    <div class="px-6 py-3 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 font-bold rounded-xl text-sm text-center border-2 border-blue-200">
+                                        Already in Waiting List
+                                    </div>
+                                @endif
                             @else
                                 <div class="px-6 py-3 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 font-bold rounded-xl text-sm text-center border-2 border-purple-200">
                                     Already in Pamana
@@ -81,9 +114,19 @@
                             @endif
                         </div>
                     @else
-                        <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                            Approve Application
-                        </button>
+                        @if($isFull)
+                            <button disabled class="px-6 py-3 bg-gray-400 text-white font-bold rounded-xl cursor-not-allowed opacity-75 text-sm">
+                                Slots Full ({{ number_format($maxSlots) }}/{{ number_format($maxSlots) }})
+                            </button>
+                            <p class="text-xs text-red-600 font-bold mt-2 text-center">⚠️ Cannot approve: Maximum slots reached</p>
+                        @else
+                            <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                Approve Application
+                            </button>
+                            @if($availableSlots <= 10)
+                                <p class="text-xs text-orange-600 font-bold mt-2 text-center">⚠️ Only {{ number_format($availableSlots) }} slot(s) remaining!</p>
+                            @endif
+                        @endif
                     @endif
                 </div>
             </div>
@@ -215,13 +258,7 @@
                                     </div>
                                 </div>
                             @elseif($status === 'pending')
-                                @php $priorityRank = $uploaded->priority_rank ?? null; @endphp
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all relative">
-                                    @if($priorityRank)
-                                        <div class="absolute top-2 right-2">
-                                            <span class="px-2 py-1 bg-amber-600 text-white text-[10px] font-black rounded-lg">Rank #{{ $priorityRank }}</span>
-                                        </div>
-                                    @endif
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -1203,6 +1240,76 @@ function moveToPamana() {
     .catch(error => {
         console.error('Error:', error);
         alert('Error moving application to Pamana');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function addToGrantees() {
+    if (!confirm('Are you sure you want to add this applicant to Grantees? This will mark them as an active grantee.')) return;
+
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<svg class="w-4 h-4 animate-spin inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Adding...';
+    button.disabled = true;
+
+    fetch('{{ route("staff.applications.add-to-grantees", $user->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Applicant added to Grantees successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add to grantees'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding applicant to Grantees');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function addToWaiting() {
+    if (!confirm('Are you sure you want to add this applicant to Waiting List? This will mark them as waiting for grant processing.')) return;
+
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<svg class="w-4 h-4 animate-spin inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Adding...';
+    button.disabled = true;
+
+    fetch('{{ route("staff.applications.add-to-waiting", $user->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Applicant added to Waiting List successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add to waiting list'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding applicant to Waiting List');
     })
     .finally(() => {
         button.innerHTML = originalText;

@@ -8,9 +8,10 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\LandingController;
 use App\Models\BasicInfo;
 
-Route::get('/', [StudentController::class, 'dashboard'])->name('home');
+Route::get('/', [LandingController::class, 'index'])->name('home');
 
 Route::get('/auth', [AuthController::class, 'showFlipForm']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
@@ -103,6 +104,8 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
     Route::post('/staff/applications/{user}/update-status', [StaffDashboardController::class, 'updateApplicationStatus'])->name('staff.applications.update-status');
     Route::post('/staff/applications/{user}/move-to-pamana', [StaffDashboardController::class, 'moveToPamana'])->name('staff.applications.move-to-pamana');
+    Route::post('/staff/applications/{user}/add-to-grantees', [StaffDashboardController::class, 'addToGrantees'])->name('staff.applications.add-to-grantees');
+    Route::post('/staff/applications/{user}/add-to-waiting', [StaffDashboardController::class, 'addToWaiting'])->name('staff.applications.add-to-waiting');
     Route::post('/staff/documents/{document}/update-status', [StaffDashboardController::class, 'updateDocumentStatus'])->name('staff.documents.update-status');
     Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
     Route::get('/staff/grades/{user}', [StaffDashboardController::class, 'extractGrades'])->name('staff.grades.extract');
@@ -128,7 +131,9 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/priorities/other-requirements', [StaffDashboardController::class, 'otherRequirementsPriority'])->name('staff.priorities.other-requirements');
     
     // Masterlist routes
-    Route::get('/staff/masterlist/regular', [StaffDashboardController::class, 'masterlistRegular'])->name('staff.masterlist.regular');
+    Route::get('/staff/masterlist/regular/all', [StaffDashboardController::class, 'masterlistRegular'])->name('staff.masterlist.regular.all');
+    Route::get('/staff/masterlist/regular/grantees', [StaffDashboardController::class, 'masterlistRegularGrantees'])->name('staff.masterlist.regular.grantees');
+    Route::get('/staff/masterlist/regular/waiting', [StaffDashboardController::class, 'masterlistRegularWaiting'])->name('staff.masterlist.regular.waiting');
     Route::get('/staff/masterlist/pamana', [StaffDashboardController::class, 'masterlistPamana'])->name('staff.masterlist.pamana');
 });
 

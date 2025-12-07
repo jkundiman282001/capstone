@@ -1451,7 +1451,7 @@
 
     // Init
     // Check if we should show the form or hub based on localStorage
-    (function initView() {
+    ( function initView() {
         // New multi-draft keys
         const DRAFTS_STORAGE_KEY = 'apply_drafts_v2';
         const CURRENT_DRAFT_KEY = 'apply_current_draft_id';
@@ -1512,7 +1512,7 @@
             
             // Initialize the draft in storage immediately
             const drafts = JSON.parse(localStorage.getItem(DRAFTS_STORAGE_KEY) || '{}');
-            drafts[newDraftId] = {
+            drafts[newDraftId] = {  
                 _id: newDraftId,
                 _timestamp: new Date().toISOString(),
                 _name: 'Untitled Application'

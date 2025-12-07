@@ -24,6 +24,7 @@ class BasicInfo extends Model
         'type_assist',
         'assistance_for',
         'application_status',
+        'grant_status',
     ];
 
     public function user()

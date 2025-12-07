@@ -369,11 +369,21 @@ class StaffDashboardController extends Controller
         $coursePriorityService = new \App\Services\CoursePriorityService();
         $coursePrioritization = $coursePriorityService->getApplicantCoursePrioritization($user);
 
+        // Calculate slot availability
+        $maxSlots = 120;
+        $currentValidated = \App\Models\BasicInfo::where('application_status', 'validated')->count();
+        // If this application is already validated, don't count it in available slots
+        if ($basicInfo && $basicInfo->application_status === 'validated') {
+            $currentValidated = max(0, $currentValidated - 1);
+        }
+        $availableSlots = max(0, $maxSlots - $currentValidated);
+        $isFull = $availableSlots === 0;
+
         return view('staff.application-view', compact(
             'user', 'basicInfo', 'ethno', 'mailing', 'permanent', 'origin',
             'education', 'familyFather', 'familyMother', 'siblings', 'schoolPref',
             'documents', 'requiredTypes', 'totalRequired', 'approvedCount', 'progressPercent',
-            'coursePrioritization'
+            'coursePrioritization', 'maxSlots', 'availableSlots', 'isFull'
         ));
     }
 
@@ -860,6 +870,25 @@ class StaffDashboardController extends Controller
             'status' => 'required|in:pending,validated'
         ]);
         
+        // Check slot availability when validating
+        if ($validated['status'] === 'validated') {
+            $maxSlots = 120;
+            $currentValidated = \App\Models\BasicInfo::where('application_status', 'validated')->count();
+            
+            // If this application is already validated, we're just keeping it validated (no change)
+            // If it's not validated yet, we need to check if we can add one more
+            if ($basicInfo->application_status !== 'validated') {
+                // Check if adding this one would exceed the limit
+                if ($currentValidated >= $maxSlots) {
+                    $availableSlots = 0;
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Cannot validate application. Maximum slots ({$maxSlots}) have been reached. All scholarship slots are currently full."
+                    ], 400);
+                }
+            }
+        }
+        
         $basicInfo->update([
             'application_status' => $validated['status']
         ]);
@@ -894,6 +923,70 @@ class StaffDashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Application moved to Pamana successfully'
+        ]);
+    }
+
+    public function addToGrantees(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        
+        // Check if application is validated
+        if ($basicInfo->application_status !== 'validated') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Application must be validated before adding to Grantees'
+            ], 400);
+        }
+        
+        // Check if type_assist is Regular (not Pamana)
+        if ($basicInfo->type_assist === 'Pamana') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pamana applicants cannot be added to Regular Grantees'
+            ], 400);
+        }
+        
+        // Update grant_status to grantee
+        $basicInfo->update([
+            'grant_status' => 'grantee'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Applicant added to Grantees successfully'
+        ]);
+    }
+
+    public function addToWaiting(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        
+        // Check if application is validated
+        if ($basicInfo->application_status !== 'validated') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Application must be validated before adding to Waiting List'
+            ], 400);
+        }
+        
+        // Check if type_assist is Regular (not Pamana)
+        if ($basicInfo->type_assist === 'Pamana') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pamana applicants cannot be added to Regular Waiting List'
+            ], 400);
+        }
+        
+        // Update grant_status to waiting
+        $basicInfo->update([
+            'grant_status' => 'waiting'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Applicant added to Waiting List successfully'
         ]);
     }
 
@@ -1210,6 +1303,116 @@ class StaffDashboardController extends Controller
             'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
         ))->with('masterlistType', 'Regular');
+    }
+
+    /**
+     * Masterlist - Regular Grantees (Active grantees)
+     */
+    public function masterlistRegularGrantees(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+
+        // Get filters from request
+        $selectedProvince = $request->get('province');
+        $selectedMunicipality = $request->get('municipality');
+        $selectedBarangay = $request->get('barangay');
+        $selectedEthno = $request->get('ethno');
+
+        // Build query for Regular Grantees - validated and marked as grantee
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                $query->where('type_assist', 'Regular')
+                      ->where('application_status', 'validated')
+                      ->where('grant_status', 'grantee'); // Only show grantees
+                
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
+                        $addrQuery->where('province', $selectedProvince);
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
+                        $addrQuery->where('municipality', $selectedMunicipality);
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
+                        $addrQuery->where('barangay', $selectedBarangay);
+                    });
+                }
+            });
+
+        if ($selectedEthno) {
+            $applicantsQuery->where('ethno_id', $selectedEthno);
+        }
+
+        $applicants = $applicantsQuery->orderBy('created_at', 'desc')->paginate(20);
+
+        // Get geographic data for filters
+        $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
+        $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
+        $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+        $ethnicities = Ethno::orderBy('ethnicity')->get();
+
+        return view('staff.applicants-list', compact(
+            'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
+        ))->with('masterlistType', 'Regular Grantees');
+    }
+
+    /**
+     * Masterlist - Regular Waiting (Validated but waiting for grant)
+     */
+    public function masterlistRegularWaiting(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+
+        // Get filters from request
+        $selectedProvince = $request->get('province');
+        $selectedMunicipality = $request->get('municipality');
+        $selectedBarangay = $request->get('barangay');
+        $selectedEthno = $request->get('ethno');
+
+        // Build query for Regular Waiting - validated but marked as waiting
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                $query->where('type_assist', 'Regular')
+                      ->where('application_status', 'validated')
+                      ->where('grant_status', 'waiting'); // Only show waiting list
+                
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
+                        $addrQuery->where('province', $selectedProvince);
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
+                        $addrQuery->where('municipality', $selectedMunicipality);
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
+                        $addrQuery->where('barangay', $selectedBarangay);
+                    });
+                }
+            });
+
+        if ($selectedEthno) {
+            $applicantsQuery->where('ethno_id', $selectedEthno);
+        }
+
+        $applicants = $applicantsQuery->orderBy('created_at', 'desc')->paginate(20);
+
+        // Get geographic data for filters
+        $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
+        $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
+        $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+        $ethnicities = Ethno::orderBy('ethnicity')->get();
+
+        return view('staff.applicants-list', compact(
+            'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
+        ))->with('masterlistType', 'Regular Waiting');
     }
 
     /**

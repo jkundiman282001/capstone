@@ -75,12 +75,35 @@
                                 </svg>
                             </button>
                             <div id="masterlist-dropdown" class="pl-2 pt-1.5 space-y-1.5 {{ request()->routeIs('staff.masterlist.*') ? '' : 'hidden' }} overflow-hidden transition-all duration-300">
-                                <a href="{{ route('staff.masterlist.regular') }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.masterlist.regular') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-                                    <div class="flex items-center justify-between">
+                                <!-- Regular Dropdown -->
+                                <div>
+                                    <button onclick="toggleRegularDropdown()" class="group w-full px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.masterlist.regular.*') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Regular</span>
-                                        <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('staff.masterlist.regular') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                        <svg id="regular-chevron" class="w-3 h-3 transition-transform duration-200 {{ request()->routeIs('staff.masterlist.regular.*') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div id="regular-dropdown" class="pl-2 pt-1.5 space-y-1 {{ request()->routeIs('staff.masterlist.regular.*') ? '' : 'hidden' }} overflow-hidden transition-all duration-300">
+                                        <a href="{{ route('staff.masterlist.regular.all') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs tracking-wide">View All</span>
+                                                <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('staff.masterlist.regular.grantees') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.grantees') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs tracking-wide">Grantees</span>
+                                                <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.grantees') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('staff.masterlist.regular.waiting') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs tracking-wide">Waiting</span>
+                                                <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                            </div>
+                                        </a>
                                     </div>
-                                </a>
+                                </div>
                                 <a href="{{ route('staff.masterlist.pamana') }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.masterlist.pamana') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Pamana</span>
@@ -248,6 +271,15 @@
             chevron.classList.toggle('rotate-180');
         }
 
+        // Toggle Regular Dropdown
+        function toggleRegularDropdown() {
+            const dropdown = document.getElementById('regular-dropdown');
+            const chevron = document.getElementById('regular-chevron');
+            
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
         // Auto-expand dropdowns if a sub-item is active on page load
         document.addEventListener('DOMContentLoaded', function() {
             const priorityDropdown = document.getElementById('priority-dropdown');
@@ -262,6 +294,13 @@
             
             if (!masterlistDropdown.classList.contains('hidden')) {
                 masterlistChevron.classList.add('rotate-180');
+            }
+
+            const regularDropdown = document.getElementById('regular-dropdown');
+            const regularChevron = document.getElementById('regular-chevron');
+            
+            if (!regularDropdown.classList.contains('hidden')) {
+                regularChevron.classList.add('rotate-180');
             }
         });
     </script>
