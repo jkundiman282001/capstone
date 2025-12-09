@@ -164,27 +164,32 @@
                 </div>
                 
                 <!-- Right Content - Stats -->
-                <div class="grid grid-cols-2 gap-6 slide-in-right">
-                    <!-- Slot Availability - Prominent -->
-                    <div class="stat-card rounded-2xl p-6 text-center fade-in col-span-2 {{ $stats['isFull'] ? 'bg-red-500/20 border-red-500/50' : '' }}" style="animation-delay: 0s">
-                        <div class="text-5xl font-black {{ $stats['isFull'] ? 'text-red-400' : 'text-green-400' }} mb-2">
-                            {{ number_format($stats['availableSlots']) }}
+                <div class="grid grid-cols-2 gap-4 slide-in-right">
+                    <!-- Slots Left - Prominent -->
+                    <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-2 mb-2 {{ $stats['isFull'] ? 'bg-red-500/20 border-red-500/50' : '' }}" style="animation-delay: 0s">
+                        <div class="text-5xl font-black {{ $stats['isFull'] ? 'text-red-400' : 'text-green-400' }} mb-1">
+                            {{ number_format($stats['slotsLeft']) }}
                         </div>
-                        <div class="text-sm text-gray-300 font-medium mb-1">Available Slots</div>
+                        <div class="text-sm text-gray-300 font-medium mb-0.5">Slots Left</div>
                         <div class="text-xs text-gray-400">of {{ number_format($stats['maxSlots']) }} maximum</div>
                         @if($stats['isFull'])
-                            <div class="mt-3 px-3 py-1 bg-red-500/30 rounded-lg text-red-200 text-xs font-bold">
+                            <div class="mt-2 px-3 py-1 bg-red-500/30 rounded-lg text-red-200 text-xs font-bold">
                                 Scholarship Slots Full
                             </div>
                         @endif
                     </div>
-                    <div class="stat-card rounded-2xl p-6 text-center fade-in" style="animation-delay: 0.2s">
-                        <div class="text-4xl font-black text-orange-400 mb-2">{{ number_format($stats['totalScholars']) }}</div>
-                        <div class="text-sm text-gray-300 font-medium">Active Scholars</div>
+                    <div class="stat-card rounded-2xl p-5 text-center fade-in" style="animation-delay: 0.2s">
+                        <div class="text-4xl font-black text-orange-400 mb-1.5">{{ number_format($stats['applicantsApplied']) }}</div>
+                        <div class="text-sm text-gray-300 font-medium">Applicants Applied</div>
                     </div>
-                    <div class="stat-card rounded-2xl p-6 text-center fade-in" style="animation-delay: 0.4s">
-                        <div class="text-4xl font-black text-amber-400 mb-2">{{ number_format($stats['totalApplicants']) }}</div>
-                        <div class="text-sm text-gray-300 font-medium">Total Applicants</div>
+                    <div class="stat-card rounded-2xl p-5 text-center fade-in" style="animation-delay: 0.4s">
+                        <div class="text-4xl font-black text-amber-400 mb-1.5">{{ number_format($stats['applicantsApproved']) }}</div>
+                        <div class="text-sm text-gray-300 font-medium">Applicants Approved</div>
+                    </div>
+                    <!-- Additional Stats Row -->
+                    <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-2 mt-2" style="animation-delay: 0.6s">
+                        <div class="text-3xl font-black text-blue-400 mb-1.5">{{ number_format($stats['applicantsPending']) }}</div>
+                        <div class="text-sm text-gray-300 font-medium">Pending Review</div>
                     </div>
                 </div>
             </div>
@@ -246,6 +251,148 @@
         </div>
     </section>
 
+    <!-- Benefits Section -->
+    <section class="py-20 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black text-gray-900 mb-4">
+                    What You <span class="text-orange-600">Get</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Comprehensive support designed to help you succeed
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 card-hover">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Tuition Coverage</h3>
+                    <p class="text-sm text-gray-600">Full or partial tuition fee assistance for your chosen program</p>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 card-hover">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>  
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Books & Supplies</h3>
+                    <p class="text-sm text-gray-600">Financial support for textbooks and essential learning materials</p>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 card-hover">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Mentorship Program</h3>
+                    <p class="text-sm text-gray-600">Connect with experienced scholars and community leaders</p>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 card-hover">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">24/7 Support</h3>
+                    <p class="text-sm text-gray-600">Round-the-clock assistance for all your questions and concerns</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Priority Information Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div class="fade-in">
+                    <h2 class="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+                        Priority <span class="text-orange-600">Considerations</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                        Our selection process prioritizes applicants based on several key factors to ensure fair and equitable distribution of scholarship opportunities.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold">30%</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 mb-1">IP Group Priority</h3>
+                                <p class="text-sm text-gray-600">Priority groups: B'laan, Bagobo, Kalagan, Kaulo</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold">25%</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 mb-1">Priority Courses</h3>
+                                <p class="text-sm text-gray-600">Agriculture, Education, Medicine, Engineering, and more</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold">20%</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 mb-1">Document Completeness</h3>
+                                <p class="text-sm text-gray-600">Tribal certificates and required documentation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fade-in" style="animation-delay: 0.2s">
+                    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 text-white">
+                        <h3 class="text-2xl font-black mb-6">Eligibility Requirements</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Must be a member of an Indigenous People's group</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Enrolled or planning to enroll in an accredited institution</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Demonstrated financial need</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Complete application with all required documents</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Good academic standing or potential</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- How It Works Section -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -298,6 +445,67 @@
                         Receive approval and begin your educational journey
                     </p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black text-gray-900 mb-4">
+                    Frequently Asked <span class="text-orange-600">Questions</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Everything you need to know about the scholarship program
+                </p>
+            </div>
+            
+            <div class="space-y-4">
+                <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
+                    <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
+                        What documents do I need to submit?
+                    </summary>
+                    <p class="mt-4 text-gray-700 leading-relaxed">
+                        You'll need: Birth Certificate, Income Tax Return or Certificate of Indigency, Certificate of Tribal Membership, Endorsement from IP Leaders, Certificate of Good Moral Character, and your latest academic records. All documents can be uploaded directly through the portal.
+                    </p>
+                </details>
+                
+                <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
+                    <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
+                        How long does the application review process take?
+                    </summary>
+                    <p class="mt-4 text-gray-700 leading-relaxed">
+                        Applications are reviewed on a first-come, first-served basis with priority given to specific IP groups and courses. You'll receive notifications about your application status through the portal and email. Typically, reviews are completed within 2-4 weeks.
+                    </p>
+                </details>
+                
+                <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
+                    <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
+                        Can I track my application status?
+                    </summary>
+                    <p class="mt-4 text-gray-700 leading-relaxed">
+                        Yes! Once you create an account and submit your application, you can track your status in real-time through your dashboard. You'll see your priority rank, document status, and receive notifications for any updates.
+                    </p>
+                </details>
+                
+                <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
+                    <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
+                        What courses are prioritized?
+                    </summary>
+                    <p class="mt-4 text-gray-700 leading-relaxed">
+                        Priority courses include Agriculture, Education, Medicine and Allied Health Sciences, Engineering (Civil, Mechanical, Mining, Geodetic), Law, Social Work, Community Development, and other programs that benefit Indigenous communities.
+                    </p>
+                </details>
+                
+                <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
+                    <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
+                        Is there ongoing support after approval?
+                    </summary>
+                    <p class="mt-4 text-gray-700 leading-relaxed">
+                        Absolutely! Approved scholars receive continuous support including mentorship programs, academic guidance, community networking opportunities, and 24/7 assistance through the portal. We're committed to your success throughout your educational journey.
+                    </p>
+                </details>
             </div>
         </div>
     </section>

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\BasicInfo;
 use App\Models\User;
-use App\Models\ApplicantScore;
 use Illuminate\Support\Facades\DB;
 
 class CoursePriorityService
@@ -14,10 +13,9 @@ class CoursePriorityService
      */
     public function getPrioritizedCourses(): array
     {
-        // Get all applicants with school preferences and scores
+        // Get all applicants with school preferences
         $applicants = User::with([
             'basicInfo.schoolPref', 
-            'applicantScore', 
             'basicInfo.fullAddress.address'
         ])
             ->whereHas('basicInfo', function($query) {
@@ -31,9 +29,9 @@ class CoursePriorityService
             $schoolPref = $applicant->basicInfo->schoolPref ?? null;
             if (!$schoolPref) continue;
 
-            $applicantScore = $applicant->applicantScore;
-            $totalScore = $applicantScore ? ($applicantScore->total_score ?? 0) : 0;
-            $priorityRank = $applicantScore ? ($applicantScore->priority_rank ?? 9999) : 9999;
+            // Score-based prioritization removed - using ApplicantPriorityService instead
+            $totalScore = 0;
+            $priorityRank = 9999;
 
             // Process first preference course
             if ($schoolPref->degree) {
@@ -44,9 +42,9 @@ class CoursePriorityService
                         'first_preference_count' => 0,
                         'second_preference_count' => 0,
                         'total_applicants' => 0,
-                        'high_priority_applicants' => 0, // Score >= 80
-                        'medium_priority_applicants' => 0, // Score 60-79
-                        'low_priority_applicants' => 0, // Score < 60
+                        'high_priority_applicants' => 0,
+                        'medium_priority_applicants' => 0,
+                        'low_priority_applicants' => 0,
                         'average_score' => 0,
                         'total_score_sum' => 0,
                         'top_applicants' => [],
@@ -60,24 +58,8 @@ class CoursePriorityService
                 $courseData[$courseName]['total_applicants']++;
                 $courseData[$courseName]['total_score_sum'] += $totalScore;
 
-                // Count by priority level
-                if ($totalScore >= 80) {
-                    $courseData[$courseName]['high_priority_applicants']++;
-                } elseif ($totalScore >= 60) {
-                    $courseData[$courseName]['medium_priority_applicants']++;
-                } else {
-                    $courseData[$courseName]['low_priority_applicants']++;
-                }
-
-                // Track top applicants
-                if ($totalScore >= 70) {
-                    $courseData[$courseName]['top_applicants'][] = [
-                        'user_id' => $applicant->id,
-                        'name' => $applicant->first_name . ' ' . $applicant->last_name,
-                        'score' => $totalScore,
-                        'rank' => $priorityRank,
-                    ];
-                }
+                // Priority level counting removed - using ApplicantPriorityService instead
+                $courseData[$courseName]['high_priority_applicants']++;
 
                 // Track schools
                 if ($schoolPref->address && !in_array($schoolPref->address, $courseData[$courseName]['schools'])) {
@@ -118,14 +100,8 @@ class CoursePriorityService
                 $courseData[$courseName]['total_applicants']++;
                 $courseData[$courseName]['total_score_sum'] += $totalScore;
 
-                // Count by priority level (with lower weight for second preference)
-                if ($totalScore >= 80) {
-                    $courseData[$courseName]['high_priority_applicants']++;
-                } elseif ($totalScore >= 60) {
-                    $courseData[$courseName]['medium_priority_applicants']++;
-                } else {
-                    $courseData[$courseName]['low_priority_applicants']++;
-                }
+                // Priority level counting removed - using ApplicantPriorityService instead
+                $courseData[$courseName]['high_priority_applicants']++;
 
                 // Track schools
                 if ($schoolPref->address2 && !in_array($schoolPref->address2, $courseData[$courseName]['schools'])) {
@@ -352,7 +328,7 @@ class CoursePriorityService
         $applicantsWithPreferences = User::whereHas('basicInfo', function($query) {
                 $query->whereHas('schoolPref');
             })
-            ->with(['basicInfo.schoolPref', 'applicantScore'])
+            ->with(['basicInfo.schoolPref'])
             ->get();
 
         foreach ($applicantsWithPreferences as $user) {
@@ -384,7 +360,7 @@ class CoursePriorityService
         // Use the account-level course only when no scholarship preference exists yet
         $usersWithCourse = User::whereNotNull('course')
             ->where('course', '!=', '')
-            ->with(['applicantScore', 'basicInfo.schoolPref'])
+            ->with(['basicInfo.schoolPref'])
             ->get();
 
         foreach ($usersWithCourse as $user) {
@@ -548,21 +524,16 @@ class CoursePriorityService
 
         $courseData[$normalizedCourse][$countKey]++;
 
-        $applicantScore = $user->applicantScore;
-        $totalScore = $applicantScore ? ($applicantScore->total_score ?? 0) : 0;
+        // Score-based prioritization removed - using ApplicantPriorityService instead
+        $totalScore = 0;
 
         if (!in_array($user->id, $courseApplicants[$normalizedCourse], true)) {
             $courseApplicants[$normalizedCourse][] = $user->id;
             $courseData[$normalizedCourse]['total_applicants']++;
             $courseData[$normalizedCourse]['total_score_sum'] += $totalScore;
 
-            if ($totalScore >= 80) {
-                $courseData[$normalizedCourse]['high_priority_applicants']++;
-            } elseif ($totalScore >= 60) {
-                $courseData[$normalizedCourse]['medium_priority_applicants']++;
-            } else {
-                $courseData[$normalizedCourse]['low_priority_applicants']++;
-            }
+            // Priority level counting removed - using ApplicantPriorityService instead
+            $courseData[$normalizedCourse]['high_priority_applicants']++;
         }
 
         $this->addApplicantToCourse(
@@ -605,7 +576,6 @@ class CoursePriorityService
     {
         $basicInfo = $user->basicInfo;
         $schoolPref = $basicInfo->schoolPref ?? null;
-        $applicantScore = $user->applicantScore;
         
         if (!$schoolPref) {
             return [
@@ -616,8 +586,9 @@ class CoursePriorityService
         }
 
         $courses = [];
-        $totalScore = $applicantScore ? ($applicantScore->total_score ?? 0) : 0;
-        $priorityRank = $applicantScore ? ($applicantScore->priority_rank ?? null) : null;
+        // Score-based prioritization removed - using ApplicantPriorityService instead
+        $totalScore = 0;
+        $priorityRank = null;
 
         // Process first preference course
         if ($schoolPref->degree) {
@@ -627,7 +598,7 @@ class CoursePriorityService
                 $schoolPref->school_type,
                 $schoolPref->num_years,
                 $user,
-                $applicantScore ?? null,
+                null,
                 'first',
                 1
             );
@@ -642,7 +613,7 @@ class CoursePriorityService
                 $schoolPref->school_type2,
                 $schoolPref->num_years2,
                 $user,
-                $applicantScore ?? null,
+                null,
                 'second',
                 2
             );
@@ -672,30 +643,30 @@ class CoursePriorityService
         ?string $schoolType,
         ?int $numYears,
         User $user,
-        ?ApplicantScore $applicantScore,
+        $applicantScore, // Kept for compatibility but not used
         string $preference,
         int $preferenceRank
     ): array {
-        $totalScore = $applicantScore ? ($applicantScore->total_score ?? 0) : 0;
-        $financialScore = $applicantScore ? ($applicantScore->financial_need_score ?? 0) : 0;
-        $academicScore = $applicantScore ? ($applicantScore->academic_performance_score ?? 0) : 0;
-        $geographicScore = $applicantScore ? ($applicantScore->geographic_priority_score ?? 0) : 0;
-        $heritageScore = $applicantScore ? ($applicantScore->indigenous_heritage_score ?? 0) : 0;
+        // Score-based prioritization removed - using ApplicantPriorityService instead
+        $totalScore = 0;
+        $financialScore = 0;
+        $academicScore = 0;
+        $geographicScore = 0;
+        $heritageScore = 0;
 
         // Calculate course priority score for this applicant
-        // Factors: Applicant's total score (50%), Preference rank (30%), Course alignment (20%)
+        // Factors: Preference rank (70%), Course alignment (30%)
         $preferenceWeight = $preference === 'first' ? 1.0 : 0.7;
-        $applicantScoreWeight = ($totalScore / 100) * 50; // Max 50 points
-        $preferenceWeightScore = $preferenceWeight * 30; // Max 30 points
-        $alignmentScore = $this->calculateCourseAlignment($courseName, $user, $applicantScore) * 20; // Max 20 points
+        $preferenceWeightScore = $preferenceWeight * 70; // Max 70 points
+        $alignmentScore = $this->calculateCourseAlignment($courseName, $user, null) * 30; // Max 30 points
 
-        $priorityScore = $applicantScoreWeight + $preferenceWeightScore + $alignmentScore;
+        $priorityScore = $preferenceWeightScore + $alignmentScore;
 
         // Determine priority level
-        $priorityLevel = $this->getApplicantCoursePriorityLevel($priorityScore, $totalScore);
+        $priorityLevel = $this->getApplicantCoursePriorityLevel($priorityScore, 0);
 
         // Generate recommendations
-        $recommendations = $this->generateCourseRecommendations($courseName, $user, $applicantScore, $schoolType);
+        $recommendations = $this->generateCourseRecommendations($courseName, $user, null, $schoolType);
 
         return [
             'course_name' => trim($courseName),
@@ -719,34 +690,27 @@ class CoursePriorityService
     /**
      * Calculate course alignment with applicant's background
      */
-    private function calculateCourseAlignment(string $courseName, User $user, ?ApplicantScore $applicantScore): float
+    private function calculateCourseAlignment(string $courseName, User $user, $applicantScore): float
     {
+        // Score-based alignment removed - using ApplicantPriorityService instead
+        // Base alignment based on course priority
         $alignment = 0.5; // Base alignment
-
-        if (!$applicantScore) {
-            return $alignment;
-        }
-
-        // Check if applicant has strong academic performance
-        $academicScore = $applicantScore->academic_performance_score ?? 0;
-        if ($academicScore >= 80) {
-            $alignment += 0.2; // Strong academic performance
-        } elseif ($academicScore >= 60) {
-            $alignment += 0.1;
-        }
-
-        // Check if course name contains keywords that match indigenous heritage
-        $heritageScore = $applicantScore->indigenous_heritage_score ?? 0;
-        if ($heritageScore >= 70) {
-            $alignment += 0.2; // Strong heritage connection
-        } elseif ($heritageScore >= 50) {
-            $alignment += 0.1;
-        }
-
-        // Check financial need (scholarship programs often prioritize those in need)
-        $financialScore = $applicantScore->financial_need_score ?? 0;
-        if ($financialScore >= 70) {
-            $alignment += 0.1; // High financial need aligns with scholarship goals
+        
+        // Check if course is a priority course
+        $priorityCourses = [
+            'Agriculture', 'Aqua-Culture and Fisheries', 'Anthropology',
+            'Business Administration', 'Civil Engineering', 'Community Development',
+            'Criminology', 'Education', 'Foreign Service',
+            'Forestry and Environment Studies', 'Geodetic Engineering', 'Geology',
+            'Law', 'Medicine and Allied Health Sciences', 'Mechanical Engineering',
+            'Mining Engineering', 'Social Sciences', 'Social Work'
+        ];
+        
+        foreach ($priorityCourses as $priorityCourse) {
+            if (stripos($courseName, $priorityCourse) !== false) {
+                $alignment += 0.3; // Priority course bonus
+                break;
+            }
         }
 
         return min($alignment, 1.0); // Cap at 1.0
@@ -757,9 +721,10 @@ class CoursePriorityService
      */
     private function getApplicantCoursePriorityLevel(float $priorityScore, float $applicantScore): string
     {
-        if ($priorityScore >= 80 && $applicantScore >= 75) {
+        // Simplified priority levels based on priority score only
+        if ($priorityScore >= 80) {
             return 'Very High Priority';
-        } elseif ($priorityScore >= 70 && $applicantScore >= 65) {
+        } elseif ($priorityScore >= 70) {
             return 'High Priority';
         } elseif ($priorityScore >= 60) {
             return 'Medium Priority';
@@ -791,39 +756,15 @@ class CoursePriorityService
     /**
      * Generate course recommendations
      */
-    private function generateCourseRecommendations(string $courseName, User $user, ?ApplicantScore $applicantScore, ?string $schoolType): array
+    private function generateCourseRecommendations(string $courseName, User $user, $applicantScore, ?string $schoolType): array
     {
         $recommendations = [];
         
-        if (!$applicantScore) {
-            $recommendations[] = 'Applicant score not yet calculated - review pending';
-            return $recommendations;
-        }
+        // Score-based recommendations removed - using ApplicantPriorityService instead
+        $recommendations[] = 'Application under review - priority determined by ApplicantPriorityService';
         
-        $totalScore = $applicantScore->total_score ?? 0;
-        $academicScore = $applicantScore->academic_performance_score ?? 0;
-        $financialScore = $applicantScore->financial_need_score ?? 0;
-
-        if ($totalScore >= 80) {
-            $recommendations[] = 'High priority applicant - Strong candidate for scholarship';
-        }
-
-        if ($academicScore >= 80) {
-            $recommendations[] = 'Excellent academic performance supports course eligibility';
-        } elseif ($academicScore < 60) {
-            $recommendations[] = 'Consider academic support or preparatory programs';
-        }
-
-        if ($financialScore >= 70) {
-            $recommendations[] = 'High financial need aligns with scholarship objectives';
-        }
-
         if ($schoolType === 'Public') {
             $recommendations[] = 'Public school preference may increase scholarship eligibility';
-        }
-
-        if (empty($recommendations)) {
-            $recommendations[] = 'Application under review - all factors being considered';
         }
 
         return $recommendations;

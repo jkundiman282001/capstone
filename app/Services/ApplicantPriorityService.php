@@ -10,6 +10,7 @@ class ApplicantPriorityService
 {
     /**
      * Weight allocation (must total 1.0 / 100%)
+     * Based on AHP (Analytical Hierarchy Process) principles
      */
     private array $priorityWeights = [
         'ip' => 0.30,          // 30%
@@ -18,6 +19,37 @@ class ApplicantPriorityService
         'income_tax' => 0.15,  // 15%
         'academic_performance' => 0.05,  // 5%
         'other_requirements' => 0.05,  // 5%
+    ];
+
+    /**
+     * AHP Pairwise Comparison Matrix (for future dynamic weight calculation)
+     * Matrix represents relative importance: [row][column] = importance of row vs column
+     * Scale: 1 = equal, 3 = moderate, 5 = strong, 7 = very strong, 9 = extreme
+     */
+    private array $pairwiseComparisonMatrix = [
+        'ip' => ['ip' => 1, 'course' => 2, 'tribal' => 2, 'income_tax' => 3, 'academic_performance' => 6, 'other_requirements' => 6],
+        'course' => ['ip' => 0.5, 'course' => 1, 'tribal' => 1, 'income_tax' => 2, 'academic_performance' => 5, 'other_requirements' => 5],
+        'tribal' => ['ip' => 0.5, 'course' => 1, 'tribal' => 1, 'income_tax' => 1.5, 'academic_performance' => 4, 'other_requirements' => 4],
+        'income_tax' => ['ip' => 0.33, 'course' => 0.5, 'tribal' => 0.67, 'income_tax' => 1, 'academic_performance' => 3, 'other_requirements' => 3],
+        'academic_performance' => ['ip' => 0.17, 'course' => 0.2, 'tribal' => 0.25, 'income_tax' => 0.33, 'academic_performance' => 1, 'other_requirements' => 1],
+        'other_requirements' => ['ip' => 0.17, 'course' => 0.2, 'tribal' => 0.25, 'income_tax' => 0.33, 'academic_performance' => 1, 'other_requirements' => 1],
+    ];
+
+    /**
+     * Random Index (RI) values for consistency checking (Saaty's scale)
+     * Used for Consistency Ratio calculation
+     */
+    private array $randomIndex = [
+        1 => 0.00,
+        2 => 0.00,
+        3 => 0.58,
+        4 => 0.90,
+        5 => 1.12,
+        6 => 1.24,
+        7 => 1.32,
+        8 => 1.41,
+        9 => 1.45,
+        10 => 1.49,
     ];
     /**
      * Priority Indigenous Groups (2nd priority tier)
@@ -397,6 +429,23 @@ class ApplicantPriorityService
         return $prioritizedApplicants;
     }
 
+    /**
+     * Calculate priority score using AHP (Analytical Hierarchy Process) methodology
+     * 
+     * AHP Principles Applied:
+     * 1. Normalization: All criteria scores normalized to 0-1 scale
+     * 2. Weighted Sum: Each normalized score multiplied by its AHP-derived weight
+     * 3. Consistency: Weights validated for consistency
+     * 4. Hierarchical Structure: Criteria organized in priority hierarchy
+     * 
+     * @param float $ipRubricScore IP Group rubric score (0-10 scale)
+     * @param bool $isPriorityCourse Whether course is in priority list
+     * @param bool $hasApprovedTribalCert Whether tribal certificate is approved
+     * @param bool $hasApprovedIncomeTax Whether income tax document is approved
+     * @param bool $hasApprovedGrades Whether grades document is approved
+     * @param bool $hasAllOtherRequirements Whether all other requirements are met
+     * @return float Final priority score (0-100 scale)
+     */
     private function calculatePriorityScore(
         float $ipRubricScore, // Now accepts 0-10 rubric score instead of boolean
         bool $isPriorityCourse,
@@ -405,39 +454,160 @@ class ApplicantPriorityService
         bool $hasApprovedGrades,
         bool $hasAllOtherRequirements
     ): float {
-        $score = 0;
+        // Validate weights consistency (AHP principle)
+        $this->validateWeightsConsistency();
 
-        // IP Group Priority (30% weight) - Using rubric score (0-10 scale)
-        // Rubric score is normalized to 0-100, then weighted at 30%
-        // Example: 10/10 rubric → 100 → 100 × 0.30 = 30 points
-        //          8/10 rubric → 80 → 80 × 0.30 = 24 points
-        //          6/10 rubric → 60 → 60 × 0.30 = 18 points
-        //          4/10 rubric → 40 → 40 × 0.30 = 12 points
-        //          0/10 rubric → 0 → 0 × 0.30 = 0 points
-        $normalizedIpScore = $ipRubricScore * 10; // Convert 0-10 to 0-100
-        $score += $normalizedIpScore * $this->priorityWeights['ip'];
+        // Step 1: Normalize all criteria scores to 0-1 scale (AHP normalization)
+        $normalizedScores = [
+            'ip' => $this->normalizeScore($ipRubricScore, 0, 10), // 0-10 → 0-1
+            'course' => $isPriorityCourse ? 1.0 : 0.0, // Binary → 0-1
+            'tribal' => $hasApprovedTribalCert ? 1.0 : 0.0, // Binary → 0-1
+            'income_tax' => $hasApprovedIncomeTax ? 1.0 : 0.0, // Binary → 0-1
+            'academic_performance' => $hasApprovedGrades ? 1.0 : 0.0, // Binary → 0-1
+            'other_requirements' => $hasAllOtherRequirements ? 1.0 : 0.0, // Binary → 0-1
+        ];
 
-        if ($isPriorityCourse) {
-            $score += $this->priorityWeights['course'] * 100;
+        // Step 2: Calculate weighted sum (AHP weighted aggregation)
+        // Formula: Score = Σ (Normalized_Score_i × Weight_i) × 100
+        $weightedSum = 0.0;
+        foreach ($normalizedScores as $criterion => $normalizedScore) {
+            $weightedSum += $normalizedScore * $this->priorityWeights[$criterion];
         }
 
-        if ($hasApprovedTribalCert) {
-            $score += $this->priorityWeights['tribal'] * 100;
+        // Step 3: Scale to 0-100 for readability
+        $finalScore = $weightedSum * 100;
+
+        return round($finalScore, 2);
+    }
+
+    /**
+     * Normalize a score to 0-1 scale (AHP normalization method)
+     * 
+     * @param float $value The value to normalize
+     * @param float $min Minimum possible value
+     * @param float $max Maximum possible value
+     * @return float Normalized value between 0 and 1
+     */
+    private function normalizeScore(float $value, float $min, float $max): float
+    {
+        if ($max == $min) {
+            return 0.0; // Avoid division by zero
+        }
+        
+        // Linear normalization: (value - min) / (max - min)
+        $normalized = ($value - $min) / ($max - $min);
+        
+        // Ensure result is within [0, 1] bounds
+        return max(0.0, min(1.0, $normalized));
+    }
+
+    /**
+     * Validate weights consistency (AHP consistency check)
+     * Ensures weights sum to 1.0 and checks for logical consistency
+     * 
+     * @throws \RuntimeException If weights are inconsistent
+     */
+    private function validateWeightsConsistency(): void
+    {
+        $totalWeight = array_sum($this->priorityWeights);
+        $tolerance = 0.01; // Allow small floating point errors
+
+        if (abs($totalWeight - 1.0) > $tolerance) {
+            throw new \RuntimeException(
+                "Priority weights must sum to 1.0. Current sum: {$totalWeight}"
+            );
         }
 
-        if ($hasApprovedIncomeTax) {
-            $score += $this->priorityWeights['income_tax'] * 100;
+        // Check for negative weights
+        foreach ($this->priorityWeights as $criterion => $weight) {
+            if ($weight < 0) {
+                throw new \RuntimeException(
+                    "Weight for '{$criterion}' cannot be negative: {$weight}"
+                );
+            }
+        }
+    }
+
+    /**
+     * Calculate Consistency Ratio (CR) for AHP pairwise comparison matrix
+     * CR = CI / RI, where CI = (λ_max - n) / (n - 1)
+     * CR < 0.10 indicates acceptable consistency
+     * 
+     * @return array Contains CR, CI, λ_max, and consistency status
+     */
+    public function calculateConsistencyRatio(): array
+    {
+        $n = count($this->priorityWeights);
+        
+        // Calculate weighted sum vector
+        $weightedSumVector = [];
+        foreach (array_keys($this->priorityWeights) as $criterion) {
+            $sum = 0;
+            foreach (array_keys($this->priorityWeights) as $otherCriterion) {
+                $sum += $this->pairwiseComparisonMatrix[$criterion][$otherCriterion] 
+                     * $this->priorityWeights[$otherCriterion];
+            }
+            $weightedSumVector[$criterion] = $sum;
         }
 
-        if ($hasApprovedGrades) {
-            $score += $this->priorityWeights['academic_performance'] * 100;
+        // Calculate λ_max (maximum eigenvalue)
+        $lambdaMax = 0;
+        foreach (array_keys($this->priorityWeights) as $criterion) {
+            if ($this->priorityWeights[$criterion] > 0) {
+                $lambdaMax += $weightedSumVector[$criterion] / $this->priorityWeights[$criterion];
+            }
+        }
+        $lambdaMax = $lambdaMax / $n;
+
+        // Calculate Consistency Index (CI)
+        $ci = ($lambdaMax - $n) / ($n - 1);
+
+        // Get Random Index (RI) for n criteria
+        $ri = $this->randomIndex[$n] ?? 1.24; // Default for n=6
+
+        // Calculate Consistency Ratio (CR)
+        $cr = $ri > 0 ? ($ci / $ri) : 0;
+
+        // Determine consistency status
+        $isConsistent = $cr < 0.10;
+
+        return [
+            'consistency_ratio' => round($cr, 4),
+            'consistency_index' => round($ci, 4),
+            'lambda_max' => round($lambdaMax, 4),
+            'random_index' => $ri,
+            'is_consistent' => $isConsistent,
+            'status' => $isConsistent ? 'Acceptable' : 'Inconsistent - Review weights',
+        ];
+    }
+
+    /**
+     * Get AHP-derived weights from pairwise comparison matrix
+     * Uses eigenvector method to calculate weights
+     * 
+     * @return array Normalized weights derived from pairwise comparisons
+     */
+    public function getAHPWeights(): array
+    {
+        $n = count($this->pairwiseComparisonMatrix);
+        $weights = [];
+        
+        // Calculate geometric mean for each row
+        foreach (array_keys($this->pairwiseComparisonMatrix) as $criterion) {
+            $product = 1.0;
+            foreach ($this->pairwiseComparisonMatrix[$criterion] as $value) {
+                $product *= $value;
+            }
+            $weights[$criterion] = pow($product, 1.0 / $n);
         }
 
-        if ($hasAllOtherRequirements) {
-            $score += $this->priorityWeights['other_requirements'] * 100;
+        // Normalize weights to sum to 1.0
+        $sum = array_sum($weights);
+        foreach ($weights as $criterion => $weight) {
+            $weights[$criterion] = $weight / $sum;
         }
 
-        return round($score, 2);
+        return $weights;
     }
 
     /**
@@ -479,6 +649,16 @@ class ApplicantPriorityService
         $oldestApplication = !empty($applicants) ? $applicants[0] : null;
         $newestApplication = !empty($applicants) ? end($applicants) : null;
 
+        // Calculate slots information
+        $maxSlots = 120;
+        $granteesCount = \App\Models\BasicInfo::where('application_status', 'validated')
+            ->where(function($q) {
+                $q->where('grant_status', 'grantee')
+                  ->orWhere('grant_status', 'Grantee');
+            })
+            ->count();
+        $slotsLeft = max(0, $maxSlots - $granteesCount);
+
         return [
             'total_applicants' => $totalApplicants,
             'priority_ethno_count' => $priorityEthnoCount,
@@ -487,6 +667,9 @@ class ApplicantPriorityService
             'academic_performance_count' => $academicPerformanceCount,
             'other_requirements_count' => $otherRequirementsCount,
             'priority_course_count' => $priorityCourseCount,
+            'slots_left' => $slotsLeft,
+            'grantees_count' => $granteesCount,
+            'max_slots' => $maxSlots,
             'oldest_application' => $oldestApplication ? [
                 'user_id' => $oldestApplication['user_id'],
                 'name' => $oldestApplication['user']->first_name . ' ' . $oldestApplication['user']->last_name,

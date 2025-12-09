@@ -186,6 +186,12 @@
         border-color: #94a3b8;
     }
 
+    #saveDraftBtn {
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
+    }
+
     .section-heading {
         font-size: 1.25rem;
             font-weight: 700;
@@ -209,7 +215,97 @@
         opacity: 1;
         transform: translateY(0);
         transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        min-width: 320px;
+        max-width: 400px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        pointer-events: auto;
+        animation: slideInRight 0.3s ease-out;
+        border-left: 4px solid #22c55e;
+    }
+
+    .toast.success {
+        border-left-color: #22c55e;
+    }
+
+    .toast.error {
+        border-left-color: #ef4444;
+    }
+
+    .toast-icon {
+        flex-shrink: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .toast.success .toast-icon {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #0f172a;
+        margin-bottom: 0.25rem;
+    }
+
+    .toast-message {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
         }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .toast.hiding {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
     </style>
 @endpush
 
@@ -323,6 +419,7 @@
                             Clear saved draft
                         </button>
                     </div>
+
 
                     <!-- Error Display -->
                 @if ($errors->any())
@@ -820,6 +917,9 @@
     </div>
 </div>
 
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="toast-container"></div>
+
 <!-- Sibling Modal -->
 <div id="siblingModalBackdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden"></div>
 <div id="siblingModal" class="fixed inset-0 z-50 hidden items-center justify-center px-4">
@@ -868,7 +968,202 @@
 
 @push('scripts')
                         <script>
-    let currentStep = parseInt(localStorage.getItem('apply_current_step')) || 1;
+    // Define global functions IMMEDIATELY at the top to ensure they're available
+    window.startNewApplication = function() {
+        const hubView = document.getElementById('application-hub');
+        const formView = document.getElementById('application-form-view');
+        
+        if (!hubView || !formView) {
+            console.error('Application hub or form view not found');
+            return;
+        }
+        
+        // Clear current draft ID
+        window.currentDraftId = null;
+        
+        // Reset to step 1 for new application
+        if (typeof currentStep !== 'undefined') {
+            currentStep = 1;
+        }
+        
+        // Trigger form show
+        hubView.classList.add('hidden');
+        formView.classList.remove('hidden');
+        
+        // Reset form
+        const formEl = document.getElementById('applicationForm');
+        if (formEl) {
+            formEl.reset();
+            const siblingList = document.getElementById('siblings-list');
+            if (siblingList) {
+                siblingList.innerHTML = '<p id="siblings-empty" class="p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl">No siblings added yet.</p>';
+            }
+            refreshSiblingState();
+        }
+        
+        if (typeof updateUI === 'function') {
+            updateUI();
+        }
+    };
+
+    window.continueDraft = function(draftId) {
+        if (!draftId) {
+            console.error('No draft ID provided');
+            return;
+        }
+        
+        console.log('Loading draft:', draftId);
+        
+        const hubView = document.getElementById('application-hub');
+        const formView = document.getElementById('application-form-view');
+        
+        if (!hubView || !formView) {
+            console.error('Application hub or form view not found');
+            return;
+        }
+        
+        window.currentDraftId = draftId;
+        hubView.classList.add('hidden');
+        formView.classList.remove('hidden');
+        
+        // Load draft from server
+        const url = `/student/drafts/${draftId}`;
+        console.log('Fetching draft from:', url);
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                return response.json().then(err => {
+                    console.error('Error response:', err);
+                    throw new Error(err.message || `HTTP error! status: ${response.status}`);
+                }).catch(parseError => {
+                    // If JSON parsing fails, throw with status
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log('Draft loaded successfully:', result);
+            if (result.success && result.draft) {
+                if (typeof window.restoreDraftFromData === 'function') {
+                    window.restoreDraftFromData(result.draft);
+                } else {
+                    console.error('restoreDraftFromData function not available');
+                    alert('Error: Draft restoration function not available. Please refresh the page.');
+                    return;
+                }
+                if (typeof updateUI === 'function') {
+                    updateUI();
+                }
+            } else {
+                console.error('Failed to load draft:', result);
+                alert('Failed to load draft: ' + (result.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error loading draft:', error);
+            alert('Error loading draft: ' + error.message);
+        });
+    };
+
+    window.returnToHub = function() {
+        const hubView = document.getElementById('application-hub');
+        const formView = document.getElementById('application-form-view');
+        const draftsContainer = document.getElementById('hub-recent-drafts');
+        
+        if (!hubView || !formView) return;
+        
+        hubView.classList.remove('hidden');
+        formView.classList.add('hidden');
+        
+        // Re-render drafts list to show any updates
+        if (draftsContainer && window.renderDraftsList) {
+            window.renderDraftsList();
+        }
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Sibling modal functions - define early to ensure availability
+    window.openSiblingModal = function() {
+        const siblingModal = document.getElementById('siblingModal');
+        const siblingBackdrop = document.getElementById('siblingModalBackdrop');
+        
+        if (!siblingModal || !siblingBackdrop) {
+            console.error('Sibling modal elements not found');
+            return;
+        }
+        
+        siblingModal.classList.remove('hidden');
+        siblingModal.classList.add('flex');
+        siblingBackdrop.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    };
+
+    window.closeSiblingModal = function() {
+        const siblingModal = document.getElementById('siblingModal');
+        const siblingBackdrop = document.getElementById('siblingModalBackdrop');
+        
+        if (!siblingModal || !siblingBackdrop) {
+            console.error('Sibling modal elements not found');
+            return;
+        }
+        
+        siblingModal.classList.add('hidden');
+        siblingModal.classList.remove('flex');
+        siblingBackdrop.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        
+        // Clear modal inputs
+        const nameInput = document.getElementById('modal_sibling_name');
+        const ageInput = document.getElementById('modal_sibling_age');
+        const scholarshipInput = document.getElementById('modal_sibling_scholarship');
+        const courseInput = document.getElementById('modal_sibling_course');
+        const statusInput = document.getElementById('modal_sibling_status');
+        
+        if (nameInput) nameInput.value = '';
+        if (ageInput) ageInput.value = '';
+        if (scholarshipInput) scholarshipInput.value = '';
+        if (courseInput) courseInput.value = '';
+        if (statusInput) statusInput.value = '';
+    };
+
+    window.saveSiblingFromModal = function() {
+        const nameInput = document.getElementById('modal_sibling_name');
+        if (!nameInput) {
+            console.error('Sibling name input not found');
+            return;
+        }
+        
+        const name = nameInput.value.trim();
+        if (!name) {
+            alert('Name is required');
+            return;
+        }
+
+        const siblingData = {
+            name,
+            age: document.getElementById('modal_sibling_age')?.value || '',
+            scholarship: document.getElementById('modal_sibling_scholarship')?.value || '',
+            course: document.getElementById('modal_sibling_course')?.value || '',
+            status: document.getElementById('modal_sibling_status')?.value || '',
+        };
+
+        if (typeof window.addSibling === 'function') {
+            window.addSibling(siblingData);
+        }
+        window.closeSiblingModal();
+    };
+
+    let currentStep = 1;
     const totalSteps = 6;
     const form = document.getElementById('applicationForm');
     const siblingStatusOptions = [
@@ -880,8 +1175,7 @@
     ];
     
     function updateUI() {
-        // Save step
-        localStorage.setItem('apply_current_step', currentStep);
+        // Step is tracked in currentStep variable and saved with draft
 
         // Hide all steps
         document.querySelectorAll('.form-step').forEach(el => {
@@ -1054,41 +1348,22 @@
     };
     ['mailing', 'permanent', 'origin'].forEach(setupLocation);
 
-    // Draft persistence using localStorage
+    // Draft persistence using database (AJAX)
     (function() {
         const formEl = document.getElementById('applicationForm');
-        const storageKey = 'apply_drafts_v2'; // dictionary {id: data}
-        const currentIdKey = 'apply_current_draft_id';
+        window.currentDraftId = null; // Track current draft ID
 
-        const storageAvailable = (() => {
-            try {
-                const testKey = '__storage_test';
-                localStorage.setItem(testKey, '1');
-                localStorage.removeItem(testKey);
-                return true;
-            } catch (err) {
-                return false;
-            }
-        })();
-
-        if (!formEl || !storageAvailable) {
+        if (!formEl) {
             return;
         }
 
         let saveTimeout;
         const scheduleDraftSave = () => {
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(saveDraft, 400);
+            saveTimeout = setTimeout(saveDraft, 1000); // Increased delay to reduce server load
         };
 
         function saveDraft() {
-            const drafts = JSON.parse(localStorage.getItem(storageKey) || '{}');
-            let currentId = localStorage.getItem(currentIdKey);
-            if (!currentId) {
-                currentId = Date.now().toString();
-                localStorage.setItem(currentIdKey, currentId);
-            }
-
             const data = {};
             const elements = formEl.querySelectorAll('input, select, textarea');
             elements.forEach(el => {
@@ -1117,19 +1392,43 @@
                     data[el.name] = el.value;
                 }
             });
-            
-            // Metadata
-            data._timestamp = new Date().toISOString();
-            data._id = currentId;
-            // Try to construct a name
+
+            // Prepare request payload
+            const payload = {
+                draft_id: window.currentDraftId,
+                current_step: currentStep || 1,
+                form_data: data,
+            };
+
+            // Try to construct a name from form data
             const fname = data['first_name'] || '';
             const lname = data['last_name'] || '';
-            data._name = (fname || lname) ? `${fname} ${lname}`.trim() + ' - Scholarship Application' : 'Untitled Application';
+            if (fname || lname) {
+                payload.name = `${fname} ${lname}`.trim() + ' - Scholarship Application';
+            }
 
-            drafts[currentId] = data;
-            localStorage.setItem(storageKey, JSON.stringify(drafts));
-            
-            updateDraftUI(data._timestamp);
+            // Save to server
+            fetch('/student/drafts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]')?.value,
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.draft) {
+                    window.currentDraftId = result.draft.id;
+                    updateDraftUI(result.draft.updated_at);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving draft:', error);
+                // Silently fail - don't interrupt user experience
+            });
         }
 
         function updateDraftUI(timestamp) {
@@ -1159,33 +1458,62 @@
             }
         }
 
-        function restoreDraft() {
-            const currentId = localStorage.getItem(currentIdKey);
-            const drafts = JSON.parse(localStorage.getItem(storageKey) || '{}');
-            const data = currentId ? drafts[currentId] : null;
-
-            if (!data) {
+        window.restoreDraftFromData = function(draft) {
+            if (!draft) {
+                console.error('No draft data provided');
                 formEl.reset();
-                document.getElementById('siblings-list').innerHTML = '<p id="siblings-empty" class="p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl">No siblings added yet.</p>';
+                const siblingList = document.getElementById('siblings-list');
+                if (siblingList) {
+                    siblingList.innerHTML = '<p id="siblings-empty" class="p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl">No siblings added yet.</p>';
+                }
                 refreshSiblingState();
                 updateDraftUI(null);
                 return;
             }
 
-            updateDraftUI(data._timestamp);
+            window.currentDraftId = draft.id;
+            if (draft.current_step) {
+                currentStep = parseInt(draft.current_step) || 1;
+            }
+            updateDraftUI(draft.updated_at);
+
+            const data = draft.form_data || {};
+            
+            // If form_data is empty or null, just reset the form
+            if (!data || Object.keys(data).length === 0) {
+                console.warn('Draft has no form data, resetting form');
+                formEl.reset();
+                const siblingList = document.getElementById('siblings-list');
+                if (siblingList) {
+                    siblingList.innerHTML = '<p id="siblings-empty" class="p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl">No siblings added yet.</p>';
+                }
+                refreshSiblingState();
+                return;
+            }
 
             // Reset sibling list
             const siblingList = document.getElementById('siblings-list');
-            siblingList.innerHTML = '';
-            document.getElementById('siblings-empty').classList.remove('hidden');
+            if (siblingList) {
+                siblingList.innerHTML = '';
+                // Recreate the empty state element if it doesn't exist
+                const emptyElement = document.getElementById('siblings-empty');
+                if (!emptyElement) {
+                    const emptyP = document.createElement('p');
+                    emptyP.id = 'siblings-empty';
+                    emptyP.className = 'p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl';
+                    emptyP.textContent = 'No siblings added yet.';
+                    siblingList.appendChild(emptyP);
+                }
+            }
 
+            // Ensure sibling entries exist before populating
             Object.entries(data).forEach(([name, value]) => {
-                if (name.startsWith('_')) return;
                 if (Array.isArray(value) && name.startsWith('sibling_') && name.endsWith('[]')) {
                     ensureSiblingEntries(value.length);
                 }
             });
 
+            // Populate form fields
             Object.entries(data).forEach(([name, value]) => {
                 if (name === '_token' || name.startsWith('_')) {
                     return;
@@ -1228,52 +1556,145 @@
         formEl.addEventListener('input', scheduleDraftSave, true);
         formEl.addEventListener('change', scheduleDraftSave, true);
         document.addEventListener('apply:sibling-changed', scheduleDraftSave);
-        document.addEventListener('apply:restore-draft-needed', restoreDraft);
-
-        // Restore on load if ID is set
-        restoreDraft();
 
         const clearDraftBtn = document.getElementById('clearDraftBtn');
         clearDraftBtn?.addEventListener('click', () => {
+            if (!window.currentDraftId) {
+                alert('No draft to delete.');
+                return;
+            }
+            
             if (confirm('Delete this draft permanently?')) {
-                const currentId = localStorage.getItem(currentIdKey);
-                if (currentId) {
-                    const drafts = JSON.parse(localStorage.getItem(storageKey) || '{}');
-                    delete drafts[currentId];
-                    localStorage.setItem(storageKey, JSON.stringify(drafts));
-                    localStorage.removeItem(currentIdKey);
-                }
-                location.reload(); // Go back to Hub
+                fetch(`/student/drafts/${window.currentDraftId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]')?.value,
+                    },
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        window.currentDraftId = null;
+                        window.returnToHub();
+                    } else {
+                        alert('Failed to delete draft.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting draft:', error);
+                    alert('Error deleting draft. Please try again.');
+                });
             }
         });
 
-        formEl.addEventListener('submit', () => {
-            const currentId = localStorage.getItem(currentIdKey);
-            if (currentId) {
-                const drafts = JSON.parse(localStorage.getItem(storageKey) || '{}');
-                delete drafts[currentId];
-                localStorage.setItem(storageKey, JSON.stringify(drafts));
-                localStorage.removeItem(currentIdKey);
+        // Toast notification function
+        window.showToast = function(title, message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const iconSvg = type === 'success' 
+                ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    ${iconSvg}
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 5000);
+        };
+
+        formEl.addEventListener('submit', (e) => {
+            // Delete draft on successful submission
+            if (window.currentDraftId) {
+                fetch(`/student/drafts/${window.currentDraftId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]')?.value,
+                    },
+                })
+                .then(() => {
+                    window.currentDraftId = null;
+                })
+                .catch(error => {
+                    console.error('Error deleting draft on submit:', error);
+                });
             }
-            localStorage.removeItem('apply_current_step');
         });
 
         // Expose save function for the manual button
         window.saveDraftManual = function() {
             saveDraft();
-            alert('Application draft saved successfully!');
-            if (window.returnToHub) {
-                window.returnToHub();
-            }
+            // Wait a bit for the save to complete
+            setTimeout(() => {
+                alert('Application draft saved successfully!');
+                if (window.returnToHub) {
+                    window.returnToHub();
+                }
+            }, 500);
         };
     })();
 
     // Manual Save Draft Button
-    document.getElementById('saveDraftBtn')?.addEventListener('click', () => {
-        if (window.saveDraftManual) {
-            window.saveDraftManual();
+    function setupSaveDraftButton() {
+        const saveDraftBtn = document.getElementById('saveDraftBtn');
+        if (saveDraftBtn) {
+            // Remove any existing listeners by cloning the button
+            const newBtn = saveDraftBtn.cloneNode(true);
+            saveDraftBtn.parentNode.replaceChild(newBtn, saveDraftBtn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.saveDraftManual) {
+                    window.saveDraftManual();
+                } else {
+                    console.error('saveDraftManual function not found');
+                    alert('Error: Save draft function not available. Please refresh the page.');
+                }
+            });
         }
-    });
+    }
+    
+    // Setup when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupSaveDraftButton);
+    } else {
+        setupSaveDraftButton();
+    }
+    
+    // Also setup when form view becomes visible (in case it's hidden initially)
+    const formView = document.getElementById('application-form-view');
+    if (formView) {
+        const observer = new MutationObserver(function(mutations) {
+            if (!formView.classList.contains('hidden')) {
+                setupSaveDraftButton();
+            }
+        });
+        observer.observe(formView, { attributes: true, attributeFilter: ['class'] });
+    }
 
     // Continue Draft Logic (Sidebar)
     document.getElementById('continueDraftBtn')?.addEventListener('click', () => {
@@ -1290,51 +1711,7 @@
         }
     });
 
-    // Sibling modal logic
-    const siblingModal = document.getElementById('siblingModal');
-    const siblingBackdrop = document.getElementById('siblingModalBackdrop');
-
-    window.openSiblingModal = function() {
-        siblingModal.classList.remove('hidden');
-        siblingModal.classList.add('flex');
-        siblingBackdrop.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-    };
-
-    window.closeSiblingModal = function() {
-        siblingModal.classList.add('hidden');
-        siblingModal.classList.remove('flex');
-        siblingBackdrop.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-        clearSiblingModal();
-    };
-
-    function clearSiblingModal() {
-        document.getElementById('modal_sibling_name').value = '';
-        document.getElementById('modal_sibling_age').value = '';
-        document.getElementById('modal_sibling_scholarship').value = '';
-        document.getElementById('modal_sibling_course').value = '';
-        document.getElementById('modal_sibling_status').value = '';
-    }
-
-    window.saveSiblingFromModal = function() {
-        const name = document.getElementById('modal_sibling_name').value.trim();
-        if (!name) {
-            alert('Name is required');
-            return;
-        }
-
-        const siblingData = {
-            name,
-            age: document.getElementById('modal_sibling_age').value,
-            scholarship: document.getElementById('modal_sibling_scholarship').value,
-            course: document.getElementById('modal_sibling_course').value,
-            status: document.getElementById('modal_sibling_status').value,
-        };
-
-        addSibling(siblingData);
-        closeSiblingModal();
-    };
+    // Sibling modal logic - functions are now defined at the top of the script
 
     function updateSiblingLabels() {
         const items = document.querySelectorAll('#siblings-list .sibling-item .sibling-index');
@@ -1345,50 +1722,109 @@
 
     function refreshSiblingState() {
         const list = document.getElementById('siblings-list');
+        if (!list) return;
+        
         const hasItems = list.children.length > 0;
-        document.getElementById('siblings-empty').classList.toggle('hidden', hasItems);
+        let emptyElement = document.getElementById('siblings-empty');
+        
+        // Create the empty element if it doesn't exist
+        if (!emptyElement) {
+            emptyElement = document.createElement('p');
+            emptyElement.id = 'siblings-empty';
+            emptyElement.className = 'p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl';
+            emptyElement.textContent = 'No siblings added yet.';
+            list.appendChild(emptyElement);
+        }
+        
+        emptyElement.classList.toggle('hidden', hasItems);
         updateSiblingLabels();
     }
 
     // Document Upload Logic
     const uploadAllBtn = document.getElementById('upload-all-btn');
     
-    // File selection feedback
-    document.querySelectorAll('.doc-file-input').forEach(input => {
-        input.addEventListener('change', function() {
-            const container = this.closest('.doc-upload-container');
-            const label = container.querySelector('label');
-            const fileNameDisplay = container.querySelector('.file-name-display');
-            const clickText = label.querySelector('p');
-            const icon = label.querySelector('svg');
-
-            if (this.files && this.files[0]) {
-                const file = this.files[0];
-                // Update visual state
-                label.classList.remove('bg-slate-50', 'border-slate-300');
-                label.classList.add('bg-orange-50', 'border-orange-400');
-                
-                // Update text and icon
-                icon.classList.remove('text-slate-400');
-                icon.classList.add('text-orange-500');
-                
-                clickText.innerHTML = `<span class="font-semibold text-orange-700">Selected:</span> ${file.name}`;
-                
-                // Optional: Show file size
-                const size = (file.size / 1024 / 1024).toFixed(2); // MB
-                fileNameDisplay.textContent = `${size} MB`;
-                fileNameDisplay.classList.remove('hidden');
-                    } else {
-                // Reset state
-                label.classList.add('bg-slate-50', 'border-slate-300');
-                label.classList.remove('bg-orange-50', 'border-orange-400');
-                icon.classList.add('text-slate-400');
-                icon.classList.remove('text-orange-500');
-                clickText.innerHTML = `<span class="font-semibold">Click to upload</span> PDF`;
-                fileNameDisplay.classList.add('hidden');
+    // File selection feedback - use event delegation to handle dynamically loaded content
+    function setupFileInputListeners() {
+        document.querySelectorAll('.doc-file-input').forEach(input => {
+            // Check if listener already attached
+            if (input.dataset.listenerAttached === 'true') {
+                return;
             }
+            input.dataset.listenerAttached = 'true';
+            
+            input.addEventListener('change', function() {
+                const container = this.closest('.doc-upload-container');
+                if (!container) {
+                    console.error('Container not found for file input');
+                    return;
+                }
+                
+                const label = container.querySelector('label');
+                // file-name-display is a sibling of doc-upload-container within the same parent
+                const parentContainer = container.parentElement;
+                const fileNameDisplay = parentContainer ? parentContainer.querySelector('.file-name-display') : null;
+                
+                if (!label) {
+                    console.error('Label not found');
+                    return;
+                }
+                
+                const clickText = label.querySelector('p');
+                const icon = label.querySelector('svg');
+
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    // Update visual state
+                    label.classList.remove('bg-slate-50', 'border-slate-300');
+                    label.classList.add('bg-orange-50', 'border-orange-400');
+                    
+                    // Update text and icon
+                    if (icon) {
+                        icon.classList.remove('text-slate-400');
+                        icon.classList.add('text-orange-500');
+                    }
+                    
+                    if (clickText) {
+                        clickText.innerHTML = `<span class="font-semibold text-orange-700">Selected:</span> ${file.name}`;
+                    }
+                    
+                    // Show file name and size
+                    if (fileNameDisplay) {
+                        const size = (file.size / 1024 / 1024).toFixed(2); // MB
+                        fileNameDisplay.textContent = `${file.name} (${size} MB)`;
+                        fileNameDisplay.classList.remove('hidden');
+                    }
+                } else {
+                    // Reset state
+                    label.classList.add('bg-slate-50', 'border-slate-300');
+                    label.classList.remove('bg-orange-50', 'border-orange-400');
+                    if (icon) {
+                        icon.classList.add('text-slate-400');
+                        icon.classList.remove('text-orange-500');
+                    }
+                    if (clickText) {
+                        clickText.innerHTML = `<span class="font-semibold">Click to upload</span> PDF or Image`;
+                    }
+                    if (fileNameDisplay) {
+                        fileNameDisplay.classList.add('hidden');
+                    }
+                }
+            });
         });
-    });
+    }
+    
+    // Setup listeners initially
+    setupFileInputListeners();
+    
+    // Re-setup listeners when step 6 becomes visible (when updateUI is called)
+    const originalUpdateUI = updateUI;
+    updateUI = function() {
+        originalUpdateUI();
+        // If we're on step 6, setup file input listeners
+        if (currentStep === 6) {
+            setTimeout(setupFileInputListeners, 100);
+        }
+    };
 
     if (uploadAllBtn) {
         uploadAllBtn.addEventListener('click', async function() {
@@ -1449,103 +1885,79 @@
         });
     }
 
+
     // Init
-    // Check if we should show the form or hub based on localStorage
+    // Check if we should show the form or hub
     ( function initView() {
-        // New multi-draft keys
-        const DRAFTS_STORAGE_KEY = 'apply_drafts_v2';
-        const CURRENT_DRAFT_KEY = 'apply_current_draft_id';
         const hubView = document.getElementById('application-hub');
         const formView = document.getElementById('application-form-view');
         const draftsContainer = document.getElementById('hub-recent-drafts');
         
         if (!hubView || !formView) return;
 
-        if (!localStorage.getItem(DRAFTS_STORAGE_KEY)) {
-            localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify({}));
-        }
-
-        function getDraftsArray() {
-            const draftsObj = JSON.parse(localStorage.getItem(DRAFTS_STORAGE_KEY) || '{}');
-            return Object.values(draftsObj);
-        }
-
         function renderDraftsList() {
-            const drafts = getDraftsArray().sort((a, b) => new Date(b._timestamp || 0) - new Date(a._timestamp || 0));
+            fetch('/student/drafts', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success && result.drafts) {
+                    const drafts = result.drafts;
+                    
+                    if (drafts.length > 0) {
+                        draftsContainer.innerHTML = drafts.map(draft => {
+                            const timestamp = new Date(draft.updated_at);
+                            const timeStr = timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            const title = draft.name || 'Scholarship Application';
 
-            if (drafts.length > 0) {
-                draftsContainer.innerHTML = drafts.map(draft => {
-                    const timestamp = draft._timestamp ? new Date(draft._timestamp) : new Date();
-                    const timeStr = timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const title = draft._name || 'Scholarship Application';
-
-                    return `
-                    <button type="button" onclick="continueDraft('${draft._id}')" class="flex items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-orange-300 hover:shadow-md transition-all group text-left w-full mb-3">
-                        <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 mr-4 group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            return `
+                            <button type="button" onclick="continueDraft('${draft.id}')" class="flex items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-orange-300 hover:shadow-md transition-all group text-left w-full mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 mr-4 group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-slate-900 text-sm group-hover:text-orange-700 transition-colors">${title}</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Last edited ${timeStr}</p>
+                                </div>
+                                <div class="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
+                                    Open
+                                </div>
+                            </button>
+                            `;
+                        }).join('');
+                    } else {
+                        draftsContainer.innerHTML = `
+                            <div class="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 text-sm">
+                                No recent drafts found
+                            </div>
+                        `;
+                    }
+                } else {
+                    draftsContainer.innerHTML = `
+                        <div class="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 text-sm">
+                            No recent drafts found
                         </div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-slate-900 text-sm group-hover:text-orange-700 transition-colors">${title}</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Last edited ${timeStr}</p>
-                        </div>
-                        <div class="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-                            Open
-                        </div>
-                    </button>
                     `;
-                }).join('');
-            } else {
+                }
+            })
+            .catch(error => {
+                console.error('Error loading drafts:', error);
                 draftsContainer.innerHTML = `
                     <div class="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 text-sm">
-                        No recent drafts found
+                        Error loading drafts
                     </div>
                 `;
-            }
+            });
         }
+        
+        // Expose renderDraftsList globally for returnToHub
+        window.renderDraftsList = renderDraftsList;
 
         renderDraftsList();
-        
-        // Functions for view switching
-        window.startNewApplication = function() {
-            const newDraftId = Date.now().toString();
-            localStorage.setItem('apply_current_draft_id', newDraftId);
-            
-            // Initialize the draft in storage immediately
-            const drafts = JSON.parse(localStorage.getItem(DRAFTS_STORAGE_KEY) || '{}');
-            drafts[newDraftId] = {  
-                _id: newDraftId,
-                _timestamp: new Date().toISOString(),
-                _name: 'Untitled Application'
-            };
-            localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify(drafts));
-            
-            // Trigger form show which will restore (and thus clear) the form for the new ID
-            showForm();
-        };
-
-        window.continueDraft = function(draftId) {
-            if (!draftId) return;
-            localStorage.setItem('apply_current_draft_id', draftId);
-            showForm();
-        };
-
-        window.returnToHub = function() {
-            hubView.classList.remove('hidden');
-            formView.classList.add('hidden');
-            
-            // Re-render drafts list to show any updates
-            renderDraftsList();
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        function showForm() {
-            hubView.classList.add('hidden');
-            formView.classList.remove('hidden');
-            // Trigger restore logic
-            document.dispatchEvent(new Event('apply:restore-draft-needed'));
-            updateUI(); // Ensure correct step is shown
-        }
     })();
 
 </script>

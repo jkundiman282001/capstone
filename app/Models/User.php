@@ -68,10 +68,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(\App\Models\Document::class, 'user_id');
     }
 
-    public function applicantScore()
-    {
-        return $this->hasOne(\App\Models\ApplicantScore::class, 'user_id');
-    }
 
     /**
      * Send the email verification notification using the custom template.

@@ -60,10 +60,42 @@
                         <h2 class="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Applications</h2>
                     </div>
                     <div class="space-y-2">
-                        <a href="{{ route('staff.applicants.list') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.applicants.*') || request()->routeIs('staff.applications.*') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                        <a href="{{ route('staff.applicants.list') }}" class="group block px-5 py-4 rounded-2xl {{ (request()->routeIs('staff.applicants.*') || request()->routeIs('staff.applications.*')) && request()->get('status') !== 'rejected' ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
                             <div class="flex items-center justify-between">
                                 <span class="text-sm tracking-wide">View Applicants</span>
-                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.applicants.*') || request()->routeIs('staff.applications.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                <div class="w-2 h-2 rounded-full {{ (request()->routeIs('staff.applicants.*') || request()->routeIs('staff.applications.*')) && request()->get('status') !== 'rejected' ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
+                        </a>
+                        <a href="{{ route('staff.applicants.list', ['status' => 'rejected']) }}" class="group block px-5 py-4 rounded-2xl {{ request()->get('status') === 'rejected' && request()->get('type') !== 'terminated' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-xl shadow-red-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 border-2 border-slate-200 hover:border-red-300 font-semibold text-slate-700 hover:text-red-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 relative">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm tracking-wide">Rejected Applicants</span>
+                                    @php
+                                        $rejectedCount = \App\Models\BasicInfo::where('application_status', 'rejected')
+                                            ->where(function($query) {
+                                                $query->where('grant_status', '!=', 'grantee')
+                                                      ->orWhereNull('grant_status');
+                                            })->count();
+                                    @endphp
+                                    @if($rejectedCount > 0)
+                                        <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->get('status') === 'rejected' && request()->get('type') !== 'terminated' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-700' }}">{{ $rejectedCount }}</span>
+                                    @endif
+                                </div>
+                                <div class="w-2 h-2 rounded-full {{ request()->get('status') === 'rejected' && request()->get('type') !== 'terminated' ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-red-500' }} transition-colors"></div>
+                            </div>
+                        </a>
+                        <a href="{{ route('staff.applicants.list', ['status' => 'rejected', 'type' => 'terminated']) }}" class="group block px-5 py-4 rounded-2xl {{ request()->get('status') === 'rejected' && request()->get('type') === 'terminated' ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 relative">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm tracking-wide">Terminated Applicants</span>
+                                    @php
+                                        $terminatedCount = \App\Models\BasicInfo::where('application_status', 'rejected')->where('grant_status', 'grantee')->count();
+                                    @endphp
+                                    @if($terminatedCount > 0)
+                                        <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->get('status') === 'rejected' && request()->get('type') === 'terminated' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $terminatedCount }}</span>
+                                    @endif
+                                </div>
+                                <div class="w-2 h-2 rounded-full {{ request()->get('status') === 'rejected' && request()->get('type') === 'terminated' ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
                             </div>
                         </a>
                         <!-- Masterlist Dropdown -->
@@ -197,6 +229,12 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-sm tracking-wide">Download Reports</span>
                                 <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.reports.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
+                        </a>
+                        <a href="{{ route('staff.announcements.index') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.announcements.*') ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-xl shadow-blue-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-300 font-semibold text-slate-700 hover:text-blue-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Announcements</span>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.announcements.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-blue-500' }} transition-colors"></div>
                             </div>
                         </a>
                     </div>

@@ -12,13 +12,15 @@ class ApplicationStatusUpdated extends Notification
     use Queueable;
 
     protected $status;
+    protected $rejectionReason;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($status)
+    public function __construct($status, $rejectionReason = null)
     {
         $this->status = $status;
+        $this->rejectionReason = $rejectionReason;
     }
 
     /**
@@ -38,13 +40,24 @@ class ApplicationStatusUpdated extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $message = '';
+        if ($this->status === 'validated') {
+            $message = 'Congratulations! Your scholarship application has been approved by the admin.';
+        } elseif ($this->status === 'rejected') {
+            $message = 'Your scholarship application has been rejected.';
+            if ($this->rejectionReason) {
+                $message .= ' Reason: ' . $this->rejectionReason;
+            }
+        } else {
+            $message = 'Your scholarship application status has been updated to pending.';
+        }
+        
         return [
             'type' => 'application_status',
             'title' => 'Application Status Updated',
-            'message' => $this->status === 'validated' 
-                ? 'Congratulations! Your scholarship application has been approved by the admin.' 
-                : 'Your scholarship application status has been updated to pending.',
+            'message' => $message,
             'status' => $this->status,
+            'rejection_reason' => $this->rejectionReason,
         ];
     }
 }

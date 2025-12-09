@@ -51,13 +51,14 @@
                     @php
                         $appStatus = $basicInfo->application_status ?? 'pending';
                         $isValidated = $appStatus === 'validated';
+                        $isRejected = $appStatus === 'rejected';
                     @endphp
                     
                     <!-- Status Badge -->
                     <div class="text-right mb-4">
                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Application Status</p>
-                        <div class="px-6 py-3 rounded-2xl {{ $isValidated ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gradient-to-r from-amber-500 to-orange-600' }} shadow-lg">
-                            <p class="text-2xl font-black text-white">{{ $isValidated ? 'Validated' : 'Pending' }}</p>
+                        <div class="px-6 py-3 rounded-2xl {{ $isRejected ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($isValidated ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gradient-to-r from-amber-500 to-orange-600') }} shadow-lg">
+                            <p class="text-2xl font-black text-white">{{ $isRejected ? 'Rejected' : ($isValidated ? 'Validated' : 'Pending') }}</p>
                         </div>
                     </div>
 
@@ -71,10 +72,28 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    @if($isValidated)
+                    @if($isRejected)
+                        <div class="flex flex-col gap-3">
+                            <div class="px-6 py-3 bg-gradient-to-r from-red-100 to-rose-100 text-red-700 font-bold rounded-xl text-sm text-center border-2 border-red-200">
+                                Application Rejected
+                            </div>
+                            <button onclick="updateApplicationStatus('pending')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                Set to Pending
+                            </button>
+                            <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                                Approve Application
+                            </button>
+                        </div>
+                    @elseif($isValidated)
                         <div class="flex flex-col gap-3">
                             <button onclick="updateApplicationStatus('pending')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
                                 Set to Pending
+                            </button>
+                            <button onclick="showApplicationRejectionModal(true)" class="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Terminate
                             </button>
                             @if($basicInfo->type_assist !== 'Pamana')
                                 <button onclick="moveToPamana()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
@@ -123,10 +142,31 @@
                             <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
                                 Approve Application
                             </button>
+                            <button onclick="showApplicationRejectionModal(false)" class="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Reject Application
+                            </button>
                             @if($availableSlots <= 10)
                                 <p class="text-xs text-orange-600 font-bold mt-2 text-center">⚠️ Only {{ number_format($availableSlots) }} slot(s) remaining!</p>
                             @endif
                         @endif
+                    @endif
+                    
+                    <!-- Show rejection reason if application is rejected -->
+                    @if($basicInfo->application_status === 'rejected' && $basicInfo->application_rejection_reason)
+                        <div class="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1">Rejection Reason</p>
+                                    <p class="text-sm text-red-900 leading-relaxed">{{ $basicInfo->application_rejection_reason }}</p>
+                                </div>
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -243,10 +283,6 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         @if($typeKey === 'grades')
-                                            <button onclick="extractGPA({{ $user->id }})" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Extract GPA">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                Extract GPA
-                                            </button>
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA
@@ -270,10 +306,6 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         @if($typeKey === 'grades')
-                                            <button onclick="extractGPA({{ $user->id }})" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Extract GPA">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                Extract GPA
-                                            </button>
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA
@@ -302,10 +334,6 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         @if($typeKey === 'grades')
-                                            <button onclick="extractGPA({{ $user->id }})" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Extract GPA">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                Extract GPA
-                                            </button>
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA
@@ -912,6 +940,103 @@
     </div>
 </div>
 
+<!-- Application Rejection/Termination Modal -->
+<div id="applicationRejectionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden">
+        <div class="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-red-500 to-rose-500">
+            <div>
+                <h3 id="rejectionModalTitle" class="text-xl font-bold text-white">Reject Application</h3>
+                <p id="rejectionModalDescription" class="text-sm text-red-100 mt-1">Provide a reason for rejecting this scholarship application</p>
+            </div>
+            <button onclick="closeApplicationRejectionModal()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="applicationRejectionForm" onsubmit="submitApplicationRejection(event)">
+                <div class="mb-6">
+                    <label for="applicationRejectionReason" class="block text-sm font-bold text-slate-700 mb-2">
+                        <span id="rejectionReasonLabel">Reason for Rejection</span> <span class="text-red-500">*</span>
+                    </label>
+                    
+                    <!-- Predefined Reasons Dropdown -->
+                    <div class="mb-3">
+                        <label for="predefinedReasons" class="block text-xs font-semibold text-slate-600 mb-2">
+                            Select a predefined reason (optional):
+                        </label>
+                        <select 
+                            id="predefinedReasons" 
+                            onchange="applyPredefinedReason(this.value)"
+                            class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm bg-white"
+                        >
+                            <option value="">-- Choose a reason --</option>
+                            <optgroup id="rejectionReasonsGroup" label="Rejection Reasons (Applicant not yet confirmed)">
+                                <option value="Incomplete documentation">Incomplete documentation</option>
+                                <option value="Does not meet eligibility requirements">Does not meet eligibility requirements</option>
+                                <option value="Insufficient academic performance">Insufficient academic performance</option>
+                                <option value="Missing required documents">Missing required documents</option>
+                                <option value="Application submitted after deadline">Application submitted after deadline</option>
+                                <option value="Incomplete personal information">Incomplete personal information</option>
+                                <option value="Does not belong to priority IP group">Does not belong to priority IP group</option>
+                                <option value="Incorrect or falsified information">Incorrect or falsified information</option>
+                                <option value="Does not meet income requirements">Does not meet income requirements</option>
+                                <option value="Other (specify below)">Other (specify below)</option>
+                            </optgroup>
+                            <optgroup id="terminationReasonsGroup" label="Termination Reasons (Confirmed grantee who broke a rule)" style="display: none;">
+                                <option value="Violation of scholarship terms and conditions">Violation of scholarship terms and conditions</option>
+                                <option value="Academic performance below required standards">Academic performance below required standards</option>
+                                <option value="Failure to maintain minimum GPA requirement">Failure to maintain minimum GPA requirement</option>
+                                <option value="Disciplinary action or misconduct">Disciplinary action or misconduct</option>
+                                <option value="Non-compliance with program requirements">Non-compliance with program requirements</option>
+                                <option value="Withdrawal from academic program">Withdrawal from academic program</option>
+                                <option value="Failure to submit required reports">Failure to submit required reports</option>
+                                <option value="Change in eligibility status">Change in eligibility status</option>
+                                <option value="Breach of scholarship agreement">Breach of scholarship agreement</option>
+                                <option value="Other (specify below)">Other (specify below)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <textarea 
+                        id="applicationRejectionReason" 
+                        name="rejection_reason" 
+                        rows="6" 
+                        required
+                        placeholder="Please provide a clear explanation..."
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all text-sm resize-none"
+                    ></textarea>
+                    <p id="rejectionReasonHelp" class="text-xs text-slate-500 mt-2">This feedback will be visible to the student and help them understand why their application was rejected.</p>
+                </div>
+
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="text-xs text-red-800">
+                            <p class="font-bold mb-1">Important:</p>
+                            <ul id="rejectionImportantList" class="list-disc list-inside space-y-1">
+                                <li>Be specific about why the application is being rejected</li>
+                                <li>Suggest what the student needs to do to improve their application</li>
+                                <li>Use clear and respectful language</li>
+                                <li>This action cannot be easily undone</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeApplicationRejectionModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submitApplicationRejectionBtn" class="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <span id="submitButtonText">Reject Application</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Feedback Modal -->
 <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden">
@@ -1317,40 +1442,6 @@ function addToWaiting() {
     });
 }
 
-function extractGPA(userId) {
-    if (!confirm('Extract GPA from the grades document? This may take a few moments.')) {
-        return;
-    }
-
-    const button = event.target.closest('button');
-    const originalText = button.innerHTML;
-    button.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Extracting...';
-    button.disabled = true;
-
-    fetch(`/staff/grades/${userId}`, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`GPA Extracted Successfully!\n\nGPA: ${data.gpa}\nFile Type: ${data.file_type || 'Unknown'}`);
-        } else {
-            alert('Error extracting GPA: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error extracting GPA. Please try again.');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
 
 document.getElementById('documentModal').addEventListener('click', function(e) {
     if (e.target === this) closeDocumentModal();
@@ -1520,11 +1611,149 @@ document.getElementById('manualGPAModal')?.addEventListener('click', function(e)
     if (e.target === this) closeManualGPAModal();
 });
 
+// Application Rejection/Termination Modal Functions
+function showApplicationRejectionModal(isGrantee = false) {
+    const modal = document.getElementById('applicationRejectionModal');
+    const reasonTextarea = document.getElementById('applicationRejectionReason');
+    const modalTitle = document.getElementById('rejectionModalTitle');
+    const modalDescription = document.getElementById('rejectionModalDescription');
+    const reasonLabel = document.getElementById('rejectionReasonLabel');
+    const reasonHelp = document.getElementById('rejectionReasonHelp');
+    const importantList = document.getElementById('rejectionImportantList');
+    const submitButtonText = document.getElementById('submitButtonText');
+    const predefinedReasons = document.getElementById('predefinedReasons');
+    const rejectionReasonsGroup = document.getElementById('rejectionReasonsGroup');
+    const terminationReasonsGroup = document.getElementById('terminationReasonsGroup');
+    
+    reasonTextarea.value = '';
+    predefinedReasons.value = '';
+    
+    if (isGrantee) {
+        // Terminate mode for grantees
+        modalTitle.textContent = 'Terminate Scholarship';
+        modalDescription.textContent = 'Provide a reason for terminating this scholarship grant';
+        reasonLabel.textContent = 'Reason for Termination';
+        reasonTextarea.placeholder = 'Please provide a clear explanation for why this scholarship is being terminated...';
+        reasonHelp.textContent = 'This feedback will be visible to the student and help them understand why their scholarship was terminated.';
+        importantList.innerHTML = `
+            <li>Be specific about why the scholarship is being terminated</li>
+            <li>Use clear and respectful language</li>
+            <li>This action will revoke the student's grantee status</li>
+            <li>This action cannot be easily undone</li>
+        `;
+        submitButtonText.textContent = 'Terminate Scholarship';
+        // Show termination reasons, hide rejection reasons
+        rejectionReasonsGroup.style.display = 'none';
+        terminationReasonsGroup.style.display = 'block';
+    } else {
+        // Reject mode for applicants
+        modalTitle.textContent = 'Reject Application';
+        modalDescription.textContent = 'Provide a reason for rejecting this scholarship application';
+        reasonLabel.textContent = 'Reason for Rejection';
+        reasonTextarea.placeholder = 'Please provide a clear explanation for why this application is being rejected...';
+        reasonHelp.textContent = 'This feedback will be visible to the student and help them understand why their application was rejected.';
+        importantList.innerHTML = `
+            <li>Be specific about why the application is being rejected</li>
+            <li>Suggest what the student needs to do to improve their application</li>
+            <li>Use clear and respectful language</li>
+            <li>This action cannot be easily undone</li>
+        `;
+        submitButtonText.textContent = 'Reject Application';
+        // Show rejection reasons, hide termination reasons
+        rejectionReasonsGroup.style.display = 'block';
+        terminationReasonsGroup.style.display = 'none';
+    }
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus on textarea
+    setTimeout(() => reasonTextarea.focus(), 100);
+}
+
+// Function to apply predefined reason to textarea
+function applyPredefinedReason(reason) {
+    const textarea = document.getElementById('applicationRejectionReason');
+    if (reason && reason !== '') {
+        textarea.value = reason;
+        // If "Other" is selected, clear and focus for custom input
+        if (reason === 'Other (specify below)') {
+            textarea.value = '';
+            textarea.focus();
+        }
+    }
+}
+
+function closeApplicationRejectionModal() {
+    const modal = document.getElementById('applicationRejectionModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('applicationRejectionForm').reset();
+}
+
+function submitApplicationRejection(event) {
+    event.preventDefault();
+    
+    const rejectionReason = document.getElementById('applicationRejectionReason').value.trim();
+    
+    // Client-side validation
+    if (!rejectionReason || rejectionReason.length < 10) {
+        alert('Please provide a detailed rejection reason (at least 10 characters).');
+        document.getElementById('applicationRejectionReason').focus();
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitApplicationRejectionBtn');
+    const submitButtonText = document.getElementById('submitButtonText');
+    const isTerminate = submitButtonText.textContent.includes('Terminate');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ${isTerminate ? 'Terminating...' : 'Rejecting...'}`;
+    submitBtn.disabled = true;
+    
+    fetch('{{ route("staff.applications.update-status", $user->id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+            status: 'rejected',
+            rejection_reason: rejectionReason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeApplicationRejectionModal();
+            alert(isTerminate ? 'Scholarship terminated successfully! The student will be notified.' : 'Application rejected successfully! The student will be notified.');
+            location.reload();
+        } else {
+            const errorMsg = data.message || data.errors?.rejection_reason?.[0] || 'Unknown error';
+            alert(`Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}: ` + errorMsg);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(`Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}. Please try again.`);
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Close modal when clicking outside
+document.getElementById('applicationRejectionModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeApplicationRejectionModal();
+});
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDocumentModal();
         closeFeedbackModal();
         closeManualGPAModal();
+        closeApplicationRejectionModal();
     }
 });
 </script>

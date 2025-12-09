@@ -167,6 +167,7 @@ class DocumentController extends Controller
         $priorityStatistics = $priorityService->getPriorityStatistics();
         
         // Find the student's rank in the prioritized list
+        $priorityScore = null;
         foreach ($prioritizedApplicants as $applicantData) {
             if ($applicantData['user_id'] == $user->id) {
                 $priorityRank = $applicantData['priority_rank'] ?? null;
@@ -185,6 +186,15 @@ class DocumentController extends Controller
                 break;
             }
         }
+        
+        // Count validated applicants who are not grantees yet
+        $validatedNonGranteesCount = \App\Models\BasicInfo::where('application_status', 'validated')
+            ->where(function($q) {
+                $q->whereNull('grant_status')
+                  ->orWhere('grant_status', '!=', 'grantee')
+                  ->orWhere('grant_status', '!=', 'Grantee');
+            })
+            ->count();
 
         return view(
             'student.performance',
@@ -195,7 +205,9 @@ class DocumentController extends Controller
                 'priorityRank',
                 'acceptancePercent',
                 'priorityFactors',
-                'priorityStatistics'
+                'priorityStatistics',
+                'priorityScore',
+                'validatedNonGranteesCount'
             )
         );
     }

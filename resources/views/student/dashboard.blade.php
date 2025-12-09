@@ -208,12 +208,12 @@
 
     <!-- Right Side - Content -->
     <div class="content-section lg:w-1/2 min-h-screen flex items-center p-8 lg:p-12">
-        <div class="w-full max-w-2xl mx-auto space-y-8 slide-in-right">
+        <div class="w-full max-w-2xl mx-auto space-y-6 slide-in-right">
             <!-- Welcome Section -->
-            <div class="space-y-4">
+            <div class="space-y-3 mb-6">
                 <h2 class="text-4xl lg:text-5xl font-black text-slate-900">
-                    Welcome to Your<br/>
-                    <span class="gradient-text">Scholarship Portal</span>
+                    Welcome to<br/>
+                    <span class="gradient-text">NCIP-EAP</span>
                 </h2>
                 <p class="text-lg text-slate-600 leading-relaxed">
                     Receive personalized recommendations and guidance for your academic journey as an Indigenous Youth. Apply, track, and succeed with the NCIP-EAP.
@@ -221,7 +221,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
                 <button 
                     onclick="window.location.href='{{ url('student/apply') }}'" 
                     class="btn-modern text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg relative z-10 flex-1"
@@ -236,19 +236,28 @@
                 </button>
             </div>
 
-            <!-- Quick Stats or Features -->
-            <div class="grid grid-cols-3 gap-4 pt-8">
-                <div class="text-center p-4 rounded-xl bg-gradient-to-br from-orange-50 to-red-50">
-                    <div class="text-3xl font-black gradient-text mb-1">{{ number_format($totalScholars) }}{{ $totalScholars >= 100 ? '+' : '' }}</div>
-                    <div class="text-sm text-slate-600 font-medium">Scholars</div>
+            <!-- Analytics Section -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Slots Left - Prominent -->
+                <div class="rounded-2xl p-5 text-center fade-in col-span-2 mb-2 {{ $stats['isFull'] ? 'bg-red-500/20 border-2 border-red-500/50' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200' }}" style="animation-delay: 0s">
+                    <div class="text-5xl font-black {{ $stats['isFull'] ? 'text-red-600' : 'text-green-600' }} mb-1">
+                        {{ number_format($stats['slotsLeft']) }}
+                    </div>
+                    <div class="text-sm text-slate-700 font-medium mb-0.5">Slots Left</div>
+                    <div class="text-xs text-slate-500">of {{ number_format($stats['maxSlots']) }} maximum</div>
+                    @if($stats['isFull'])
+                        <div class="mt-2 px-3 py-1 bg-red-500/30 rounded-lg text-red-700 text-xs font-bold">
+                            Scholarship Slots Full
+                        </div>
+                    @endif
                 </div>
-                <div class="text-center p-4 rounded-xl bg-gradient-to-br from-orange-50 to-red-50">
-                    <div class="text-3xl font-black gradient-text mb-1">{{ number_format($totalPrograms) }}{{ $totalPrograms >= 50 ? '+' : '' }}</div>
-                    <div class="text-sm text-slate-600 font-medium">Programs</div>
+                <div class="rounded-2xl p-5 text-center fade-in bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200" style="animation-delay: 0.2s">
+                    <div class="text-4xl font-black text-orange-600 mb-1.5">{{ number_format($stats['applicantsApplied']) }}</div>
+                    <div class="text-sm text-slate-700 font-medium">Applicants Applied</div>
                 </div>
-                <div class="text-center p-4 rounded-xl bg-gradient-to-br from-orange-50 to-red-50">
-                    <div class="text-3xl font-black gradient-text mb-1">{{ $supportAvailable }}</div>
-                    <div class="text-sm text-slate-600 font-medium">Support</div>
+                <div class="rounded-2xl p-5 text-center fade-in bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200" style="animation-delay: 0.4s">
+                    <div class="text-4xl font-black text-amber-600 mb-1.5">{{ number_format($stats['applicantsApproved']) }}</div>
+                    <div class="text-sm text-slate-700 font-medium">Applicants Approved</div>
                 </div>
             </div>
         </div>
@@ -332,75 +341,44 @@
         </div>
         
         <!-- Announcements Grid -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Announcement 1 -->
-            <div class="modern-card p-6 group">
-                <div class="flex items-start gap-4 mb-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-lg font-black text-slate-900 mb-2 group-hover:text-cyan-600 transition-colors">Deadline Extended</h3>
-                        <p class="text-sm text-slate-600 leading-relaxed mb-3">The deadline for the Indigenous Youth Scholarship Program has been extended to December 15, 2024.</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-500">2 hours ago</span>
-                            <span class="badge bg-cyan-100 text-cyan-700">Important</span>
+        @if(isset($announcements) && $announcements->count() > 0)
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                @foreach($announcements as $announcement)
+                    <div class="modern-card p-6 group">
+                        @if($announcement->image_path)
+                            <img src="{{ $announcement->image_url }}" alt="{{ $announcement->title }}" class="w-full h-48 object-cover rounded-xl mb-4">
+                        @endif
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br {{ $announcement->priority === 'urgent' ? 'from-red-500 to-rose-600' : ($announcement->priority === 'high' ? 'from-orange-500 to-red-600' : 'from-cyan-500 to-blue-600') }} rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-black text-slate-900 mb-2 group-hover:text-cyan-600 transition-colors">{{ $announcement->title }}</h3>
+                                <p class="text-sm text-slate-600 leading-relaxed mb-3">{{ Str::limit($announcement->content, 120) }}</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-slate-500">{{ $announcement->created_at->diffForHumans() }}</span>
+                                    <span class="badge {{ $announcement->priority === 'urgent' ? 'bg-red-100 text-red-700' : ($announcement->priority === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-cyan-100 text-cyan-700') }}">
+                                        {{ ucfirst($announcement->priority) }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @endforeach
             </div>
-            
-            <!-- Announcement 2 -->
-            <div class="modern-card p-6 group">
-                <div class="flex items-start gap-4 mb-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-lg font-black text-slate-900 mb-2 group-hover:text-green-600 transition-colors">Mentorship Program</h3>
-                        <p class="text-sm text-slate-600 leading-relaxed mb-3">Connect with successful Indigenous professionals through our new mentorship program.</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-500">1 day ago</span>
-                            <span class="badge bg-green-100 text-green-700">New</span>
-                        </div>
-                    </div>
+        @else
+            <div class="text-center py-12 bg-slate-50 rounded-2xl">
+                <div class="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
                 </div>
+                <h3 class="text-slate-900 font-bold text-lg mb-2">No announcements yet</h3>
+                <p class="text-slate-500 text-sm">Check back later for updates and important information.</p>
             </div>
-            
-            <!-- Announcement 3 -->
-            <div class="modern-card p-6 group md:col-span-2 lg:col-span-1">
-                <div class="flex items-start gap-4 mb-4">
-                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-lg font-black text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">System Maintenance</h3>
-                        <p class="text-sm text-slate-600 leading-relaxed mb-3">The portal will be under maintenance on Saturday, December 7th from 2:00 AM to 6:00 AM.</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-500">3 days ago</span>
-                            <span class="badge bg-orange-100 text-orange-700">Maintenance</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- View All Button -->
-        <div class="text-center">
-            <button class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-bold text-lg group transition-colors">
-                View All Announcements
-                <svg class="w-5 h-5 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                </svg>
-            </button>
-        </div>
+        @endif
     </div>
 </section>
 @endsection

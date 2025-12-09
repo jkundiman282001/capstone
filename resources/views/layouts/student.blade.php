@@ -95,30 +95,30 @@
                     </div>
                 </div>
                 
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors">Home</a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Home</a>
                     @auth
                         @php
                             $hasApplied = \App\Models\BasicInfo::where('user_id', auth()->id())->exists();
                         @endphp
-                        <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
+                        <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Profile</a>
                         
                         @if($hasApplied)
-                            <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
+                            <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Performance</a>
                         @else
-                            <button onclick="document.getElementById('performance-lock-overlay')?.classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="text-white/50 hover:text-orange-400 transition-colors cursor-not-allowed flex items-center gap-1">
+                            <button onclick="document.getElementById('performance-lock-overlay')?.classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="text-white/50 hover:text-orange-400 transition-colors cursor-not-allowed flex items-center gap-1 px-2 py-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z"/></svg>
                                 Performance
                             </button>
                         @endif
 
-                        <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
-                        <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
+                        <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Notification</a>
+                        <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Support/Help</a>
                     @else
-                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
-                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
-                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
-                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
+                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Profile</a>
+                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Performance</a>
+                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Notification</a>
+                        <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Support/Help</a>
                     @endauth
                 </div>
                 
@@ -146,36 +146,36 @@
         </div>
         <!-- Mobile Menu -->
         <div x-show="open" @click.away="open = false" class="md:hidden bg-black/90 backdrop-blur-md border-t border-white/10 px-6 py-4">
-            <div class="flex flex-col space-y-4">
-                <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors">Home</a>
+            <div class="flex flex-col gap-4">
+                <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors py-2">Home</a>
                 @auth
                     @php
                         $hasAppliedMobile = \App\Models\BasicInfo::where('user_id', auth()->id())->exists();
                     @endphp
-                    <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
+                    <a href="{{ route('student.profile') }}" class="text-white hover:text-orange-400 transition-colors py-2">Profile</a>
                     
                     @if($hasAppliedMobile)
-                        <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
+                        <a href="{{ route('student.performance') }}" class="text-white hover:text-orange-400 transition-colors py-2">Performance</a>
                     @else
-                        <button onclick="document.getElementById('performance-lock-overlay')?.classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="text-white/50 hover:text-orange-400 transition-colors cursor-not-allowed text-left flex items-center gap-2">
+                        <button onclick="document.getElementById('performance-lock-overlay')?.classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="text-white/50 hover:text-orange-400 transition-colors cursor-not-allowed text-left flex items-center gap-2 py-2">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z"/></svg>
                             Performance (Locked)
                         </button>
                     @endif
 
-                    <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
-                    <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
+                    <a href="{{ route('student.notifications') }}" class="text-white hover:text-orange-400 transition-colors py-2">Notification</a>
+                    <a href="{{ route('student.support') }}" class="text-white hover:text-orange-400 transition-colors py-2">Support/Help</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full text-left px-0 text-orange-400 hover:text-white transition-all">Log Out</button>
+                        <button type="submit" class="w-full text-left text-orange-400 hover:text-white transition-all py-2">Log Out</button>
                     </form>
                 @else
-                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Profile</a>
-                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Performance</a>
-                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Notification</a>
-                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors">Support/Help</a>
-                    <a href="{{ url('/auth') }}" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all">Login</a>
-                    <a href="{{ url('/auth') }}" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 transition-all glow-effect">Sign Up</a>
+                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors py-2">Profile</a>
+                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors py-2">Performance</a>
+                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors py-2">Notification</a>
+                    <a href="{{ url('/auth') }}" class="text-white hover:text-orange-400 transition-colors py-2">Support/Help</a>
+                    <a href="{{ url('/auth') }}" class="px-6 py-2 border border-orange-500 text-orange-400 rounded-lg hover:bg-orange-700 hover:text-white transition-all text-center">Login</a>
+                    <a href="{{ url('/auth') }}" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-700 transition-all glow-effect text-center">Sign Up</a>
                 @endauth
             </div>
         </div>

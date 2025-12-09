@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\BasicInfo;
 use App\Models\Document;
+use App\Models\ApplicationDraft;
 
 class StudentController extends Controller
 {
@@ -15,22 +16,57 @@ class StudentController extends Controller
         // In a real app, fetch the student's application status from DB
         $application = null; // Replace with actual application model if exists
         $hasApplied = false;
+        $applicationStatus = 'pending';
+        $rejectionReason = null;
         
         // Check if user is authenticated
         if ($request->user()) {
             $hasApplied = BasicInfo::where('user_id', $request->user()->id)->exists();
+            
+            // Get application status and rejection reason if exists
+            if ($hasApplied) {
+                $basicInfo = BasicInfo::where('user_id', $request->user()->id)->first();
+                $applicationStatus = $basicInfo->application_status ?? 'pending';
+                $rejectionReason = $basicInfo->application_rejection_reason ?? null;
+            }
         }
 
-        // Get real statistics
-        $totalScholars = BasicInfo::where('application_status', 'validated')->count();
-        $totalPrograms = \App\Models\User::whereNotNull('course')
-            ->select('course')
-            ->distinct()
-            ->get()
+        // Get statistics matching landing page
+        $maxSlots = 120;
+        $validatedCount = BasicInfo::where('application_status', 'validated')->count();
+        $availableSlots = max(0, $maxSlots - $validatedCount);
+        $isFull = $availableSlots === 0;
+        
+        // Count applicants who have applied (have type_assist filled)
+        $applicantsApplied = BasicInfo::whereNotNull('type_assist')->count();
+        
+        // Count applicants who are approved/validated
+        $applicantsApproved = $validatedCount;
+        
+        // Count pending applications (applied but not yet reviewed/approved)
+        $applicantsPending = BasicInfo::whereNotNull('type_assist')
+            ->where(function($query) {
+                $query->whereNull('application_status')
+                      ->orWhere('application_status', 'pending');
+            })
             ->count();
-        $supportAvailable = '24/7'; // Static support availability
+        
+        $stats = [
+            'slotsLeft' => $availableSlots,
+            'applicantsApplied' => $applicantsApplied,
+            'applicantsApproved' => $applicantsApproved,
+            'applicantsPending' => $applicantsPending,
+            'maxSlots' => $maxSlots,
+            'availableSlots' => $availableSlots,
+            'isFull' => $isFull,
+        ];
 
-        return view('student.dashboard', compact('application', 'hasApplied', 'totalScholars', 'totalPrograms', 'supportAvailable'));
+        // Fetch announcements from database
+        $announcements = \App\Models\Announcement::orderBy('created_at', 'desc')
+            ->take(6) // Show latest 6 announcements
+            ->get();
+
+        return view('student.dashboard', compact('application', 'hasApplied', 'applicationStatus', 'rejectionReason', 'announcements', 'stats'));
     }
 
     public function apply(Request $request)
@@ -245,6 +281,182 @@ class StudentController extends Controller
         return redirect()->route('student.dashboard');
     }
 
+    /**
+     * Save application draft
+     */
+    public function saveDraft(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            
+            $request->validate([
+                'draft_id' => 'nullable|exists:application_drafts,id',
+                'name' => 'nullable|string|max:255',
+                'current_step' => 'required|integer|min:1|max:6',
+                'form_data' => 'nullable|array',
+            ]);
+
+            $draftId = $request->input('draft_id');
+            $name = $request->input('name');
+            $formData = $request->input('form_data', []);
+            
+            // Generate name from form data if not provided
+            if (!$name && is_array($formData)) {
+                $firstName = $formData['first_name'] ?? '';
+                $lastName = $formData['last_name'] ?? '';
+                $name = trim($firstName . ' ' . $lastName);
+                $name = $name ?: 'Untitled Application';
+                if ($name !== 'Untitled Application') {
+                    $name .= ' - Scholarship Application';
+                }
+            }
+
+            if ($draftId) {
+                // Update existing draft
+                $draft = ApplicationDraft::where('id', $draftId)
+                    ->where('user_id', $user->id)
+                    ->first();
+
+                if (!$draft) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Draft not found or you do not have permission to update it.',
+                    ], 404);
+                }
+                
+                $draft->update([
+                    'name' => $name,
+                    'current_step' => $request->input('current_step'),
+                    'form_data' => $formData,
+                ]);
+            } else {
+                // Create new draft
+                $draft = ApplicationDraft::create([
+                    'user_id' => $user->id,
+                    'name' => $name,
+                    'current_step' => $request->input('current_step'),
+                    'form_data' => $formData,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'draft' => [
+                    'id' => $draft->id,
+                    'name' => $draft->name,
+                    'current_step' => $draft->current_step,
+                    'updated_at' => $draft->updated_at ? $draft->updated_at->toISOString() : now()->toISOString(),
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error saving draft', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while saving the draft: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all drafts for the current user
+     */
+    public function getDrafts(Request $request)
+    {
+        $user = auth()->user();
+        
+        $drafts = ApplicationDraft::where('user_id', $user->id)
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($draft) {
+                return [
+                    'id' => $draft->id,
+                    'name' => $draft->name,
+                    'current_step' => $draft->current_step,
+                    'updated_at' => $draft->updated_at->toISOString(),
+                    'created_at' => $draft->created_at->toISOString(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'drafts' => $drafts,
+        ]);
+    }
+
+    /**
+     * Get a specific draft
+     */
+    public function getDraft($id, Request $request)
+    {
+        try {
+            $user = auth()->user();
+            
+            $draft = ApplicationDraft::where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$draft) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Draft not found or you do not have permission to access it.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'draft' => [
+                    'id' => $draft->id,
+                    'name' => $draft->name,
+                    'current_step' => $draft->current_step ?? 1,
+                    'form_data' => $draft->form_data ?? [],
+                    'updated_at' => $draft->updated_at ? $draft->updated_at->toISOString() : now()->toISOString(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error loading draft', [
+                'draft_id' => $id,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while loading the draft: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a draft
+     */
+    public function deleteDraft($id, Request $request)
+    {
+        $user = auth()->user();
+        
+        $draft = ApplicationDraft::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $draft->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Draft deleted successfully',
+        ]);
+    }
+
     public function profile(Request $request)
     {
         // In a real app, fetch the student's profile data from DB
@@ -253,72 +465,489 @@ class StudentController extends Controller
         // Check application status from basic_info table
         $basicInfo = $student->basicInfo;
         $applicationStatus = $basicInfo ? ($basicInfo->application_status ?? 'pending') : 'pending';
+        $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? null) : null;
 
-        return view('student.profile', compact('student', 'applicationStatus'));
+        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason'));
     }
 
     public function performance(Request $request)
     {
         $student = Auth::user(); // Get the authenticated user
         $basicInfo = \App\Models\BasicInfo::where('user_id', $student->id)->first();
-        return view('student.performance', compact('student', 'basicInfo'));
+        
+        // Acceptance chance calculation moved to view
+        $priorityRank = null;
+        $priorityFactors = [];
+        $priorityStatistics = [];
+        
+        // Get masterlist: validated applicants who are not yet grantees (waiting list)
+        // Masterlist = validated applicants (approved) who are waiting for grant (not yet grantees)
+        $masterlistApplicants = \App\Models\User::with([
+            'basicInfo',
+            'ethno',
+            'documents',
+            'basicInfo.schoolPref'
+        ])
+        ->whereHas('basicInfo', function($query) {
+            $query->where('application_status', 'validated')
+                  ->where(function($q) {
+                      $q->whereNull('grant_status')
+                        ->orWhere('grant_status', '!=', 'grantee');
+                  });
+        })
+        ->get();
+        
+        // Get student's application status
+        $studentApplicationStatus = $basicInfo ? ($basicInfo->application_status ?? null) : null;
+        $studentGrantStatus = $basicInfo ? ($basicInfo->grant_status ?? null) : null;
+        $isStudentValidated = ($studentApplicationStatus === 'validated');
+        // Handle case variations and whitespace for grant_status
+        $isStudentGrantee = $studentGrantStatus && strtolower(trim($studentGrantStatus)) === 'grantee';
+        $isStudentInMasterlist = $isStudentValidated && !$isStudentGrantee;
+        
+        // Initialize student priority score
+        $studentPriorityScore = null;
+        
+        // Check if student has documents uploaded (indicator they've applied)
+        $hasDocuments = $student->documents()->exists();
+        
+        // Calculate priority factors for display (if student has applied OR is validated OR has documents)
+        // Also check if basicInfo exists OR student has documents
+        if (($basicInfo && ($basicInfo->type_assist || $isStudentValidated)) || $hasDocuments) {
+            $student->load(['ethno', 'documents', 'basicInfo.schoolPref']);
+            
+            // Get priority factors
+            $priorityService = new \App\Services\ApplicantPriorityService();
+            $priorityFactors = [
+                'is_priority_ethno' => $this->checkPriorityEthno($student),
+                'is_priority_course' => $this->checkPriorityCourse($student),
+                'has_approved_tribal_cert' => $student->documents()->where('type', 'tribal_certificate')->where('status', 'approved')->exists(),
+                'has_approved_income_tax' => $student->documents()->where('type', 'income_document')->where('status', 'approved')->exists(),
+                'has_approved_grades' => $student->documents()->where('type', 'grades')->where('status', 'approved')->exists(),
+                'has_all_other_requirements' => $this->checkAllOtherRequirements($student),
+            ];
+            
+            // Calculate student's priority score for weighted lottery
+            $studentPriorityScore = $this->calculateStudentPriorityScore($student, $priorityService);
+        }
+        
+        // ============================================
+        // ACCEPTANCE CHANCE CALCULATION
+        // ============================================
+        // Improved calculation that handles cases where slots > applicants
+        // Uses applicants waiting for approval (validated but not yet grantees)
+        // Rules:
+        // 1. If student is a grantee → 100%
+        // 2. If slots_left >= total_applicants_waiting:
+        //    - If validated: 95% (high but not 100% due to remaining uncertainty)
+        //    - If not validated: 85% (lower due to validation requirement)
+        // 3. Otherwise → (slots_left / total_applicants_waiting) * 100
+        // ============================================
+        
+        // Initialize acceptance chance
+        $acceptanceChance = 0.0;
+        
+        // Step 1: Get basic information
+        $maxSlots = 120;
+        // Use case-insensitive comparison to count grantees
+        $granteesCount = BasicInfo::where('application_status', 'validated')
+            ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+            ->count();
+        $slotsLeft = max(0, $maxSlots - $granteesCount);
+        
+        // Step 2: Count total applicants waiting for approval (validated but not yet grantees)
+        // This represents applicants who are in the queue waiting for grant approval
+        // Exclude grantees by checking that grant_status is not 'grantee' or 'Grantee'
+        // Use case-insensitive comparison and handle NULL values
+        
+        // First, get all validated applicants with their grant_status for debugging
+        $allValidatedApplicants = BasicInfo::where('application_status', 'validated')
+            ->with('user:id,first_name,last_name')
+            ->get(['id', 'user_id', 'application_status', 'grant_status']);
+        
+        // Log all validated applicants for debugging
+        \Log::info('All validated applicants:', [
+            'total' => $allValidatedApplicants->count(),
+            'applicants' => $allValidatedApplicants->map(function($app) {
+                return [
+                    'user_id' => $app->user_id,
+                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'grant_status' => $app->grant_status,
+                    'grant_status_lower' => $app->grant_status ? strtolower(trim($app->grant_status)) : 'NULL'
+                ];
+            })->toArray()
+        ]);
+        
+        // Count applicants waiting (not grantees)
+        // Method: Count all validated, then subtract grantees (more reliable)
+        $allValidatedCount = BasicInfo::where('application_status', 'validated')->count();
+        
+        // Try multiple ways to count grantees to debug
+        $granteesCountMethod1 = BasicInfo::where('application_status', 'validated')
+            ->where(function($q) {
+                $q->where('grant_status', 'grantee')
+                  ->orWhere('grant_status', 'Grantee');
+            })
+            ->count();
+        
+        // Try case-insensitive approach
+        $granteesCountMethod2 = BasicInfo::where('application_status', 'validated')
+            ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+            ->count();
+        
+        // Get all grant_status values for debugging
+        $allGrantStatuses = BasicInfo::where('application_status', 'validated')
+            ->whereNotNull('grant_status')
+            ->pluck('grant_status')
+            ->toArray();
+        
+        // Use the case-insensitive method
+        $granteesCountForWaiting = $granteesCountMethod2;
+        $totalApplicantsWaiting = $allValidatedCount - $granteesCountForWaiting;
+        
+        // Debug logging
+        \Log::info('Total Applicants Waiting Calculation:', [
+            'all_validated_count' => $allValidatedCount,
+            'grantees_count_method1' => $granteesCountMethod1,
+            'grantees_count_method2' => $granteesCountMethod2,
+            'grantees_count_used' => $granteesCountForWaiting,
+            'total_applicants_waiting' => $totalApplicantsWaiting,
+            'calculation' => "{$allValidatedCount} - {$granteesCountForWaiting} = {$totalApplicantsWaiting}",
+            'all_grant_statuses' => $allGrantStatuses,
+            'all_validated_applicants' => $allValidatedApplicants->map(function($app) {
+                return [
+                    'user_id' => $app->user_id,
+                    'grant_status' => $app->grant_status,
+                    'grant_status_lower' => $app->grant_status ? strtolower(trim($app->grant_status)) : 'NULL'
+                ];
+            })->toArray()
+        ]);
+        
+        // Get the actual applicants waiting for debugging
+        // Simple approach: get all validated, exclude grantees using whereNotIn
+        $applicantsWaiting = BasicInfo::where('application_status', 'validated')
+            ->where(function($q) {
+                // Include NULL or values not in ['grantee', 'Grantee']
+                $q->whereNull('grant_status')
+                  ->orWhereNotIn('grant_status', ['grantee', 'Grantee']);
+            })
+            ->with('user:id,first_name,last_name')
+            ->get(['id', 'user_id', 'application_status', 'grant_status']);
+        
+        \Log::info('Applicants waiting for approval (not grantees):', [
+            'total' => $totalApplicantsWaiting,
+            'applicants' => $applicantsWaiting->map(function($app) {
+                return [
+                    'user_id' => $app->user_id,
+                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'grant_status' => $app->grant_status,
+                ];
+            })->toArray()
+        ]);
+        
+        // Set priority statistics for display (calculation will be done in the view)
+        $priorityStatistics = [
+            'total_applicants' => $totalApplicantsWaiting, // Total applicants waiting for approval (validated but not yet grantees)
+            'slots_left' => $slotsLeft,
+            'grantees_count' => $granteesCount,
+            'max_slots' => $maxSlots,
+            'is_student_validated' => $isStudentValidated,
+            'student_grant_status' => $studentGrantStatus,
+            // Debug data: applicants waiting for approval
+            'applicants_waiting_debug' => $applicantsWaiting->map(function($app) {
+                return [
+                    'user_id' => $app->user_id,
+                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'grant_status' => $app->grant_status ?? 'NULL',
+                ];
+            })->toArray(),
+            // Debug data: all validated applicants
+            'all_validated_debug' => $allValidatedApplicants->map(function($app) {
+                return [
+                    'user_id' => $app->user_id,
+                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'grant_status' => $app->grant_status ?? 'NULL',
+                ];
+            })->toArray(),
+        ];
+        
+        // Calculate rank if student is in masterlist
+        if ($isStudentInMasterlist) {
+            $priorityService = new \App\Services\ApplicantPriorityService();
+            $studentScore = $studentPriorityScore ?? 0;
+            $rank = 1;
+            
+            foreach ($masterlistApplicants as $applicant) {
+                if ($applicant->id === $student->id) {
+                    continue; // Skip self
+                }
+                $applicantScore = $this->calculateStudentPriorityScore($applicant, $priorityService);
+                if ($applicantScore > $studentScore) {
+                    $rank++;
+                }
+            }
+            
+            $priorityRank = $rank;
+        }
+        
+        // Get documents for the view
+        $documents = $student->documents ?? collect();
+        $requiredTypes = [
+            'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
+            'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
+            'tribal_certificate' => 'Certificate of Tribal Membership/Certificate of Confirmation COC',
+            'endorsement' => 'Endorsement of the IPS/IP Traditional Leaders',
+            'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
+            'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
+        ];
+        
+        return view('student.performance', compact(
+            'student', 
+            'basicInfo', 
+            'priorityRank', 
+            'priorityFactors',
+            'priorityStatistics',
+            'documents',
+            'requiredTypes'
+        ));
+    }
+    
+    /**
+     * Calculate student's priority score
+     */
+    private function calculateStudentPriorityScore($student, $priorityService): float
+    {
+        try {
+            $reflection = new \ReflectionClass($priorityService);
+            
+            // Get IP rubric score
+            $ipRubricMethod = $reflection->getMethod('calculateIpRubricScore');
+            $ipRubricMethod->setAccessible(true);
+            $ipRubricScore = $ipRubricMethod->invoke($priorityService, $student);
+            
+            // Get course check
+            $getCourseMethod = $reflection->getMethod('getApplicantCourse');
+            $getCourseMethod->setAccessible(true);
+            $courseName = $getCourseMethod->invoke($priorityService, $student);
+            
+            $isPriorityCourseMethod = $reflection->getMethod('isPriorityCourse');
+            $isPriorityCourseMethod->setAccessible(true);
+            $isPriorityCourse = $isPriorityCourseMethod->invoke($priorityService, $courseName);
+            
+            // Check documents
+            $hasTribalMethod = $reflection->getMethod('hasApprovedTribalCertificate');
+            $hasTribalMethod->setAccessible(true);
+            $hasApprovedTribalCert = $hasTribalMethod->invoke($priorityService, $student);
+            
+            $hasIncomeMethod = $reflection->getMethod('hasApprovedIncomeTax');
+            $hasIncomeMethod->setAccessible(true);
+            $hasApprovedIncomeTax = $hasIncomeMethod->invoke($priorityService, $student);
+            
+            $hasGradesMethod = $reflection->getMethod('hasApprovedGrades');
+            $hasGradesMethod->setAccessible(true);
+            $hasApprovedGrades = $hasGradesMethod->invoke($priorityService, $student);
+            
+            $hasOtherMethod = $reflection->getMethod('hasAllOtherRequirements');
+            $hasOtherMethod->setAccessible(true);
+            $hasAllOtherRequirements = $hasOtherMethod->invoke($priorityService, $student);
+            
+            // Calculate priority score
+            $calculateMethod = $reflection->getMethod('calculatePriorityScore');
+            $calculateMethod->setAccessible(true);
+            return $calculateMethod->invoke(
+                $priorityService,
+                $ipRubricScore,
+                $isPriorityCourse,
+                $hasApprovedTribalCert,
+                $hasApprovedIncomeTax,
+                $hasApprovedGrades,
+                $hasAllOtherRequirements
+            );
+        } catch (\Exception $e) {
+            return 0.0;
+        }
+    }
+    
+    /**
+     * Check if student is in priority ethno group
+     */
+    private function checkPriorityEthno($student): bool
+    {
+        $ethnicity = optional($student->ethno)->ethnicity ?? null;
+        if (!$ethnicity) return false;
+        
+        $priorityGroups = ["b'laan", 'bagobo', 'kalagan', 'kaulo'];
+        return in_array(strtolower(trim($ethnicity)), $priorityGroups, true);
+    }
+    
+    /**
+     * Check if student's course is priority
+     */
+    private function checkPriorityCourse($student): bool
+    {
+        $basicInfo = $student->basicInfo;
+        $schoolPref = $basicInfo?->schoolPref;
+        $courseName = $schoolPref->degree ?? $schoolPref->degree2 ?? $student->course ?? null;
+        
+        if (!$courseName) return false;
+        
+        $priorityCourses = [
+            'Agriculture', 'Aqua-Culture and Fisheries', 'Anthropology',
+            'Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)',
+            'Civil Engineering', 'Community Development', 'Criminology', 'Education',
+            'Foreign Service', 'Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)',
+            'Geodetic Engineering', 'Geology', 'Law',
+            'Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)',
+            'Mechanical Engineering', 'Mining Engineering', 'Social Sciences (AB courses)', 'Social Work',
+        ];
+        
+        $courseName = trim($courseName);
+        return in_array($courseName, $priorityCourses, true);
+    }
+    
+    /**
+     * Check if student has all other requirements
+     */
+    private function checkAllOtherRequirements($student): bool
+    {
+        $otherRequiredTypes = ['birth_certificate', 'endorsement', 'good_moral'];
+        $approvedDocs = $student->documents()
+            ->whereIn('type', $otherRequiredTypes)
+            ->where('status', 'approved')
+            ->get();
+        
+        $hasBirthCert = $approvedDocs->where('type', 'birth_certificate')->isNotEmpty();
+        $hasEndorsement = $approvedDocs->where('type', 'endorsement')->isNotEmpty();
+        $hasGoodMoral = $approvedDocs->where('type', 'good_moral')->isNotEmpty();
+        
+        return $hasBirthCert && $hasEndorsement && $hasGoodMoral;
+    }
+    
+    /**
+     * Calculate acceptance chance using weighted-lottery (probabilistic) method
+     * 
+     * Implementation: Approximation with replacement
+     * 
+     * Formula:
+     * 1. Weight: w_i = score_i / sum(all scores)
+     * 2. Chance: Chance_i ≈ 1 - (1 - w_i)^S
+     * 
+     * Where S = number of slots remaining
+     * 
+     * This gives each applicant a probability based on their priority score
+     * relative to all other applicants' scores. Higher scores = higher probability.
+     * 
+     * @param float $studentScore The applicant's priority score
+     * @param array $allScores Array of all applicants' priority scores
+     * @param int $slotsLeft Number of slots remaining
+     * @return float Acceptance chance percentage (0-100)
+     */
+    private function calculateWeightedLotteryChance(float $studentScore, array $allScores, int $slotsLeft): float
+    {
+        // If no slots left, chance is 0
+        if ($slotsLeft <= 0) {
+            return 0.0;
+        }
+        
+        // If student has no score, chance is 0
+        if ($studentScore <= 0) {
+            return 0.0;
+        }
+        
+        // Calculate sum of all scores
+        $totalScoreSum = array_sum($allScores);
+        
+        // Avoid division by zero
+        if ($totalScoreSum <= 0) {
+            return 0.0;
+        }
+        
+        // Step 1: Calculate weight (w_i = score_i / sum(all scores))
+        $weight = $studentScore / $totalScoreSum;
+        
+        // Ensure weight is between 0 and 1
+        $weight = max(0.0, min(1.0, $weight));
+        
+        // Step 2: Calculate chance using approximation formula
+        // Chance_i ≈ 1 - (1 - w_i)^S
+        // Where S = slots_left
+        $chance = 1 - pow(1 - $weight, $slotsLeft);
+        
+        // Convert to percentage and ensure it's between 0 and 100
+        $chancePercent = $chance * 100;
+        
+        return round(max(0.0, min(100.0, $chancePercent)), 2);
     }
 
     public function notifications(Request $request)
     {
-        // In a real app, fetch the student's notifications from DB
-        $student = Auth::user(); // Get the authenticated user
+        $student = Auth::user();
         
-        // Mock notification data - in real app, fetch from database
-        $notifications = [
-            [
-                'id' => 1,
-                'type' => 'application_status',
-                'title' => 'Application Status Updated',
-                'message' => 'Your scholarship application has been reviewed and is currently under evaluation.',
-                'is_read' => false,
-                'created_at' => now()->subHours(2),
-                'priority' => 'high'
-            ],
-            [
-                'id' => 2,
-                'type' => 'requirement_reminder',
-                'title' => 'Document Required',
-                'message' => 'Please submit your Certificate of Low Income within 7 days to complete your application.',
-                'is_read' => false,
-                'created_at' => now()->subDays(1),
-                'priority' => 'urgent'
-            ],
-            [
-                'id' => 3,
-                'type' => 'general',
-                'title' => 'Welcome to IP Scholar Portal',
-                'message' => 'Thank you for joining the IP Scholar Portal. We\'re here to support your academic journey!',
-                'is_read' => true,
-                'created_at' => now()->subDays(3),
-                'priority' => 'normal'
-            ],
-            [
-                'id' => 4,
-                'type' => 'deadline',
-                'title' => 'Application Deadline Reminder',
-                'message' => 'The scholarship application deadline is approaching. Please ensure all requirements are submitted.',
-                'is_read' => false,
-                'created_at' => now()->subDays(2),
-                'priority' => 'high'
-            ],
-            [
-                'id' => 5,
-                'type' => 'system',
-                'title' => 'System Maintenance Notice',
-                'message' => 'The portal will be under maintenance on Saturday from 2:00 AM to 6:00 AM.',
-                'is_read' => true,
-                'created_at' => now()->subDays(4),
-                'priority' => 'normal'
-            ]
-        ];
+        // Fetch real notifications from database
+        $notifications = $student->notifications()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($notification) {
+                $data = $notification->data;
+                return [
+                    'id' => $notification->id,
+                    'type' => $data['type'] ?? 'general',
+                    'title' => $data['title'] ?? 'Notification',
+                    'message' => $data['message'] ?? '',
+                    'is_read' => $notification->read_at !== null,
+                    'created_at' => $notification->created_at,
+                    'priority' => $data['priority'] ?? 'normal',
+                    'rejection_reason' => $data['rejection_reason'] ?? null,
+                ];
+            });
         
         return view('student.notifications', compact('student', 'notifications'));
+    }
+    
+    public function markNotificationAsRead($id)
+    {
+        try {
+            $user = Auth::user();
+            $notification = $user->notifications()->where('id', $id)->first();
+            
+            if ($notification && !$notification->read_at) {
+                $notification->markAsRead();
+                return response()->json(['success' => true]);
+            }
+            
+            return response()->json(['success' => false, 'message' => 'Notification not found or already read'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'An error occurred'], 500);
+        }
+    }
+    
+    public function markAllNotificationsAsRead()
+    {
+        try {
+            $user = Auth::user();
+            $user->unreadNotifications->markAsRead();
+            
+            return response()->json(['success' => true, 'message' => 'All notifications marked as read']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'An error occurred'], 500);
+        }
+    }
+    
+    public function deleteNotification($id)
+    {
+        try {
+            $user = Auth::user();
+            $notification = $user->notifications()->where('id', $id)->first();
+            
+            if ($notification) {
+                $notification->delete();
+                return response()->json(['success' => true, 'message' => 'Notification deleted']);
+            }
+            
+            return response()->json(['success' => false, 'message' => 'Notification not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'An error occurred'], 500);
+        }
     }
 
     public function support(Request $request)
@@ -363,9 +992,30 @@ class StudentController extends Controller
             'last_name' => 'required|string|max:255',
             'contact_num' => 'required|string|max:20',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'current_year_level' => 'nullable|string|in:1st,2nd,3rd,4th,5th',
         ]);
 
-        $user->update($validated);
+        $user->update([
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'],
+            'last_name' => $validated['last_name'],
+            'contact_num' => $validated['contact_num'],
+            'email' => $validated['email'],
+        ]);
+
+        // Update or create basic_info record for current_year_level
+        $basicInfo = $user->basicInfo;
+        if ($basicInfo) {
+            $basicInfo->update([
+                'current_year_level' => $validated['current_year_level'] ?? null,
+            ]);
+        } else {
+            // Create basic_info if it doesn't exist
+            \App\Models\BasicInfo::create([
+                'user_id' => $user->id,
+                'current_year_level' => $validated['current_year_level'] ?? null,
+            ]);
+        }
 
         return back()->with('success', 'Profile updated successfully!');
     }

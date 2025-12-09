@@ -83,8 +83,16 @@
                 <span class="text-3xl font-black text-slate-900">{{ $applicants->total() }}</span>
                 <span class="text-sm font-medium text-slate-500">applicants found</span>
             </div>
+            <div class="flex items-center gap-4">
             <div class="text-xs font-medium text-slate-500">
                 Showing {{ $applicants->firstItem() ?? 0 }}-{{ $applicants->lastItem() ?? 0 }}
+                </div>
+                @if(isset($masterlistType) && $masterlistType === 'Regular Grantees')
+                    <button onclick="openGranteesReport()" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        View Report
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -99,12 +107,16 @@
                             @php
                                 $appStatus = $applicant->basicInfo->application_status ?? 'pending';
                                 $isValidated = $appStatus === 'validated';
+                                $isRejected = $appStatus === 'rejected';
                             @endphp
                             <div class="absolute top-3 left-3">
-                                <span class="{{ $isValidated ? 'bg-emerald-500' : 'bg-amber-500' }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
+                                <span class="{{ $isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500') }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
                                     @if($isValidated)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         Validated
+                                    @elseif($isRejected)
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        Rejected
                                     @else
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         Pending
@@ -218,6 +230,87 @@
     </div>
 </div>
 
+<!-- Grantees Report Modal -->
+<div id="granteesReportModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[95vw] max-h-[90vh] flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-t-2xl">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-white/20 rounded-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white">Grantees Report</h2>
+                    <p class="text-sm text-white/90">Excel-style grid view of all grantee applicants</p>
+                </div>
+            </div>
+            <button onclick="closeGranteesReport()" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Modal Body - Excel-like Grid -->
+        <div class="flex-1 overflow-auto p-6 bg-slate-50">
+            <div id="reportLoading" class="flex items-center justify-center py-20">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
+                    <p class="text-slate-600 font-medium">Loading grantees data...</p>
+                </div>
+            </div>
+            <div id="reportContent" class="hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse" style="min-width: 2400px;">
+                            <thead class="bg-gradient-to-r from-emerald-700 to-green-800 sticky top-0 z-10">
+                                <!-- First row with main headers -->
+                                <tr>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
+                                    <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GENDER</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
+                                    <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">SCHOOL</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">COURSE</th>
+                                    <th colspan="5" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">YEAR</th>
+                                    <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GRANTS</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">REMARKS/STATUS</th>
+                                </tr>
+                                <!-- Second row with sub-headers -->
+                                <tr>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">F</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">M</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Private</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Public</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">1st</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">2nd</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">3rd</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">4th</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">5th</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">1st Sem</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">2nd Sem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="bg-white">
+                                <!-- Data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-sm text-slate-600">
+                    <span id="reportCount" class="font-medium"></span>
+                    <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export to CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -259,6 +352,253 @@
                     });
             }
         });
+    });
+
+    let granteesData = [];
+
+    function openGranteesReport() {
+        const modal = document.getElementById('granteesReportModal');
+        const loading = document.getElementById('reportLoading');
+        const content = document.getElementById('reportContent');
+        const tableBody = document.getElementById('reportTableBody');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        loading.classList.remove('hidden');
+        content.classList.add('hidden');
+        tableBody.innerHTML = '';
+
+        // Get current filter values
+        const params = new URLSearchParams();
+        const province = document.getElementById('province-filter')?.value;
+        const municipality = document.getElementById('municipality-filter')?.value;
+        const barangay = document.getElementById('barangay-filter')?.value;
+        const ethno = document.getElementById('ethno-filter')?.value;
+
+        if (province) params.append('province', province);
+        if (municipality) params.append('municipality', municipality);
+        if (barangay) params.append('barangay', barangay);
+        if (ethno) params.append('ethno', ethno);
+
+        fetch(`{{ route('staff.grantees.report') }}?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    granteesData = data.grantees;
+                    renderReportTable(data.grantees);
+                    loading.classList.add('hidden');
+                    content.classList.remove('hidden');
+                } else {
+                    alert('Error loading report data');
+                    closeGranteesReport();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading report data');
+                closeGranteesReport();
+            });
+    }
+
+    function closeGranteesReport() {
+        const modal = document.getElementById('granteesReportModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function renderReportTable(grantees) {
+        const tableBody = document.getElementById('reportTableBody');
+        const reportCount = document.getElementById('reportCount');
+        
+        reportCount.textContent = `Total Grantees: ${grantees.length}`;
+
+        if (grantees.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
+                        No grantees found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = grantees.map((grantee, index) => {
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+            
+            // Format address and AD Reference
+            const addressLine = [
+                grantee.province || '',
+                grantee.municipality || '',
+                grantee.barangay || '',
+                grantee.ad_reference || ''
+            ].filter(Boolean).join(', ');
+            
+            // Gender checkboxes (using exact values from form: "Male" or "Female")
+            const isFemale = grantee.is_female || false;
+            const isMale = grantee.is_male || false;
+            
+            // School type checkboxes
+            const isPrivate = grantee.is_private || false;
+            const isPublic = grantee.is_public || false;
+            
+            // Year level checkboxes (using boolean flags from controller)
+            const is1st = grantee.is_1st || false;
+            const is2nd = grantee.is_2nd || false;
+            const is3rd = grantee.is_3rd || false;
+            const is4th = grantee.is_4th || false;
+            const is5th = grantee.is_5th || false;
+            
+            return `
+                <tr class="${rowClass} hover:bg-blue-50 transition-colors">
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${addressLine}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.contact_email || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.batch || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${grantee.no || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.name || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.age || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.ethnicity || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPrivate ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPublic ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.course || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is1st ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is2nd ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is3rd ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is4th ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is5th ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.grant_1st_sem || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.grant_2nd_sem || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.remarks || ''}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function exportToCSV() {
+        if (granteesData.length === 0) {
+            alert('No data to export');
+            return;
+        }
+
+        // CSV Headers matching the grid table view structure
+        const headers = [
+            'Province, Municipality, Barangay, AD Reference No.',
+            'Contact Number/Email',
+            'BATCH',
+            'NO',
+            'NAME',
+            'AGE',
+            'GENDER',
+            'IP GROUP',
+            'SCHOOL (Private)',
+            'SCHOOL (Public)',
+            'COURSE',
+            'YEAR',
+            'GRANTS (1st Sem)',
+            'GRANTS (2nd Sem)',
+            'REMARKS/STATUS'
+        ];
+
+        // CSV Rows - matching the grid table view format
+        const rows = granteesData.map(grantee => {
+            // Format address and AD Reference (combined like in table)
+            const addressLine = [
+                grantee.province || '',
+                grantee.municipality || '',
+                grantee.barangay || '',
+                grantee.ad_reference || ''
+            ].filter(Boolean).join(', ');
+            
+            // Gender - combine F and M into single value
+            const isFemale = grantee.is_female || false;
+            const isMale = grantee.is_male || false;
+            let genderValue = '';
+            if (isFemale && isMale) {
+                genderValue = 'F, M';
+            } else if (isFemale) {
+                genderValue = 'F';
+            } else if (isMale) {
+                genderValue = 'M';
+            }
+            
+            // Year - combine all year levels into single value
+            const is1st = grantee.is_1st || false;
+            const is2nd = grantee.is_2nd || false;
+            const is3rd = grantee.is_3rd || false;
+            const is4th = grantee.is_4th || false;
+            const is5th = grantee.is_5th || false;
+            const yearLevels = [];
+            if (is1st) yearLevels.push('1st');
+            if (is2nd) yearLevels.push('2nd');
+            if (is3rd) yearLevels.push('3rd');
+            if (is4th) yearLevels.push('4th');
+            if (is5th) yearLevels.push('5th');
+            const yearValue = yearLevels.join(', ');
+            
+            return [
+                addressLine,
+                grantee.contact_email || '',
+                grantee.batch || '',
+                grantee.no || '',
+                grantee.name || '',
+                grantee.age || '',
+                genderValue,
+                grantee.ethnicity || '',
+                grantee.is_private ? '✓' : '',
+                grantee.is_public ? '✓' : '',
+                grantee.course || '',
+                yearValue,
+                grantee.grant_1st_sem || '',
+                grantee.grant_2nd_sem || '',
+                grantee.remarks || ''
+            ];
+        });
+
+        // Escape CSV values
+        function escapeCSV(value) {
+            if (value === null || value === undefined) return '';
+            const stringValue = String(value);
+            // Always wrap in quotes for consistency and to handle special characters
+            return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+
+        // Create CSV content with UTF-8 BOM for Excel compatibility
+        const csvContent = [
+            headers.map(escapeCSV).join(','),
+            ...rows.map(row => row.map(escapeCSV).join(','))
+        ].join('\r\n'); // Use \r\n for better Windows/Excel compatibility
+
+        // Add UTF-8 BOM for Excel to recognize special characters correctly
+        const BOM = '\uFEFF';
+        const csvWithBOM = BOM + csvContent;
+
+        // Create blob and download
+        const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.setAttribute('download', `Grantees_Report_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Close modal on outside click
+    document.getElementById('granteesReportModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeGranteesReport();
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGranteesReport();
+        }
     });
 
 </script>

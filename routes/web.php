@@ -58,11 +58,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('student.performance');
         
     Route::get('/student/notifications', [StudentController::class, 'notifications'])->name('student.notifications');
+    Route::post('/student/notifications/{id}/mark-read', [StudentController::class, 'markNotificationAsRead'])->name('student.notifications.mark-read');
+    Route::post('/student/notifications/mark-all-read', [StudentController::class, 'markAllNotificationsAsRead'])->name('student.notifications.mark-all-read');
+    Route::delete('/student/notifications/{id}', [StudentController::class, 'deleteNotification'])->name('student.notifications.delete');
     Route::get('/student/support', [StudentController::class, 'support'])->name('student.support');
     Route::post('/student/apply', [StudentController::class, 'apply'])->name('student.apply');
     Route::post('/student/update-profile-pic', [StudentController::class, 'updateProfilePic'])->name('student.update-profile-pic');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
+    
+    // Application Draft Routes
+    Route::post('/student/drafts', [StudentController::class, 'saveDraft'])->name('student.drafts.save');
+    Route::get('/student/drafts', [StudentController::class, 'getDrafts'])->name('student.drafts.list');
+    Route::get('/student/drafts/{id}', [StudentController::class, 'getDraft'])->name('student.drafts.get');
+    Route::delete('/student/drafts/{id}', [StudentController::class, 'deleteDraft'])->name('student.drafts.delete');
     Route::get('/student/apply', function() {
         $ethnicities = \App\Models\Ethno::all();
         $barangays = \App\Models\Address::query()->select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
@@ -111,12 +120,6 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/grades/{user}', [StaffDashboardController::class, 'extractGrades'])->name('staff.grades.extract');
     Route::post('/staff/users/{user}/update-gpa', [StaffDashboardController::class, 'updateGPA'])->name('staff.users.update-gpa');
     
-    // Scoring system routes
-    Route::post('/staff/scores/calculate-all', [StaffDashboardController::class, 'calculateAllScores'])->name('staff.scores.calculate-all');
-    Route::get('/staff/scores/top-priority', [StaffDashboardController::class, 'getTopPriorityApplicants'])->name('staff.scores.top-priority');
-    Route::get('/staff/scores/statistics', [StaffDashboardController::class, 'getScoringStatistics'])->name('staff.scores.statistics');
-    Route::post('/staff/scores/calculate/{user}', [StaffDashboardController::class, 'calculateApplicantScore'])->name('staff.scores.calculate');
-    
     // Document priority routes (First Come, First Serve)
     Route::post('/staff/documents/recalculate-priorities', [StaffDashboardController::class, 'recalculateDocumentPriorities'])->name('staff.documents.recalculate-priorities');
     Route::get('/staff/documents/prioritized', [StaffDashboardController::class, 'getPrioritizedDocuments'])->name('staff.documents.prioritized');
@@ -135,6 +138,11 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/masterlist/regular/grantees', [StaffDashboardController::class, 'masterlistRegularGrantees'])->name('staff.masterlist.regular.grantees');
     Route::get('/staff/masterlist/regular/waiting', [StaffDashboardController::class, 'masterlistRegularWaiting'])->name('staff.masterlist.regular.waiting');
     Route::get('/staff/masterlist/pamana', [StaffDashboardController::class, 'masterlistPamana'])->name('staff.masterlist.pamana');
+    Route::get('/staff/grantees/report', [StaffDashboardController::class, 'granteesReport'])->name('staff.grantees.report');
+    
+    // Announcements routes
+    Route::get('/staff/announcements', [StaffDashboardController::class, 'announcements'])->name('staff.announcements.index');
+    Route::post('/staff/announcements', [StaffDashboardController::class, 'storeAnnouncement'])->name('staff.announcements.store');
 });
 
 // Geographic API Routes (Public)

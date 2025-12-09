@@ -15,8 +15,98 @@
 
 @php
     $priorityFactors = $priorityFactors ?? [];
-    $acceptancePercent = $acceptancePercent ?? null;
-    $acceptancePercentDisplay = max(0, min(100, $acceptancePercent ?? 0));
+    
+    // Get slots information from controller (priorityStatistics)
+    $slotsLeft = $priorityStatistics['slots_left'] ?? null;
+    // Total applicants waiting for approval (validated but not yet grantees)
+    $totalApplicants = $priorityStatistics['total_applicants'] ?? 0;
+    $granteesCount = $priorityStatistics['grantees_count'] ?? 0;
+    $maxSlots = $priorityStatistics['max_slots'] ?? 120;
+    $studentGrantStatus = $priorityStatistics['student_grant_status'] ?? null;
+    
+    // Check validation status: prioritize basicInfo directly, then fallback to priorityStatistics
+    $isStudentValidated = false;
+    if (isset($basicInfo) && $basicInfo && $basicInfo->application_status) {
+        $isStudentValidated = (strtolower(trim((string)$basicInfo->application_status)) === 'validated');
+    } elseif (isset($priorityStatistics['is_student_validated'])) {
+        $isStudentValidated = (bool)$priorityStatistics['is_student_validated'];
+    }
+    
+    // ============================================
+    // ACCEPTANCE CHANCE CALCULATION (in view)
+    // ============================================
+    // Improved calculation that handles cases where slots > applicants
+    // Uses applicants waiting for approval (validated but not yet grantees)
+    // Rules:
+    // 1. If student is a grantee → 100%
+    // 2. If slots_left >= total_applicants_waiting:
+    //    - If validated: 95% (high but not 100% due to remaining uncertainty)
+    //    - If not validated: 85% (lower due to validation requirement)
+    // 3. Otherwise → (slots_left / total_applicants_waiting) * 100
+    // ============================================
+    
+    // Initialize acceptance chance
+    $acceptanceChance = null;
+    
+    // Check if student is a grantee (handle case variations)
+    // Check both from priorityStatistics and directly from basicInfo
+    $grantStatusFromBasicInfo = isset($basicInfo) && $basicInfo ? ($basicInfo->grant_status ?? null) : null;
+    $isGrantee = ($studentGrantStatus && strtolower(trim((string)$studentGrantStatus)) === 'grantee') 
+                 || ($grantStatusFromBasicInfo && strtolower(trim((string)$grantStatusFromBasicInfo)) === 'grantee');
+    
+    // Calculate acceptance chance
+    try {
+        // CASE 1: Student is a grantee → set to null (will show "Grantee" instead)
+        if ($isGrantee) {
+            $acceptanceChance = null; // Don't show percentage, show "Grantee" instead
+        }
+        // CASE 2: If validated but not yet grantee, calculate based on slots left and total applicants waiting
+        // Use $isStudentValidated (which now includes fallback check from basicInfo)
+        elseif ($isStudentValidated && !$isGrantee) {
+            if ($slotsLeft <= 0) {
+                // No slots available
+                $acceptanceChance = 0.0;
+            } elseif ($totalApplicants > 0) {
+                // Simple ratio calculation: (slots_left / total_applicants_waiting) * 100
+                $acceptanceChance = ($slotsLeft / $totalApplicants) * 100;
+                $acceptanceChance = round($acceptanceChance, 2);
+                $acceptanceChance = min(100.0, max(0.0, $acceptanceChance));
+            } else {
+                // No applicants waiting for approval yet
+                $acceptanceChance = 0.0;
+            }
+        }
+        // CASE 3: Not validated yet
+        else {
+            $acceptanceChance = null; // Don't show percentage if not validated
+        }
+        
+        // Final validation: ensure it's always a number between 0 and 100 or null
+        if ($acceptanceChance !== null) {
+            if (!is_numeric($acceptanceChance) || $acceptanceChance < 0) {
+                $acceptanceChance = 0.0;
+            }
+            if ($acceptanceChance > 100) {
+                $acceptanceChance = 100.0;
+            }
+        }
+        
+    } catch (\Exception $e) {
+        // Log error and default to null (will show "Not available yet")
+        \Log::error('Error calculating acceptance chance in view', [
+            'student_id' => auth()->id(),
+            'error' => $e->getMessage(),
+            'grant_status' => $studentGrantStatus,
+            'is_grantee' => $isGrantee,
+            'slots_left' => $slotsLeft,
+            'total_applicants_waiting' => $totalApplicants
+        ]);
+        $acceptanceChance = null;
+    }
+    
+    // Legacy chance percentage calculation (kept for backward compatibility)
+    $chancePercentage = $acceptanceChance;
+    
     $studentPriorityBreakdown = [
         ['label' => 'Priority IP group', 'weight' => '30%', 'met' => $priorityFactors['is_priority_ethno'] ?? false],
         ['label' => 'Priority course', 'weight' => '25%', 'met' => $priorityFactors['is_priority_course'] ?? false],
@@ -27,130 +117,272 @@
     ];
 @endphp
 
-<!-- Academic Performance Header -->
-<section
-  class="bg-gradient-to-r from-orange-700 to-orange-500 rounded-lg text-white px-8 py-8 flex flex-col md:flex-row md:items-center md:justify-between">
-  <div>
-    <h2 class="text-3xl font-bold leading-tight">Academic Performance</h2>
-    <p class="mt-1 text-orange-200 text-sm">Track your progress and maintain scholarship eligibility</p>
-  </div>
-  <div class="mt-6 md:mt-0 text-right">
-    <p class="font-bold text-lg">Current Semester</p>
-    <p class="text-2xl font-extrabold tracking-tight">Fall 2024</p>
-  </div>
-</section>
-
-<!-- Priority Rank Container -->
-<section class="bg-gradient-to-br from-orange-100 to-amber-100 rounded-lg shadow-lg border-2 border-orange-300 p-6 space-y-6">
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div class="flex items-center gap-4">
-      <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-xl font-bold text-orange-900">Application Priority Rank</h3>
-        <p class="text-sm text-orange-700 mt-1">Your position in the scholarship applicant queue</p>
-      </div>
-    </div>
-    <div class="text-center md:text-right">
-      @if(isset($priorityRank) && $priorityRank)
-        <div class="inline-block">
-          <p class="text-sm font-semibold text-orange-700 mb-1">Current Rank</p>
-          <div class="bg-white rounded-xl px-8 py-4 shadow-lg border-2 border-orange-400">
-            <p class="text-5xl font-extrabold text-orange-600">#{{ $priorityRank }}</p>
+<!-- Performance Dashboard -->
+<div class="mb-8">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+    <!-- Priority Rank Card -->
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 px-6 py-5">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+            </svg>
           </div>
-          <p class="text-xs text-orange-600 mt-2 font-medium">
-            In applicant queue
-            @if(($priorityStatistics['total_applicants'] ?? 0) > 0)
-              <span class="text-orange-500/80">• {{ $priorityStatistics['total_applicants'] }} total applicants</span>
+          <div>
+            <h3 class="text-lg font-bold text-white">Priority Rank</h3>
+            <p class="text-xs text-orange-100">Your position in queue</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-6">
+        @if(isset($priorityRank) && $priorityRank)
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 border-4 border-orange-300 mb-4">
+              <span class="text-5xl font-black text-orange-600">#{{ $priorityRank }}</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-700 mb-1">Out of {{ $priorityStatistics['total_applicants'] ?? 0 }} applicants</p>
+            @if(isset($slotsLeft) && $slotsLeft !== null)
+              <p class="text-xs text-slate-500">{{ number_format($slotsLeft) }} slots available</p>
             @endif
-          </p>
-        </div>
-      @else
-        <div class="inline-block">
-          <p class="text-sm font-semibold text-orange-700 mb-1">Current Rank</p>
-          <div class="bg-white rounded-xl px-8 py-4 shadow-lg border-2 border-orange-300">
-            <p class="text-2xl font-bold text-orange-500">Not yet ranked</p>
           </div>
-          <p class="text-xs text-orange-600 mt-2 font-medium">Complete application to be ranked</p>
-        </div>
-      @endif
-    </div>
-  </div>
-
-  <!-- Acceptance Likelihood -->
-  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Scholarship acceptance likelihood</p>
-        <p class="mt-2 text-4xl font-bold text-slate-900">
-          @if(!is_null($acceptancePercent))
-            {{ $acceptancePercentDisplay }}%
-          @else
-            Pending
-          @endif
-        </p>
-        <p class="text-sm text-slate-600 mt-2">
-          Based on the same priority weights staff apply (Priority IP 30%, Courses 25%, Tribal Documents 20%, Income Tax 15%, Academics 5%, Other Requirements 5%).
-        </p>
-        @if(is_null($acceptancePercent))
-          <p class="mt-3 text-sm font-semibold text-amber-600">Submit and have your documents approved to generate your percentage.</p>
+        @else
+          <div class="text-center py-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 mb-4">
+              <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <p class="text-lg font-semibold text-slate-600 mb-1">Not yet ranked</p>
+            <p class="text-xs text-slate-500">Complete application to be ranked</p>
+          </div>
         @endif
       </div>
-      <div class="w-full max-w-md">
-        <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
-          <span>Completion progress</span>
-          @if(isset($priorityRank) && $priorityRank)
-            <span>#{{ $priorityRank }} in queue</span>
-          @else
-            <span>Rank pending</span>
-          @endif
+    </div>
+
+    <!-- Chance Percentage Card -->
+    @php
+        // Check if student is a grantee - check multiple sources
+        $isGranteeCheck = false;
+        
+        // Check 1: From basicInfo directly (most reliable)
+        if (isset($basicInfo) && $basicInfo && $basicInfo->grant_status) {
+            $grantStatusValue = strtolower(trim((string)$basicInfo->grant_status));
+            if ($grantStatusValue === 'grantee') {
+                $isGranteeCheck = true;
+            }
+        }
+        
+        // Check 2: From priorityStatistics
+        if (!$isGranteeCheck && $studentGrantStatus && strtolower(trim((string)$studentGrantStatus)) === 'grantee') {
+            $isGranteeCheck = true;
+        }
+        
+        // Check 3: From the calculated $isGrantee variable
+        if (!$isGranteeCheck && isset($isGrantee) && $isGrantee) {
+            $isGranteeCheck = true;
+        }
+        
+        // Use the calculated acceptance chance from the calculation above
+        // But if student is a grantee, set to null to show "Grantee" instead
+        $displayChance = $isGranteeCheck ? null : $acceptanceChance;
+    @endphp
+    @if($displayChance !== null || $isGranteeCheck)
+    <div class="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl shadow-xl border-2 border-green-200 overflow-hidden">
+      <div class="bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 px-6 py-5">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Scholarship Acceptance Chance</h3>
+            <p class="text-xs text-green-100">
+              @if($isGranteeCheck)
+                Your scholarship grant status
+              @else
+                Your probability of receiving the scholarship
+              @endif
+            </p>
+          </div>
         </div>
-        <div class="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-sky-400 via-indigo-500 to-blue-600 transition-all duration-500" style="width: {{ $acceptancePercentDisplay }}%;"></div>
+      </div>
+      <div class="p-6">
+        <div class="text-center">
+          @if($isGranteeCheck)
+            <!-- Show "Grantee" instead of percentage -->
+            <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 border-4 border-green-300 mb-4 shadow-lg">
+              <div class="text-center">
+                <span class="text-2xl font-black text-green-600 block leading-tight">Grantee</span>
+              </div>
+            </div>
+            <p class="text-sm font-semibold text-slate-700 mb-3">
+              Congratulations! You are a scholarship grantee.
+            </p>
+          @else
+            <!-- Show percentage for non-grantees -->
+            <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 border-4 border-green-300 mb-4 shadow-lg">
+              <div class="text-center">
+                <span class="text-5xl font-black text-green-600 block leading-none">{{ number_format($displayChance, 1) }}</span>
+                <span class="text-xl font-bold text-green-600">%</span>
+              </div>
+            </div>
+            <p class="text-sm font-semibold text-slate-700 mb-3">
+              @if($displayChance >= 80)
+                Excellent chance! You're in a strong position.
+              @elseif($displayChance >= 50)
+                Good chance! Keep up the good work.
+              @elseif($displayChance >= 30)
+                Moderate chance. Continue improving your application.
+              @elseif($displayChance > 0)
+                Lower chance. Focus on completing all requirements.
+              @else
+                No slots available at the moment.
+              @endif
+            </p>
+          @endif
+          @if(isset($priorityStatistics) && !$isGranteeCheck)
+            <div class="mt-4 pt-4 border-t border-green-200 space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-600">Available Slots:</span>
+                <span class="font-bold text-green-700">{{ number_format($priorityStatistics['slots_left'] ?? 0) }}</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-600">Total Applicants Waiting for Approval:</span>
+                <span class="font-bold text-slate-700">{{ number_format($priorityStatistics['total_applicants'] ?? 0) }}</span>
+              </div>
+              @if(isset($priorityStatistics['grantees_count']))
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-600">Current Grantees:</span>
+                  <span class="font-bold text-slate-700">{{ number_format($priorityStatistics['grantees_count']) }}</span>
+                </div>
+              @endif
+            </div>
+          @endif
+          
+          <!-- Debug Section: Show applicants data -->
+          @if(isset($priorityStatistics['applicants_waiting_debug']) && config('app.debug'))
+            <div class="mt-4 pt-4 border-t border-green-200">
+              <details class="text-xs">
+                <summary class="cursor-pointer text-slate-500 hover:text-slate-700 font-semibold mb-2">Debug: Applicants Waiting for Approval</summary>
+                <div class="mt-2 space-y-1 bg-slate-50 p-3 rounded-lg">
+                  <div class="font-bold text-slate-700 mb-2">Total Count: {{ count($priorityStatistics['applicants_waiting_debug']) }}</div>
+                  @foreach($priorityStatistics['applicants_waiting_debug'] as $app)
+                    <div class="text-slate-600">
+                      • {{ $app['name'] }} (ID: {{ $app['user_id'] }}) - Grant Status: <span class="font-semibold">{{ $app['grant_status'] }}</span>
+                    </div>
+                  @endforeach
+                </div>
+              </details>
+              <details class="text-xs mt-2">
+                <summary class="cursor-pointer text-slate-500 hover:text-slate-700 font-semibold mb-2">Debug: All Validated Applicants</summary>
+                <div class="mt-2 space-y-1 bg-slate-50 p-3 rounded-lg">
+                  <div class="font-bold text-slate-700 mb-2">Total Count: {{ count($priorityStatistics['all_validated_debug']) }}</div>
+                  @foreach($priorityStatistics['all_validated_debug'] as $app)
+                    <div class="text-slate-600">
+                      • {{ $app['name'] }} (ID: {{ $app['user_id'] }}) - Grant Status: <span class="font-semibold">{{ $app['grant_status'] }}</span>
+                    </div>
+                  @endforeach
+                </div>
+              </details>
+            </div>
+          @endif
         </div>
       </div>
     </div>
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      @foreach($studentPriorityBreakdown as $factor)
-        @php
-          $isBinaryStatus = in_array($factor['label'], ['Priority IP group', 'Priority course']);
-          $statusLabel = $factor['met']
-              ? 'Met'
-              : ($isBinaryStatus ? 'Not met' : 'Pending');
-        @endphp
-        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+    @else
+    <!-- Placeholder if no chance data -->
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-br from-slate-400 to-slate-500 px-6 py-5">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
           <div>
-            <p class="text-sm font-semibold text-slate-800">{{ $factor['label'] }}</p>
-            <p class="text-xs text-slate-500">{{ $factor['weight'] }} weight</p>
+            <h3 class="text-lg font-bold text-white">Scholarship Acceptance Chance</h3>
+            <p class="text-xs text-slate-100">Your probability of receiving the scholarship</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="text-center py-6">
+          <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 mb-4">
+            <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <p class="text-sm font-semibold text-slate-600 mb-1">Not available yet</p>
+          <p class="text-xs text-slate-500">Complete your application to see your chance</p>
+        </div>
+      </div>
+    </div>
+    @endif
+  </div>
+</div>
+
+<!-- Priority Factors Section -->
+<div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
+  <div class="mb-6">
+    <h3 class="text-xl font-bold text-slate-800 mb-2">Priority Factors</h3>
+    <p class="text-sm text-slate-600">Factors that influence your scholarship priority ranking</p>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    @foreach($studentPriorityBreakdown as $factor)
+      @php
+        $isBinaryStatus = in_array($factor['label'], ['Priority IP group', 'Priority course']);
+        $statusLabel = $factor['met']
+            ? 'Met'
+            : ($isBinaryStatus ? 'Not met' : 'Pending');
+      @endphp
+      <div class="group relative bg-gradient-to-br from-slate-50 to-white rounded-xl border-2 
+        @if($factor['met']) border-green-200 hover:border-green-300
+        @elseif($statusLabel === 'Not met') border-red-200 hover:border-red-300
+        @else border-amber-200 hover:border-amber-300
+        @endif p-5 transition-all hover:shadow-lg">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <p class="font-bold text-slate-800 mb-1">{{ $factor['label'] }}</p>
+            <p class="text-xs text-slate-500 font-medium">{{ $factor['weight'] }} weight</p>
           </div>
           @if($factor['met'])
-            <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-              {{ $statusLabel }}
-            </span>
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
           @else
-            @if($statusLabel === 'Not met')
-              <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <div class="flex-shrink-0 w-10 h-10 rounded-full 
+              @if($statusLabel === 'Not met') bg-red-100
+              @else bg-amber-100
+              @endif flex items-center justify-center">
+              @if($statusLabel === 'Not met')
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
-                {{ $statusLabel }}
-              </span>
-            @else
-              <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3" /></svg>
-                {{ $statusLabel }}
-              </span>
-            @endif
+              @else
+                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3"></path>
+                </svg>
+              @endif
+            </div>
           @endif
         </div>
-      @endforeach
-    </div>
-  </section>
-</section>
+        <div class="mt-3 pt-3 border-t border-slate-200">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+            @if($factor['met']) bg-green-100 text-green-700
+            @elseif($statusLabel === 'Not met') bg-red-100 text-red-700
+            @else bg-amber-100 text-amber-700
+            @endif">
+            {{ $statusLabel }}
+          </span>
+        </div>
+      </div>
+    @endforeach
+  </div>
+</div>
 <!-- Show Type of Assistance if application is complete -->
 @if(isset($basicInfo) && $basicInfo)
         <div class="max-w-7xl mx-auto px-6 pt-6">

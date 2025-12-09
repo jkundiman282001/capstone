@@ -255,8 +255,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="font-black text-slate-900 text-lg">Scholars per Barangay</h2>
-                    <p class="text-xs text-slate-500 font-medium">Top 10 barangays by applicant count</p>
+                    <h2 class="font-black text-slate-900 text-lg">{{ $barChartLabel ?? 'Scholars per Barangay' }}</h2>
+                    <p class="text-xs text-slate-500 font-medium">{{ $barChartDescription ?? 'Top 10 barangays by applicant count' }}</p>
                 </div>
             </div>
             <div class="h-80">

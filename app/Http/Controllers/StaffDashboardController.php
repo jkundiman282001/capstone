@@ -9,10 +9,10 @@ use App\Models\BasicInfo;
 use App\Models\Address;
 use App\Models\Document;
 use App\Models\Ethno;
-use App\Models\ApplicantScore;
-use App\Services\ApplicantScoringService;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class StaffDashboardController extends Controller
 {
@@ -66,20 +66,43 @@ class StaffDashboardController extends Controller
         $activeScholars = $users->where('basicInfo.type_assist', '!=', null)->count();
         $inactiveScholars = $totalScholars - $activeScholars;
 
-        // Get scholars per barangay for chart
-        $scholarsPerBarangay = $users->groupBy(function($user) {
-            return optional(optional(optional($user->basicInfo)->fullAddress)->address)->barangay ?? 'Unknown';
-        })->map->count()->sortDesc()->take(10);
+        // Get scholars per municipality, barangay, or IP Group for chart
+        // Dynamic chart based on selected filter level
+        if ($selectedBarangay) {
+            // Show IP Groups when barangay filter is selected
+            $scholarsPerLocation = $users->groupBy(function($user) {
+                return optional($user->ethno)->ethnicity ?? 'Not Specified';
+            })->map->count()->sortDesc()->take(10);
+            
+            $barChartLabel = 'Scholars per IP Group';
+            $barChartDescription = 'Top 10 IP groups by applicant count';
+        } elseif ($selectedMunicipality) {
+            // Show barangays when municipality filter is selected
+            $scholarsPerLocation = $users->groupBy(function($user) {
+                return optional(optional(optional($user->basicInfo)->fullAddress)->address)->barangay ?? 'Unknown';
+            })->map->count()->sortDesc()->take(10);
+            
+            $barChartLabel = 'Scholars per Barangay';
+            $barChartDescription = 'Top 10 barangays by applicant count';
+        } else {
+            // Default: Show municipalities
+            $scholarsPerLocation = $users->groupBy(function($user) {
+                return optional(optional(optional($user->basicInfo)->fullAddress)->address)->municipality ?? 'Unknown';
+            })->map->count()->sortDesc()->take(10);
+            
+            $barChartLabel = 'Scholars per Municipality';
+            $barChartDescription = 'Top 10 municipalities by applicant count';
+        }
 
         $barChartData = [
-            'labels' => $scholarsPerBarangay->keys()->toArray(),
+            'labels' => $scholarsPerLocation->keys()->toArray(),
             'datasets' => [[
-                'label' => 'Scholars per Barangay',
+                'label' => $barChartLabel,
                 'backgroundColor' => 'rgba(99, 102, 241, 0.8)',
                 'borderColor' => 'rgba(99, 102, 241, 1)',
                 'borderWidth' => 2,
                 'borderRadius' => 8,
-                'data' => $scholarsPerBarangay->values()->toArray()
+                'data' => $scholarsPerLocation->values()->toArray()
             ]]
         ];
 
@@ -208,7 +231,8 @@ class StaffDashboardController extends Controller
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
             'prioritizedDocuments', 'priorityStatistics',
             'overallCoursePrioritization', 'courseStatistics',
-            'prioritizedApplicants', 'applicantPriorityStatistics'
+            'prioritizedApplicants', 'applicantPriorityStatistics',
+            'barChartLabel', 'barChartDescription'
         ));
     }
 
@@ -310,7 +334,6 @@ class StaffDashboardController extends Controller
             'basicInfo.fullAddress.address', 
             'ethno', 
             'documents',
-            'applicantScore',
             'basicInfo.education',
             'basicInfo.family.ethno',
             'basicInfo.siblings',
@@ -400,13 +423,28 @@ class StaffDashboardController extends Controller
         $selectedPriority = $request->get('priority');
 
         // Build query for applicants - Exclude validated applicants (they appear in masterlist)
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
-            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+        // Exclude rejected applicants by default (they only appear when status=rejected filter is used)
+        // Exclude grantees from regular list (they appear in grantees list)
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus) {
                 // Exclude validated applicants - they should only appear in masterlist
-                $query->where(function($q) {
-                    $q->where('application_status', '!=', 'validated')
-                      ->orWhereNull('application_status');
-                });
+                // Exclude rejected applicants by default (unless specifically filtering for rejected)
+                // Exclude grantees - they should only appear in grantees list
+                if ($selectedStatus !== 'rejected') {
+                    $query->where(function($q) {
+                        $q->where(function($subQ) {
+                            $subQ->where('application_status', '!=', 'validated')
+                                 ->where('application_status', '!=', 'rejected');
+                        })->orWhereNull('application_status');
+                    })
+                    ->where(function($q) {
+                        // Exclude grantees (handle case variations)
+                        $q->where(function($subQ) {
+                            $subQ->where('grant_status', '!=', 'grantee')
+                                 ->where('grant_status', '!=', 'Grantee');
+                        })->orWhereNull('grant_status');
+                    });
+                }
                 
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
@@ -438,28 +476,29 @@ class StaffDashboardController extends Controller
                 $applicantsQuery->whereHas('basicInfo', function($query) {
                     $query->whereNull('type_assist');
                 });
+            } elseif ($selectedStatus === 'rejected') {
+                // When filtering for rejected, check if we want terminated (grantees) or regular rejected
+                $terminatedType = $request->get('type');
+                if ($terminatedType === 'terminated') {
+                    // Show only terminated applicants (rejected grantees)
+                    $applicantsQuery->whereHas('basicInfo', function($query) {
+                        $query->where('application_status', 'rejected')
+                              ->where('grant_status', 'grantee');
+                    });
+                } else {
+                    // Show only regular rejected applicants (not grantees)
+                    $applicantsQuery->whereHas('basicInfo', function($query) {
+                        $query->where('application_status', 'rejected')
+                              ->where(function($q) {
+                                  $q->where('grant_status', '!=', 'grantee')
+                                    ->orWhereNull('grant_status');
+                              });
+                    });
+                }
             }
         }
 
-        // Apply priority filtering
-        if ($selectedPriority) {
-            $applicantsQuery->whereHas('applicantScore', function($query) use ($selectedPriority) {
-                switch ($selectedPriority) {
-                    case 'high':
-                        $query->where('total_score', '>=', 80);
-                        break;
-                    case 'medium':
-                        $query->whereBetween('total_score', [60, 79]);
-                        break;
-                    case 'low':
-                        $query->whereBetween('total_score', [40, 59]);
-                        break;
-                    case 'very_low':
-                        $query->where('total_score', '<', 40);
-                        break;
-                }
-            });
-        }
+        // Priority filtering removed - using ApplicantPriorityService instead
 
         $applicants = $applicantsQuery->paginate(20);
 
@@ -866,9 +905,23 @@ class StaffDashboardController extends Controller
         $user = User::findOrFail($userId);
         $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
         
-        $validated = $request->validate([
-            'status' => 'required|in:pending,validated'
-        ]);
+        // Validate based on status
+        $status = $request->input('status');
+        
+        if ($status === 'rejected') {
+            $validated = $request->validate([
+                'status' => 'required|in:pending,validated,rejected',
+                'rejection_reason' => 'required|string|min:10|max:1000'
+            ], [
+                'rejection_reason.required' => 'Please provide a reason for rejection.',
+                'rejection_reason.min' => 'Rejection reason must be at least 10 characters long.'
+            ]);
+        } else {
+            $validated = $request->validate([
+                'status' => 'required|in:pending,validated,rejected',
+                'rejection_reason' => 'nullable|string|max:1000'
+            ]);
+        }
         
         // Check slot availability when validating
         if ($validated['status'] === 'validated') {
@@ -889,16 +942,52 @@ class StaffDashboardController extends Controller
             }
         }
         
-        $basicInfo->update([
+        // Determine if this is a rejection or termination
+        // Termination: Applicant was validated (confirmed) and is a grantee
+        // Rejection: Applicant was NOT validated (not confirmed) yet
+        $isTermination = ($basicInfo->application_status === 'validated' && $basicInfo->grant_status === 'grantee');
+        $isRejection = ($basicInfo->application_status !== 'validated' || $basicInfo->grant_status !== 'grantee');
+        
+        // Prepare update data
+        $updateData = [
             'application_status' => $validated['status']
-        ]);
+        ];
+        
+        // Handle rejection/termination logic
+        if ($validated['status'] === 'rejected') {
+            // If status is rejected, save the rejection_reason (trimmed)
+            $updateData['application_rejection_reason'] = trim($validated['rejection_reason']);
+            
+            // IMPORTANT: Distinguish between rejection and termination
+            if ($isTermination) {
+                // TERMINATION: Applicant was a confirmed grantee who broke a rule
+                // Keep grant_status as 'grantee' to identify them as terminated (not just rejected)
+                // This allows us to filter terminated applicants separately
+                // Do NOT change grant_status - keep it as 'grantee'
+            } else {
+                // REJECTION: Applicant was not yet confirmed/validated
+                // Ensure grant_status is NOT 'grantee' (should be null or not set)
+                // This ensures they appear in "Rejected Applicants" not "Terminated Applicants"
+                if ($basicInfo->grant_status === 'grantee') {
+                    // This shouldn't happen, but if it does, clear it
+                    $updateData['grant_status'] = null;
+                }
+            }
+        } else {
+            // Clear rejection_reason if status is changed to approved or pending
+            $updateData['application_rejection_reason'] = null;
+        }
+        
+        $basicInfo->update($updateData);
         
         // Send notification to user
-        $user->notify(new \App\Notifications\ApplicationStatusUpdated($validated['status']));
+        $user->notify(new \App\Notifications\ApplicationStatusUpdated($validated['status'], $updateData['application_rejection_reason'] ?? null));
+        
+        $message = $isTermination ? 'Scholarship terminated successfully' : 'Application rejected successfully';
         
         return response()->json([
             'success' => true,
-            'message' => 'Application status updated successfully'
+            'message' => $message
         ]);
     }
 
@@ -1106,82 +1195,6 @@ class StaffDashboardController extends Controller
         ], 404);
     }
 
-    /**
-     * Calculate scores for all applicants
-     */
-    public function calculateAllScores()
-    {
-        try {
-            $scoringService = new ApplicantScoringService();
-            $results = $scoringService->calculateAllApplicantScores();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Scores calculated successfully for ' . count($results) . ' applicants',
-                'results' => $results
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error calculating scores: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get top priority applicants
-     */
-    public function getTopPriorityApplicants(Request $request)
-    {
-        $limit = $request->get('limit', 10);
-        $scoringService = new ApplicantScoringService();
-        $topApplicants = $scoringService->getTopPriorityApplicants($limit);
-        
-        return response()->json([
-            'success' => true,
-            'applicants' => $topApplicants
-        ]);
-    }
-
-    /**
-     * Get scoring statistics
-     */
-    public function getScoringStatistics()
-    {
-        $scoringService = new ApplicantScoringService();
-        $statistics = $scoringService->getScoringStatistics();
-        
-        return response()->json([
-            'success' => true,
-            'statistics' => $statistics
-        ]);
-    }
-
-    /**
-     * Calculate score for a specific applicant
-     */
-    public function calculateApplicantScore($userId)
-    {
-        try {
-            $user = User::with(['basicInfo', 'documents', 'ethno', 'basicInfo.family', 'basicInfo.siblings', 'basicInfo.education'])
-                ->findOrFail($userId);
-            
-            $scoringService = new ApplicantScoringService();
-            $score = $scoringService->calculateApplicantScore($user);
-            
-            return response()->json([
-                'success' => true,
-                'score' => $score,
-                'priority_level' => $score->priority_level,
-                'priority_color' => $score->priority_color
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error calculating score: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     /**
      * Recalculate document priorities (First Come, First Serve)
@@ -1265,10 +1278,18 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for Regular scholarship applicants - Only show approved applications
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+        // Exclude grantees (they appear in the grantees masterlist)
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Regular')
-                      ->where('application_status', 'validated'); // Only show validated/approved applications
+                      ->where('application_status', 'validated') // Only show validated/approved applications
+                      ->where(function($q) {
+                          // Exclude grantees (handle case variations)
+                          $q->where(function($subQ) {
+                              $subQ->where('grant_status', '!=', 'grantee')
+                                   ->where('grant_status', '!=', 'Grantee');
+                          })->orWhereNull('grant_status');
+                      });
                 
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
@@ -1319,7 +1340,7 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for Regular Grantees - validated and marked as grantee
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Regular')
                       ->where('application_status', 'validated')
@@ -1361,6 +1382,147 @@ class StaffDashboardController extends Controller
     }
 
     /**
+     * Get all grantees for report (without pagination)
+     */
+    public function granteesReport(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+
+        // Get filters from request
+        $selectedProvince = $request->get('province');
+        $selectedMunicipality = $request->get('municipality');
+        $selectedBarangay = $request->get('barangay');
+        $selectedEthno = $request->get('ethno');
+
+        // Build query for Regular Grantees - validated and marked as grantee
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref'])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                $query->where('type_assist', 'Regular')
+                      ->where('application_status', 'validated')
+                      ->where('grant_status', 'grantee'); // Only show grantees
+                
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
+                        $addrQuery->where('province', $selectedProvince);
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
+                        $addrQuery->where('municipality', $selectedMunicipality);
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
+                        $addrQuery->where('barangay', $selectedBarangay);
+                    });
+                }
+            });
+
+        if ($selectedEthno) {
+            $applicantsQuery->where('ethno_id', $selectedEthno);
+        }
+
+        // Get all grantees without pagination
+        $grantees = $applicantsQuery->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'grantees' => $grantees->map(function($grantee, $index) {
+                $basicInfo = $grantee->basicInfo;
+                $address = $basicInfo && $basicInfo->fullAddress ? ($basicInfo->fullAddress->address ?? null) : null;
+                $documents = $grantee->documents ?? collect();
+                $approvedDocs = $documents->where('status', 'approved')->count();
+                $totalDocs = $documents->count();
+                
+                // Calculate age
+                $age = '';
+                if ($basicInfo && $basicInfo->birthdate) {
+                    try {
+                        $birthdate = Carbon::parse($basicInfo->birthdate);
+                        $age = $birthdate->age;
+                    } catch (\Exception $e) {
+                        $age = '';
+                    }
+                }
+                
+                // Determine school type (Private/Public)
+                $schoolType = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_type ?? '') : '';
+                $isPrivate = stripos($schoolType, 'private') !== false;
+                $isPublic = stripos($schoolType, 'public') !== false || stripos($schoolType, 'state') !== false;
+                
+                // AD Reference No. (formatted user ID)
+                $adReference = 'NCIP-' . date('Y') . '-' . str_pad($grantee->id, 4, '0', STR_PAD_LEFT);
+                
+                // BATCH (based on application year or created_at year)
+                $batch = $grantee->created_at ? $grantee->created_at->format('Y') : date('Y');
+                
+                // Full name
+                $fullName = trim(($grantee->first_name ?? '') . ' ' . ($grantee->middle_name ?? '') . ' ' . ($grantee->last_name ?? ''));
+                
+                // Contact/Email combined
+                $contactEmail = trim(($grantee->contact_num ?? '') . ($grantee->email ? ' / ' . $grantee->email : ''));
+                
+                // Course
+                $course = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->degree ?? ($grantee->course ?? '')) : ($grantee->course ?? '');
+                
+                // Gender check (exact match with form values: "Male" or "Female")
+                $gender = $basicInfo ? ($basicInfo->gender ?? '') : '';
+                $isFemale = strtolower($gender) === 'female';
+                $isMale = strtolower($gender) === 'male';
+                
+                // Year level - get from basic_info table
+                $yearLevel = $basicInfo ? ($basicInfo->current_year_level ?? '') : '';
+                
+                // Determine which year level checkbox should be checked
+                $is1st = in_array(strtolower($yearLevel), ['1', '1st', 'first', 'first year', '1st year']);
+                $is2nd = in_array(strtolower($yearLevel), ['2', '2nd', 'second', 'second year', '2nd year']);
+                $is3rd = in_array(strtolower($yearLevel), ['3', '3rd', 'third', 'third year', '3rd year']);
+                $is4th = in_array(strtolower($yearLevel), ['4', '4th', 'fourth', 'fourth year', '4th year']);
+                $is5th = in_array(strtolower($yearLevel), ['5', '5th', 'fifth', 'fifth year', '5th year']);
+                
+                // Grant amounts (these would need to be stored in the database)
+                $grant1stSem = ''; // This should come from database
+                $grant2ndSem = ''; // This should come from database
+                
+                // Remarks/Status
+                $remarks = $basicInfo ? ($basicInfo->application_status ?? '') : '';
+                if ($basicInfo && $basicInfo->grant_status) {
+                    $remarks .= ($remarks ? ' / ' : '') . $basicInfo->grant_status;
+                }
+
+                return [
+                    'no' => $index + 1,
+                    'ad_reference' => $adReference,
+                    'province' => $address ? ($address->province ?? '') : '',
+                    'municipality' => $address ? ($address->municipality ?? '') : '',
+                    'barangay' => $address ? ($address->barangay ?? '') : '',
+                    'contact_email' => $contactEmail,
+                    'batch' => $batch,
+                    'name' => $fullName,
+                    'age' => $age,
+                    'gender' => $gender,
+                    'is_female' => $isFemale,
+                    'is_male' => $isMale,
+                    'ethnicity' => $grantee->ethno ? ($grantee->ethno->ethnicity ?? '') : '',
+                    'school_type' => $schoolType,
+                    'is_private' => $isPrivate,
+                    'is_public' => $isPublic,
+                    'course' => $course,
+                    'year_level' => $yearLevel,
+                    'is_1st' => $is1st,
+                    'is_2nd' => $is2nd,
+                    'is_3rd' => $is3rd,
+                    'is_4th' => $is4th,
+                    'is_5th' => $is5th,
+                    'grant_1st_sem' => $grant1stSem,
+                    'grant_2nd_sem' => $grant2ndSem,
+                    'remarks' => $remarks,
+                ];
+            })
+        ]);
+    }
+
+    /**
      * Masterlist - Regular Waiting (Validated but waiting for grant)
      */
     public function masterlistRegularWaiting(Request $request)
@@ -1374,7 +1536,7 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for Regular Waiting - validated but marked as waiting
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Regular')
                       ->where('application_status', 'validated')
@@ -1429,10 +1591,18 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for Pamana scholarship applicants - Only show approved applications
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'applicantScore'])
+        // Exclude grantees (they appear in the grantees masterlist)
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Pamana')
-                      ->where('application_status', 'validated'); // Only show validated/approved applications
+                      ->where('application_status', 'validated') // Only show validated/approved applications
+                      ->where(function($q) {
+                          // Exclude grantees (handle case variations)
+                          $q->where(function($subQ) {
+                              $subQ->where('grant_status', '!=', 'grantee')
+                                   ->where('grant_status', '!=', 'Grantee');
+                          })->orWhereNull('grant_status');
+                      });
                 
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
@@ -1467,5 +1637,58 @@ class StaffDashboardController extends Controller
             'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
         ))->with('masterlistType', 'Pamana');
+    }
+
+    /**
+     * Display announcements management page
+     */
+    public function announcements()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+        
+        $notifications = $user->unreadNotifications()->take(10)->get();
+        
+        // Fetch announcements from database
+        $announcements = Announcement::with('creator')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('staff.announcements', compact('name', 'assignedBarangay', 'notifications', 'announcements'));
+    }
+
+    /**
+     * Store a new announcement
+     */
+    public function storeAnnouncement(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|min:5|max:255',
+            'content' => 'required|string|min:10',
+            'priority' => 'required|in:normal,high,urgent',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+        ]);
+
+        $user = \Auth::guard('staff')->user();
+        
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('announcements', 'public');
+        }
+
+        $announcement = Announcement::create([
+            'title' => $request->title,
+            'content' => $request->content,
+            'priority' => $request->priority,
+            'image_path' => $imagePath,
+            'created_by' => $user->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Announcement created successfully!',
+            'announcement' => $announcement,
+        ]);
     }
 }

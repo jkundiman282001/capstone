@@ -10,8 +10,37 @@
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.5);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    
+    @keyframes bounce-slow {
+        0%, 100% {
+            transform: translateY(-50%) translateX(0);
         }
-    </style>
+        50% {
+            transform: translateY(-50%) translateX(-8px);
+        }
+    }
+    
+    .animate-bounce-slow {
+        animation: bounce-slow 2s ease-in-out infinite;
+    }
+    
+    @media (max-width: 768px) {
+        #year-level-guide {
+            position: fixed !important;
+            right: 1rem !important;
+            left: 1rem !important;
+            top: auto !important;
+            bottom: 2rem !important;
+            transform: none !important;
+            max-width: calc(100% - 2rem) !important;
+        }
+        
+        #year-level-guide .absolute.left-0 {
+            display: none;
+        }
+    }
+</style>
 @endpush
 
 @push('head-scripts')
@@ -26,11 +55,20 @@
     $studentNumber = $student->student_number ?? ('IP-' . str_pad($student->id, 5, '0', STR_PAD_LEFT));
     $courseName = $student->course ?? 'Course not set';
     $ethnicity = optional($student->ethno)->ethnicity ?? 'Not declared';
-    $applicationStatus = ($applicationStatus ?? 'pending') === 'validated' ? 'validated' : 'pending';
-    $statusLabel = $applicationStatus === 'validated' ? 'Validated' : 'Pending';
-    $statusClasses = $applicationStatus === 'validated'
-        ? 'text-green-700 bg-green-50 border-green-200'
-        : 'text-amber-700 bg-amber-50 border-amber-200';
+    $applicationStatus = $applicationStatus ?? 'pending';
+    $isRejected = $applicationStatus === 'rejected';
+    $isValidated = $applicationStatus === 'validated';
+    
+    if ($isRejected) {
+        $statusLabel = 'Rejected';
+        $statusClasses = 'text-red-700 bg-red-50 border-red-200';
+    } elseif ($isValidated) {
+        $statusLabel = 'Validated';
+        $statusClasses = 'text-green-700 bg-green-50 border-green-200';
+    } else {
+        $statusLabel = 'Pending';
+        $statusClasses = 'text-amber-700 bg-amber-50 border-amber-200';
+    }
 @endphp
 
 <div class="min-h-screen bg-[#f8fafc] pb-12 pt-20 relative overflow-hidden selection:bg-orange-100 selection:text-orange-900">
@@ -83,9 +121,26 @@
                         </span>
                     </div>
 
+                    @if($isRejected && isset($rejectionReason) && $rejectionReason)
+                        <div class="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-xs font-bold text-red-700 uppercase tracking-wider mb-2">Application Rejected</p>
+                                    <p class="text-sm text-red-900 leading-relaxed">{{ $rejectionReason }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="flex flex-wrap justify-center gap-2 mb-8">
                         <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm">IP Scholar</span>
                         <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>
+                        @if(optional($student->basicInfo)->current_year_level)
+                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $student->basicInfo->current_year_level }} Year</span>
+                        @endif
                     </div>
                     
                     <!-- Apply Button in Sidebar -->
@@ -98,6 +153,29 @@
 
             <!-- Right Content -->
             <div class="lg:col-span-8 space-y-8">
+                
+                @if($isRejected && isset($rejectionReason) && $rejectionReason)
+                    <!-- Rejection Alert Banner -->
+                    <div class="glass-card rounded-[2rem] shadow-xl shadow-red-200/40 overflow-hidden border-2 border-red-200">
+                        <div class="px-8 py-6 bg-gradient-to-r from-red-50 to-rose-50">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center shadow-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-black text-red-900 mb-2">Application Rejected</h3>
+                                    <p class="text-sm text-red-800 mb-4 leading-relaxed">{{ $rejectionReason }}</p>
+                                    <div class="bg-white/60 rounded-lg p-3 border border-red-200">
+                                        <p class="text-xs font-bold text-red-700 mb-1">What's Next?</p>
+                                        <p class="text-xs text-red-800">Please review the reason above and address the concerns mentioned. You may reapply or contact support if you have questions.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 
                 <!-- Profile Edit Form -->
                 <div class="glass-card rounded-[2rem] shadow-xl shadow-slate-200/40 overflow-hidden">
@@ -132,6 +210,46 @@
                             <div class="md:col-span-2 space-y-2">
                                 <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Email Address</label>
                                 <input type="email" name="email" value="{{ old('email', $student->email) }}" placeholder="Enter email address" class="w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm p-3.5 placeholder:text-orange-500 text-slate-800">
+                            </div>
+                            <div class="space-y-2 relative" id="year-level-field-container">
+                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Current Year Level</label>
+                                <select name="current_year_level" id="current-year-level-select" class="w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm p-3.5 text-slate-800">
+                                    <option value="">Select Year Level</option>
+                                    <option value="1st" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '1st' ? 'selected' : '' }}>1st Year</option>
+                                    <option value="2nd" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '2nd' ? 'selected' : '' }}>2nd Year</option>
+                                    <option value="3rd" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '3rd' ? 'selected' : '' }}>3rd Year</option>
+                                    <option value="4th" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '4th' ? 'selected' : '' }}>4th Year</option>
+                                    <option value="5th" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '5th' ? 'selected' : '' }}>5th Year</option>
+                                </select>
+                                
+                                @if(!optional($student->basicInfo)->current_year_level)
+                                <!-- Arrow Guide Tooltip -->
+                                <div id="year-level-guide" class="absolute -right-64 top-1/2 -translate-y-1/2 z-50 animate-bounce-slow hidden md:block">
+                                    <div class="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl p-4 shadow-2xl max-w-xs">
+                                        <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full">
+                                            <svg class="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex items-start gap-3">
+                                            <div class="flex-shrink-0 mt-0.5">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-bold text-sm mb-1">Complete Your Profile</p>
+                                                <p class="text-xs text-white/90">Please select your current year level to help us better assist you with scholarship opportunities.</p>
+                                            </div>
+                                            <button onclick="dismissYearLevelGuide()" class="flex-shrink-0 text-white/80 hover:text-white transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
 
@@ -329,5 +447,40 @@
             });
         }, 'image/jpeg', 0.95);
     }
+
+    // Year Level Guide Functions
+    function dismissYearLevelGuide() {
+        const guide = document.getElementById('year-level-guide');
+        if (guide) {
+            guide.style.display = 'none';
+            // Store dismissal in localStorage
+            localStorage.setItem('year_level_guide_dismissed', 'true');
+        }
+    }
+
+    // Show guide on page load if not dismissed and year level is empty
+    document.addEventListener('DOMContentLoaded', function() {
+        const guide = document.getElementById('year-level-guide');
+        const yearLevelSelect = document.getElementById('current-year-level-select');
+        
+        if (guide && yearLevelSelect) {
+            // Check if guide was previously dismissed
+            const wasDismissed = localStorage.getItem('year_level_guide_dismissed') === 'true';
+            
+            if (!wasDismissed && !yearLevelSelect.value) {
+                // Show guide after a short delay for better UX
+                setTimeout(() => {
+                    guide.style.display = 'block';
+                }, 500);
+            }
+            
+            // Hide guide when year level is selected
+            yearLevelSelect.addEventListener('change', function() {
+                if (this.value) {
+                    dismissYearLevelGuide();
+                }
+            });
+        }
+    });
 </script>
 @endpush 

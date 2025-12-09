@@ -111,9 +111,6 @@
                                                     @foreach(array_slice($course['applicants'], 0, 4) as $applicant)
                                                         <span class="inline-flex items-center gap-1 rounded-full border border-purple-300/40 bg-purple-300/15 px-2 py-0.5">
                                                             {{ $applicant['name'] }}
-                                                            @if(isset($applicant['score']) && $applicant['score'] > 0)
-                                                                <span class="ml-1 text-[10px] text-purple-200/80">{{ number_format($applicant['score'], 1) }}</span>
-                                                            @endif
                                                         </span>
                                                     @endforeach
                                                     @if(count($course['applicants']) > 4)
