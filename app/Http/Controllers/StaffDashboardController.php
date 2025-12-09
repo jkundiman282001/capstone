@@ -1150,10 +1150,11 @@ class StaffDashboardController extends Controller
 
     /**
      * Update GPA manually for a user
+     * Stores GPA in the basic_info table instead of education table
      */
     public function updateGPA(Request $request, $userId)
     {
-        $user = User::with('basicInfo.education')->findOrFail($userId);
+        $user = User::with('basicInfo')->findOrFail($userId);
         
         $validated = $request->validate([
             'gpa' => 'required|numeric|min:1.0|max:5.0'
@@ -1164,35 +1165,26 @@ class StaffDashboardController extends Controller
             'gpa.max' => 'GPA cannot exceed 5.0.',
         ]);
         
-        // Get the most recent education record (usually college level)
-        $education = $user->basicInfo->education ?? collect();
+        // Get or create basic_info record
+        $basicInfo = $user->basicInfo;
         
-        if ($education->isEmpty()) {
+        if (!$basicInfo) {
             return response()->json([
                 'success' => false,
-                'message' => 'No education records found for this student. Please ensure the student has completed their application.'
+                'message' => 'No basic information found for this student. Please ensure the student has completed their application.'
             ], 404);
         }
         
-        // Update the most recent education record (latest by year_grad or created_at)
-        $latestEducation = $education->sortByDesc('year_grad')->sortByDesc('created_at')->first();
-        
-        if ($latestEducation) {
-            $latestEducation->grade_ave = $validated['gpa'];
-            $latestEducation->save();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'GPA updated successfully.',
-                'gpa' => $validated['gpa'],
-                'education_id' => $latestEducation->id
-            ]);
-        }
+        // Update GPA in basic_info table
+        $basicInfo->gpa = $validated['gpa'];
+        $basicInfo->save();
         
         return response()->json([
-            'success' => false,
-            'message' => 'Could not find education record to update.'
-        ], 404);
+            'success' => true,
+            'message' => 'GPA updated successfully.',
+            'gpa' => $validated['gpa'],
+            'basic_info_id' => $basicInfo->id
+        ]);
     }
 
 

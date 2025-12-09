@@ -19,4 +19,13 @@ class Education extends Model
         'grade_ave',
         'rank',
     ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'grade_ave' => 'decimal:2', // Cast to decimal with 2 decimal places
+    ];
 } 

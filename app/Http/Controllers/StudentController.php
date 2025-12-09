@@ -467,7 +467,10 @@ class StudentController extends Controller
         $applicationStatus = $basicInfo ? ($basicInfo->application_status ?? 'pending') : 'pending';
         $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? null) : null;
 
-        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason'));
+        // Get GPA from basic_info table (entered by admin)
+        $currentGPA = $basicInfo ? ($basicInfo->gpa ?? null) : null;
+
+        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGPA'));
     }
 
     public function performance(Request $request)

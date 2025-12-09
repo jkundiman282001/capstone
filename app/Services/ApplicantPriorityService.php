@@ -115,8 +115,12 @@ class ApplicantPriorityService
      * - 6/10: Questionable/incomplete but partially verifiable
      * - 4/10: Self-declared only (no documents submitted)
      * - 0/10: No IP affiliation
+     * 
+     * Priority IP Group Bonus: Applicants in priority IP groups (B'laan, Bagobo, Kalagan, Kaulo)
+     * receive a +2 point bonus to ensure they rank higher than non-priority IP groups with
+     * the same documentation quality.
      */
-    private function calculateIpRubricScore(User $user): float
+    private function calculateIpRubricScore(User $user, bool $isPriorityEthno = false): float
     {
         // No IP affiliation
         if (!$user->ethno || !$user->ethno->ethnicity) {
@@ -155,34 +159,42 @@ class ApplicantPriorityService
         }
 
         // Apply rubric scoring (0-10 scale)
+        $baseScore = 0;
         
         // Rubric 10/10: All 3 key IP documents approved, OR tribal cert + endorsement approved
         if ($approvedDocs >= 3 || 
             ($ipDocuments['tribal_certificate']?->status === 'approved' && 
              $ipDocuments['endorsement']?->status === 'approved')) {
-            return 10;
+            $baseScore = 10;
         }
-        
         // Rubric 8/10: Missing 1 supporting document - has tribal cert approved OR has 2 approved docs
-        if ($approvedDocs === 2 || 
+        elseif ($approvedDocs === 2 || 
             ($approvedDocs === 1 && $ipDocuments['tribal_certificate']?->status === 'approved')) {
-            return 8;
+            $baseScore = 8;
         }
-
         // Rubric 6/10: Documentation questionable or incomplete but partially verifiable
-        if ($approvedDocs === 1 || 
+        elseif ($approvedDocs === 1 || 
             ($totalSubmitted >= 2 && $pendingDocs >= 1) ||
             ($rejectedDocs > 0 && $totalSubmitted >= 1)) {
-            return 6;
+            $baseScore = 6;
         }
-
         // Rubric 4/10: Claims IP group but no supporting documents (self-declared only)
-        if ($user->ethno && $user->ethno->ethnicity && $totalSubmitted === 0) {
-            return 4;
+        elseif ($user->ethno && $user->ethno->ethnicity && $totalSubmitted === 0) {
+            $baseScore = 4;
         }
-
         // Rubric 0/10: No affiliation
-        return 0;
+        else {
+            $baseScore = 0;
+        }
+        
+        // Apply priority IP group bonus: +2 points (allows up to 12 for priority groups)
+        // This ensures priority IP groups rank higher than non-priority ones with same docs
+        // We allow scores above 10 for priority groups, then normalize with max=12
+        if ($isPriorityEthno && $baseScore > 0) {
+            $baseScore = $baseScore + 2; // Don't cap at 10 - allow up to 12 for priority groups
+        }
+        
+        return $baseScore;
     }
 
     /**
@@ -320,7 +332,12 @@ class ApplicantPriorityService
     }
 
     /**
-     * Get prioritized applicants based on: IP Group (1st) → Course (2nd) → Tribal Certificate (3rd) → Income Tax (4th) → Academic Performance (5th) → FCFS (Tiebreaker)
+     * Get prioritized applicants based on weighted scoring with FCFS (First Come First Serve) as tiebreaker
+     * 
+     * Priority Order:
+     * 1. Weighted Priority Score (IP Group 30%, Course 25%, Tribal Cert 20%, Income Tax 15%, Academic 5%, Other 5%)
+     * 2. FCFS Tiebreaker: When scores are equal, earlier submission time wins
+     * 3. User ID: Final tiebreaker for stable sorting
      */
     public function getPrioritizedApplicants(): array
     {
@@ -351,7 +368,7 @@ class ApplicantPriorityService
             // Get IP group and calculate rubric score (0-10 scale)
             $ethnicity = optional($applicant->ethno)->ethnicity ?? null;
             $isPriorityEthno = $this->isPriorityEthno($ethnicity);
-            $ipRubricScore = $this->calculateIpRubricScore($applicant); // 0-10 scale
+            $ipRubricScore = $this->calculateIpRubricScore($applicant, $isPriorityEthno); // 0-10 scale (includes priority bonus)
 
             // Check for approved tribal certificate (Rank 3)
             $hasApprovedTribalCert = $this->hasApprovedTribalCertificate($applicant);
@@ -372,6 +389,7 @@ class ApplicantPriorityService
 
             $priorityScore = $this->calculatePriorityScore(
                 $ipRubricScore, // Now passing rubric score (0-10) instead of boolean
+                $isPriorityEthno, // Pass priority IP group status for bonus calculation
                 $isPriorityCourse,
                 $hasApprovedTribalCert,
                 $hasApprovedIncomeTax,
@@ -398,22 +416,23 @@ class ApplicantPriorityService
             ];
         }
 
-        // Sort applicants by weighted score first, then FCFS as tie breaker
+        // Sort applicants by weighted score first, then FCFS (First Come First Serve) as tiebreaker
         usort($prioritizedApplicants, function($a, $b) {
-            // Weighted score (descending)
+            // PRIMARY: Weighted priority score (descending - higher score = better rank)
             $scoreComparison = $b['priority_score'] <=> $a['priority_score'];
             if ($scoreComparison !== 0) {
                 return $scoreComparison;
             }
 
-            // FCFS (earliest submission wins)
-            $aTime = $a['application_submitted_at']->timestamp;
-            $bTime = $b['application_submitted_at']->timestamp;
+            // TIEBREAKER: FCFS - First Come First Serve (earliest submission wins)
+            // Earlier submission time = higher priority when scores are equal
+            $aTime = $a['application_submitted_at']->timestamp ?? PHP_INT_MAX;
+            $bTime = $b['application_submitted_at']->timestamp ?? PHP_INT_MAX;
             if ($aTime !== $bTime) {
-                return $aTime <=> $bTime;
+                return $aTime <=> $bTime; // Ascending: earlier timestamp = smaller number = better rank
             }
 
-            // Final tiebreaker: user ID (stable sort)
+            // FINAL TIEBREAKER: User ID (stable sort - ensures consistent ordering)
             return $a['user_id'] <=> $b['user_id'];
         });
 
@@ -438,7 +457,11 @@ class ApplicantPriorityService
      * 3. Consistency: Weights validated for consistency
      * 4. Hierarchical Structure: Criteria organized in priority hierarchy
      * 
+     * Priority IP Group Bonus: Applicants in priority IP groups (B'laan, Bagobo, Kalagan, Kaulo)
+     * receive a bonus multiplier on their IP rubric score to reflect their higher priority status.
+     * 
      * @param float $ipRubricScore IP Group rubric score (0-10 scale)
+     * @param bool $isPriorityEthno Whether applicant is in a priority IP group
      * @param bool $isPriorityCourse Whether course is in priority list
      * @param bool $hasApprovedTribalCert Whether tribal certificate is approved
      * @param bool $hasApprovedIncomeTax Whether income tax document is approved
@@ -448,6 +471,7 @@ class ApplicantPriorityService
      */
     private function calculatePriorityScore(
         float $ipRubricScore, // Now accepts 0-10 rubric score instead of boolean
+        bool $isPriorityEthno, // Whether applicant is in a priority IP group
         bool $isPriorityCourse,
         bool $hasApprovedTribalCert,
         bool $hasApprovedIncomeTax,
@@ -457,9 +481,16 @@ class ApplicantPriorityService
         // Validate weights consistency (AHP principle)
         $this->validateWeightsConsistency();
 
-        // Step 1: Normalize all criteria scores to 0-1 scale (AHP normalization)
+        // Step 1: Normalize IP rubric score to 0-1 scale
+        // Priority IP groups get +2 points bonus (can score up to 12)
+        // We normalize ALL IP scores using max=12 so priority groups get higher normalized scores
+        // Example: Priority IP with perfect docs = 12/12 = 1.0, Non-priority with perfect docs = 10/12 = 0.833
+        $maxRubricScore = 12; // Use same max for all to ensure priority groups rank higher
+        $normalizedIpScore = $this->normalizeScore($ipRubricScore, 0, $maxRubricScore);
+
+        // Step 2: Normalize all other criteria scores to 0-1 scale (AHP normalization)
         $normalizedScores = [
-            'ip' => $this->normalizeScore($ipRubricScore, 0, 10), // 0-10 → 0-1
+            'ip' => $normalizedIpScore, // Now includes priority IP group bonus
             'course' => $isPriorityCourse ? 1.0 : 0.0, // Binary → 0-1
             'tribal' => $hasApprovedTribalCert ? 1.0 : 0.0, // Binary → 0-1
             'income_tax' => $hasApprovedIncomeTax ? 1.0 : 0.0, // Binary → 0-1

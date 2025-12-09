@@ -27,6 +27,16 @@ class BasicInfo extends Model
         'application_rejection_reason',
         'grant_status',
         'current_year_level',
+        'gpa',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'gpa' => 'decimal:2', // Cast to decimal with 2 decimal places
     ];
 
     public function user()

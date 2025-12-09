@@ -261,59 +261,135 @@
                     </form>
                     </div>
 
-                <!-- Current Academic Performance -->
+                <!-- Current Academic Performance - GPA Only -->
                 <div class="glass-card rounded-[2rem] shadow-xl shadow-slate-200/40 overflow-hidden">
                     <div class="px-8 py-6 border-b border-slate-100 bg-white/50">
-                        <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                            </div>
                             <div>
                                 <h3 class="font-bold text-xl text-slate-800">Current Academic Performance</h3>
-                                <p class="text-slate-500 text-sm mt-1">Track your academic progress and scholarship eligibility</p>
+                                <p class="text-slate-500 text-sm mt-0.5">Grade Point Average (GPA)</p>
                             </div>
-                            <span class="text-green-600 bg-green-100 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap select-none">Eligible</span>
                         </div>
                     </div>
 
-                    <div class="p-8 space-y-6">
-                        <!-- GPA, Credits Enrolled, Total Credits -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 border border-gray-100 rounded-lg overflow-hidden text-center divide-x divide-gray-100">
-                            <div class="p-6">
-                                <p class="text-4xl font-extrabold text-blue-600">3.85</p>
-                                <p class="font-semibold text-sm text-gray-700 mt-1">Current GPA</p>
-                                <p class="mt-2 text-green-600 text-xs">+0.15 from last semester</p>
+                    <div class="p-8">
+                        @if($currentGPA !== null)
+                            <!-- GPA Display Card -->
+                            <div class="text-center mb-6">
+                                <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-4 
+                                    @if($currentGPA >= 3.5) border-green-300
+                                    @elseif($currentGPA >= 2.5) border-amber-300
+                                    @else border-red-300
+                                    @endif shadow-lg mb-4">
+                                    <div class="text-center">
+                                        <p class="text-5xl font-black 
+                                            @if($currentGPA >= 3.5) text-green-600
+                                            @elseif($currentGPA >= 2.5) text-amber-600
+                                            @else text-red-600
+                                            @endif leading-none">{{ number_format($currentGPA, 2) }}</p>
+                                        <p class="text-lg font-bold text-slate-600 mt-1">GPA</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm font-semibold text-slate-700 mb-1">Current Grade Point Average</p>
+                                <p class="text-xs text-slate-500">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
                             </div>
-                            <div class="p-6">
-                                <p class="text-4xl font-extrabold text-blue-700">18</p>
-                                <p class="font-semibold text-sm text-gray-700 mt-1">Credits Enrolled</p>
-                                <a href="#" class="text-blue-600 text-xs mt-2 inline-block hover:underline">Full-time status</a>
-                            </div>
-                            <div class="p-6">
-                                <p class="text-4xl font-extrabold text-purple-700">75</p>
-                                <p class="font-semibold text-sm text-gray-700 mt-1">Total Credits</p>
-                                <p class="mt-2 text-purple-600 text-xs">62.5% complete</p>
-                            </div>
-                        </div>
 
-                        <!-- GPA Progress Bar -->
-                        <div class="pt-2 w-full">
-                            <div class="flex justify-between text-xs text-gray-500 mb-1 px-1">
-                                <span>GPA Progress</span>
-                                <span>Target: 3.5</span>
+                            <!-- GPA Progress Bar -->
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-semibold text-slate-600">GPA Progress</span>
+                                    <span class="text-xs font-bold 
+                                        @if($currentGPA >= 3.5) text-green-600
+                                        @elseif($currentGPA >= 2.5) text-amber-600
+                                        @else text-red-600
+                                        @endif">
+                                        Target: 3.5
+                                    </span>
+                                </div>
+                                <div class="w-full h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                    <div class="h-full rounded-full transition-all duration-500
+                                        @if($currentGPA >= 3.5) bg-gradient-to-r from-green-400 to-green-600
+                                        @elseif($currentGPA >= 2.5) bg-gradient-to-r from-amber-400 to-amber-600
+                                        @else bg-gradient-to-r from-red-400 to-red-600
+                                        @endif" 
+                                        style="width: {{ ($currentGPA / 5.0) * 100 }}%">
+                                    </div>
+                                </div>
+                                <div class="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>1.0</span>
+                                    <span>3.5 (Target)</span>
+                                    <span>5.0</span>
+                                </div>
                             </div>
-                            <progress class="w-full h-3 rounded bg-blue-100" value="3.85" max="4.0"></progress>
-                        </div>
 
-                        <!-- Academic Standing -->
-                        <div class="bg-green-50 border border-green-200 text-green-700 p-4 rounded-md text-sm">
-                            <div class="flex items-center space-x-2 font-semibold">
-                                <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <path d="M9 12l2 2 4-4"></path>
-                                </svg>
-                                <span>Excellent Academic Standing</span>
+                            <!-- Academic Standing -->
+                            @php
+                                $gpaStatus = 'good';
+                                $gpaStatusClasses = 'bg-green-50 border-green-200 text-green-700';
+                                $gpaStatusTextColor = 'text-green-800';
+                                $gpaStatusIconColor = 'text-green-600';
+                                if ($currentGPA < 2.5) {
+                                    $gpaStatus = 'poor';
+                                    $gpaStatusClasses = 'bg-red-50 border-red-200 text-red-700';
+                                    $gpaStatusTextColor = 'text-red-800';
+                                    $gpaStatusIconColor = 'text-red-600';
+                                } elseif ($currentGPA < 3.5) {
+                                    $gpaStatus = 'fair';
+                                    $gpaStatusClasses = 'bg-amber-50 border-amber-200 text-amber-700';
+                                    $gpaStatusTextColor = 'text-amber-800';
+                                    $gpaStatusIconColor = 'text-amber-600';
+                                }
+                            @endphp
+                            <div class="{{ $gpaStatusClasses }} rounded-xl p-5 border-2">
+                                <div class="flex items-center gap-3 mb-3">
+                                    @if($currentGPA >= 3.5)
+                                        <svg class="w-6 h-6 flex-shrink-0 {{ $gpaStatusIconColor }}" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    @else
+                                        <svg class="w-6 h-6 flex-shrink-0 {{ $gpaStatusIconColor }}" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        </svg>
+                                    @endif
+                                    <h4 class="font-bold text-lg {{ $gpaStatusTextColor }}">
+                                        @if($currentGPA >= 3.5)
+                                            Excellent Academic Standing
+                                        @elseif($currentGPA >= 2.5)
+                                            Good Academic Standing
+                                        @else
+                                            Needs Improvement
+                                        @endif
+                                    </h4>
+                                </div>
+                                <p class="{{ $gpaStatusTextColor }} text-sm leading-relaxed">
+                                    @if($currentGPA >= 3.5)
+                                        Your GPA of <strong>{{ number_format($currentGPA, 2) }}</strong> exceeds the minimum requirement of 3.5. You are currently eligible for all scholarship opportunities and maintaining good academic progress.
+                                    @elseif($currentGPA >= 2.5)
+                                        Your GPA of <strong>{{ number_format($currentGPA, 2) }}</strong> is below the recommended 3.5. Consider improving your academic performance to maximize scholarship opportunities.
+                                    @else
+                                        Your GPA of <strong>{{ number_format($currentGPA, 2) }}</strong> is below the minimum requirement of 2.5. Please focus on improving your academic performance to maintain scholarship eligibility.
+                                    @endif
+                                </p>
                             </div>
-                            <p class="mt-1 text-green-800 text-sm">Your GPA of 3.85 exceeds the minimum requirement of 3.5. You are currently
-                                eligible for all scholarship opportunities and maintaining good academic progress.</p>
-                        </div>
+                        @else
+                            <!-- No GPA Recorded -->
+                            <div class="text-center py-12">
+                                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-100 mb-4">
+                                    <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-lg font-bold text-slate-700 mb-2">GPA Not Yet Recorded</h4>
+                                <p class="text-sm text-slate-600 max-w-md mx-auto">Your GPA has not been recorded yet. Once your academic records are reviewed by the staff, your GPA will be displayed here.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
