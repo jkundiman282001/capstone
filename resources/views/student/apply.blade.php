@@ -321,20 +321,86 @@
     </div>
                     </div>
 
+        @if($hasSubmitted)
+        <!-- Lock Message -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-amber-900 mb-2">Application Already Submitted</h3>
+                    <p class="text-amber-800 text-sm mb-3">
+                        You have already submitted a scholarship application. You cannot create or submit another application at this time.
+                    </p>
+                    @if($submittedApplication)
+                    <div class="bg-white rounded-lg p-4 border border-amber-200">
+                        <p class="text-sm text-amber-700">
+                            <span class="font-medium">Application Status:</span> 
+                            <span class="capitalize">{{ $submittedApplication->application_status ?? 'Pending Review' }}</span>
+                        </p>
+                        @if($submittedApplication->application_status === 'rejected' && $submittedApplication->application_rejection_reason)
+                        <p class="text-sm text-amber-700 mt-2">
+                            <span class="font-medium">Rejection Reason:</span> 
+                            {{ $submittedApplication->application_rejection_reason }}
+                        </p>
+                        @endif
+                    </div>
+                    @endif
+                    <div class="mt-4">
+                        <a href="{{ route('student.dashboard') }}" class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Start New Section (Google Docs Style) -->
-        <div class="bg-slate-50 rounded-xl p-8 mb-10 border border-slate-200">
+        <div class="bg-slate-50 rounded-xl p-8 mb-10 border border-slate-200 {{ $hasSubmitted && !$canRenew ? 'opacity-60' : '' }}">
             <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">Start a new application</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 <!-- New Application Card -->
-                <button type="button" onclick="startNewApplication()" class="group text-left">
-                    <div class="aspect-[3/4] bg-white rounded-lg border border-slate-200 shadow-sm group-hover:border-orange-400 group-hover:shadow-md transition-all flex items-center justify-center mb-3 relative overflow-hidden">
-                        <div class="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                <button type="button" onclick="{{ $hasSubmitted ? 'void(0)' : 'startNewApplication()' }}" 
+                    class="group text-left {{ $hasSubmitted ? 'cursor-not-allowed opacity-50' : '' }}" 
+                    {{ $hasSubmitted ? 'disabled' : '' }}>
+                    <div class="aspect-[3/4] bg-white rounded-lg border border-slate-200 shadow-sm {{ $hasSubmitted ? '' : 'group-hover:border-orange-400 group-hover:shadow-md' }} transition-all flex items-center justify-center mb-3 relative overflow-hidden">
+                        <div class="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-sm {{ $hasSubmitted ? '' : 'group-hover:scale-110' }} transition-transform">
+                            @if($hasSubmitted)
+                            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            @else
                             <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            @endif
+                        </div>
                     </div>
+                    <div class="font-medium text-slate-900 text-sm {{ $hasSubmitted ? '' : 'group-hover:text-orange-700' }} transition-colors">
+                        {{ $hasSubmitted ? 'Application Locked' : 'Scholarship Application' }}
                     </div>
-                    <div class="font-medium text-slate-900 text-sm group-hover:text-orange-700 transition-colors">Scholarship Application</div>
-                    <div class="text-xs text-slate-500">NCIP Educational Assistance</div>
+                    <div class="text-xs text-slate-500">{{ $hasSubmitted ? 'Already submitted' : 'NCIP Educational Assistance' }}</div>
                 </button>
+
+                <!-- Renewal Application Card -->
+                @if($canRenew)
+                <button type="button" onclick="startRenewalApplication()" class="group text-left">
+                    <div class="aspect-[3/4] bg-white rounded-lg border border-slate-200 shadow-sm group-hover:border-blue-400 group-hover:shadow-md transition-all flex items-center justify-center mb-3 relative overflow-hidden">
+                        <div class="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="font-medium text-slate-900 text-sm group-hover:text-blue-700 transition-colors">Scholarship Renewal</div>
+                    <div class="text-xs text-slate-500">Renew your scholarship</div>
+                </button>
+                @endif
                     </div>
                     </div>
 
@@ -370,25 +436,39 @@
                         <p class="text-sm text-slate-500 mt-2">Complete all steps to submit your application.</p>
                 </div>
 
-                    <div class="steps-wrapper">
-                        @foreach([
-                            ['title' => 'Personal Information', 'desc' => 'Basic details'],
-                            ['title' => 'Address Details', 'desc' => 'Contact info'],
-                            ['title' => 'Education', 'desc' => 'Academic history'],
-                            ['title' => 'Family Background', 'desc' => 'Parent & sibling info'],
-                            ['title' => 'School Preference', 'desc' => 'Intended studies'],
-                            ['title' => 'Document Requirements', 'desc' => 'Upload files']
-                        ] as $index => $step)
-                        <div class="step-item {{ $index === 0 ? 'active' : '' }}" id="nav-step-{{ $index + 1 }}">
-                            <div class="step-number">
-                                @if($index === 0) 1 @else {{ $index + 1 }} @endif
+                    <div class="steps-wrapper" id="steps-wrapper">
+                        <!-- Regular Application Steps -->
+                        <div id="regular-steps">
+                            @foreach([
+                                ['title' => 'Personal Information', 'desc' => 'Basic details'],
+                                ['title' => 'Address Details', 'desc' => 'Contact info'],
+                                ['title' => 'Education', 'desc' => 'Academic history'],
+                                ['title' => 'Family Background', 'desc' => 'Parent & sibling info'],
+                                ['title' => 'School Preference', 'desc' => 'Intended studies'],
+                                ['title' => 'Document Requirements', 'desc' => 'Upload files']
+                            ] as $index => $step)
+                            <div class="step-item {{ $index === 0 ? 'active' : '' }}" id="nav-step-{{ $index + 1 }}">
+                                <div class="step-number">
+                                    @if($index === 0) 1 @else {{ $index + 1 }} @endif
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-title">{{ $step['title'] }}</div>
+                                    <div class="step-desc">{{ $step['desc'] }}</div>
+                                </div>
                             </div>
-                            <div class="step-content">
-                                <div class="step-title">{{ $step['title'] }}</div>
-                                <div class="step-desc">{{ $step['desc'] }}</div>
+                            @endforeach
+                        </div>
+                        
+                        <!-- Renewal Application Steps (Hidden by default) -->
+                        <div id="renewal-steps" style="display: none;">
+                            <div class="step-item active" id="nav-step-renewal">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <div class="step-title">Document Requirements</div>
+                                    <div class="step-desc">Upload renewal documents</div>
+                                </div>
                             </div>
                         </div>
-                        @endforeach
             </div>
 
                     <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
@@ -405,7 +485,7 @@
 
             <!-- Right Content: Form -->
             <div class="lg:col-span-9">
-                <form method="POST" action="{{ route('student.apply') }}" id="applicationForm" class="main-card" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('student.apply') }}" id="applicationForm" class="main-card {{ $hasSubmitted && !$canRenew ? 'opacity-60 pointer-events-none' : '' }}" enctype="multipart/form-data" {{ $hasSubmitted && !$canRenew ? 'onsubmit="return false;"' : '' }}>
                     @csrf
                     
                     <!-- Header -->
@@ -414,6 +494,7 @@
                             <h2 class="text-xl font-bold text-slate-900" id="form-section-title">Personal Information</h2>
                             <p class="text-sm text-slate-500 mt-1">Step <span id="current-step-num">1</span> of 6</p>
                             <p class="text-xs text-slate-400 mt-2">Your progress auto-saves on this device.</p>
+                            <input type="hidden" name="is_renewal" id="is_renewal_input" value="0">
                 </div>
                         <button type="button" id="clearDraftBtn" class="text-xs font-semibold text-slate-400 hover:text-orange-600 transition-colors">
                             Clear saved draft
@@ -437,6 +518,33 @@
                         </ul>
                     </div>
                         </div>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="p-4 mx-8 mt-6 bg-red-50 border border-red-100 rounded-lg">
+                            <div class="flex">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800">{{ session('error') }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($hasSubmitted)
+                        <div class="p-4 mx-8 mt-6 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div class="flex">
+                                <svg class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-amber-800">Application Locked</h3>
+                                    <p class="text-sm text-amber-700 mt-1">You have already submitted an application. This form is read-only.</p>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
@@ -716,6 +824,7 @@
                             
 @php
     $courseOptions = [
+        // Priority Courses
         'Agriculture',
         'Aqua-Culture and Fisheries',
         'Anthropology',
@@ -734,12 +843,120 @@
         'Mining Engineering',
         'Social Sciences (AB courses)',
         'Social Work',
+        // Related/Relevant Courses (Mid-scale)
+        'Agricultural Engineering',
+        'Agribusiness',
+        'Agricultural Economics',
+        'Animal Science',
+        'Crop Science',
+        'Agricultural Technology',
+        'Marine Biology',
+        'Fisheries',
+        'Aquaculture',
+        'Marine Science',
+        'Oceanography',
+        'Sociology',
+        'Cultural Studies',
+        'Ethnic Studies',
+        'Archaeology',
+        'Business Management',
+        'Marketing',
+        'Economics',
+        'Entrepreneurship',
+        'Finance',
+        'Human Resource Management',
+        'Operations Management',
+        'Structural Engineering',
+        'Environmental Engineering',
+        'Construction Engineering',
+        'Transportation Engineering',
+        'Rural Development',
+        'Urban Planning',
+        'Public Administration',
+        'Development Studies',
+        'Criminal Justice',
+        'Forensic Science',
+        'Law Enforcement',
+        'Security Management',
+        'Elementary Education',
+        'Secondary Education',
+        'Special Education',
+        'Educational Administration',
+        'Curriculum Development',
+        'International Relations',
+        'Diplomatic Studies',
+        'International Studies',
+        'Environmental Science',
+        'Ecology',
+        'Conservation',
+        'Natural Resource Management',
+        'Environmental Management',
+        'Surveying',
+        'Geomatics',
+        'Land Surveying',
+        'Geographic Information Systems',
+        'Geological Engineering',
+        'Geophysics',
+        'Earth Science',
+        'Legal Studies',
+        'Jurisprudence',
+        'Constitutional Law',
+        'Public Health',
+        'Health Sciences',
+        'Medical Laboratory Science',
+        'Radiologic Technology',
+        'Physical Therapy',
+        'Occupational Therapy',
+        'Pharmacy',
+        'Industrial Engineering',
+        'Manufacturing Engineering',
+        'Automotive Engineering',
+        'Aerospace Engineering',
+        'Mineral Processing',
+        'Mining Technology',
+        'Psychology',
+        'History',
+        'Philosophy',
+        'Literature',
+        'Communication Arts',
+        'Journalism',
+        'Human Services',
+        'Community Services',
+        'Social Welfare',
+        'Counseling',
+        // Excluded Courses (Low-scale)
         'BS Information Technology',
         'BS Computer Science',
         'BS Accountancy',
         'BS Nursing',
         'BS Education',
         'BA Political Science',
+        // Other Common Courses
+        'Architecture',
+        'Chemical Engineering',
+        'Electrical Engineering',
+        'Electronics Engineering',
+        'Computer Engineering',
+        'Information Systems',
+        'Data Science',
+        'Statistics',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Biochemistry',
+        'Biotechnology',
+        'Food Technology',
+        'Nutrition',
+        'Hotel and Restaurant Management',
+        'Tourism',
+        'Hospitality Management',
+        'Fine Arts',
+        'Music',
+        'Theater Arts',
+        'Dance',
+        'Sports Science',
+        'Physical Education',
         'Other',
     ];
 @endphp
@@ -825,7 +1042,8 @@
                                 </div>
                             @endif
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Regular Application Documents -->
+                            <div id="regular-documents" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @foreach($requiredTypes as $typeKey => $typeLabel)
                                     @php
                                         $uploaded = $documents->firstWhere('type', $typeKey);
@@ -888,25 +1106,92 @@
                                         @endif
                                     </div>
                                 @endforeach
+                            </div>
+
+                            <!-- Renewal Application Documents (Hidden by default) -->
+                            <div id="renewal-documents" class="grid grid-cols-1 md:grid-cols-2 gap-6" style="display: none;">
+                                @foreach($renewalRequiredTypes as $typeKey => $typeLabel)
+                                    @php
+                                        $uploaded = $documents->firstWhere('type', $typeKey);
+                                        $status = $uploaded ? $uploaded->status : 'missing';
+                                    @endphp
+                                    
+                                    <div class="relative border border-slate-200 rounded-xl bg-white hover:border-blue-200 transition-all duration-200 shadow-sm group overflow-hidden flex flex-col h-full">
+                                        @if($uploaded)
+                                            <div class="flex flex-1 items-stretch">
+                                                <!-- Left Content -->
+                                                <div class="p-5 flex-1 flex flex-col justify-center">
+                                                    <h4 class="font-semibold text-slate-900 text-sm leading-tight mb-1">{{ $typeLabel }}</h4>
+                                                    <div class="text-xs text-slate-500 flex items-center gap-1">
+                                                        <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                        Uploaded {{ $uploaded->created_at->diffForHumans() }}
+                                                    </div>
+                                                </div>
+
+                                                <!-- Right Actions -->
+                                                <div class="flex flex-col w-12 border-l border-slate-100">
+                                                    <!-- View -->
+                                                    @if($status !== 'rejected')
+                                                    <a href="{{ route('documents.view', $uploaded) }}" target="_blank" class="flex-1 flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-100 transition-colors relative group/btn" title="View Document">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    </a>
+                                                    
+                                                    <!-- Delete -->
+                                                    <form action="{{ route('documents.delete', $uploaded->id) }}" method="POST" class="flex-1 flex flex-col border-t border-slate-100" onsubmit="return confirm('Are you sure you want to discard and delete this document?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="flex-1 w-full flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors" title="Discard & Delete">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </form>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="p-5 flex-1 flex flex-col">
+                                                <div class="flex justify-between items-start mb-4">
+                                                    <div class="pr-2">
+                                                        <h4 class="font-semibold text-slate-900 text-sm leading-tight mb-1">{{ $typeLabel }}</h4>
+                                                        <div class="text-xs text-slate-400 italic">Required document</div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-auto">
+                                                    <div class="doc-upload-container">
+                                                        <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors relative group/upload">
+                                                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                                <svg class="w-6 h-6 mb-2 text-slate-400 group-hover/upload:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                                                <p class="text-xs text-slate-500"><span class="font-semibold">Click to upload</span> PDF or Image</p>
+                                                            </div>
+                                                            <input type="file" name="documents[{{ $typeKey }}]" class="doc-file-input absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                                                        </label>
+                                                        <div class="file-name-display text-xs text-slate-600 mt-2 text-center truncate hidden px-2"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                                         </div>
                                         </div>
 
                     <!-- Footer -->
                     <div class="form-footer">
-                        <button type="button" class="btn btn-outline" id="prevBtn" style="display: none">
+                        <button type="button" class="btn btn-outline" id="prevBtn" style="display: none" {{ $hasSubmitted ? 'disabled' : '' }}>
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             Back
                         </button>
-                        <button type="button" class="btn btn-outline ml-3" id="saveDraftBtn">
+                        <button type="button" class="btn btn-outline ml-3" id="saveDraftBtn" {{ $hasSubmitted ? 'disabled' : '' }}>
                             Save as Draft
                         </button>
                         <div class="ml-auto">
-                            <button type="button" class="btn btn-primary" id="nextBtn">
+                            <button type="button" class="btn btn-primary" id="nextBtn" {{ $hasSubmitted ? 'disabled' : '' }}>
                                 Next Step
                                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="submit" class="btn btn-primary bg-green-600 hover:bg-green-700 border-green-600" id="submitBtn" style="display: none">
+                            <button type="submit" class="btn btn-primary bg-green-600 hover:bg-green-700 border-green-600" id="submitBtn" style="display: none" {{ $hasSubmitted ? 'disabled' : '' }}>
                                 Submit Application
                             </button>
                                         </div>
@@ -968,8 +1253,38 @@
 
 @push('scripts')
                         <script>
+    // Check if application is locked
+    const isApplicationLocked = {{ $hasSubmitted ? 'true' : 'false' }};
+    
+    // Set initial document visibility (regular documents shown, renewal hidden)
+    document.addEventListener('DOMContentLoaded', function() {
+        const regularDocs = document.getElementById('regular-documents');
+        const renewalDocs = document.getElementById('renewal-documents');
+        if (regularDocs) regularDocs.style.display = 'grid';
+        if (renewalDocs) renewalDocs.style.display = 'none';
+        
+        // Disable all form inputs if application is locked
+        if (isApplicationLocked) {
+            const form = document.getElementById('applicationForm');
+            if (form) {
+                const inputs = form.querySelectorAll('input, select, textarea, button');
+                inputs.forEach(input => {
+                    if (input.type !== 'hidden' && input.id !== 'clearDraftBtn') {
+                        input.disabled = true;
+                    }
+                });
+            }
+        }
+    });
+    
     // Define global functions IMMEDIATELY at the top to ensure they're available
     window.startNewApplication = function() {
+        // Prevent starting new application if locked
+        if (isApplicationLocked) {
+            alert('You have already submitted an application. You cannot create a new one.');
+            return;
+        }
+        
         const hubView = document.getElementById('application-hub');
         const formView = document.getElementById('application-form-view');
         
@@ -980,6 +1295,7 @@
         
         // Clear current draft ID
         window.currentDraftId = null;
+        window.isRenewal = false;
         
         // Reset to step 1 for new application
         if (typeof currentStep !== 'undefined') {
@@ -1001,9 +1317,170 @@
             refreshSiblingState();
         }
         
+        // Update form header for new application
+        const formHeader = document.querySelector('.form-header h2');
+        if (formHeader) {
+            formHeader.textContent = 'Scholarship Application';
+        }
+        
+        // Set renewal flag
+        const renewalInput = document.getElementById('is_renewal_input');
+        if (renewalInput) {
+            renewalInput.value = '0';
+        }
+        
+        // Remove renewal notice if exists
+        const renewalNotice = document.getElementById('renewal-notice');
+        if (renewalNotice) {
+            renewalNotice.remove();
+        }
+        
+        // Show regular documents, hide renewal documents
+        const regularDocs = document.getElementById('regular-documents');
+        const renewalDocs = document.getElementById('renewal-documents');
+        if (regularDocs) regularDocs.style.display = 'grid';
+        if (renewalDocs) renewalDocs.style.display = 'none';
+        
+        // Show regular steps, hide renewal steps
+        const regularSteps = document.getElementById('regular-steps');
+        const renewalSteps = document.getElementById('renewal-steps');
+        if (regularSteps) regularSteps.style.display = 'block';
+        if (renewalSteps) renewalSteps.style.display = 'none';
+        
         if (typeof updateUI === 'function') {
             updateUI();
         }
+    };
+
+    window.startRenewalApplication = function() {
+        const hubView = document.getElementById('application-hub');
+        const formView = document.getElementById('application-form-view');
+        
+        if (!hubView || !formView) {
+            console.error('Application hub or form view not found');
+            return;
+        }
+        
+        // Clear current draft ID
+        window.currentDraftId = null;
+        window.isRenewal = true;
+        
+        // Set renewal mode - go directly to document step (step 6)
+        if (typeof currentStep !== 'undefined') {
+            currentStep = 6;
+        }
+        
+        // Trigger form show
+        hubView.classList.add('hidden');
+        formView.classList.remove('hidden');
+        
+        // Show renewal steps, hide regular steps
+        const regularSteps = document.getElementById('regular-steps');
+        const renewalSteps = document.getElementById('renewal-steps');
+        if (regularSteps) regularSteps.style.display = 'none';
+        if (renewalSteps) renewalSteps.style.display = 'block';
+        
+        // Show renewal documents, hide regular documents
+        const regularDocs = document.getElementById('regular-documents');
+        const renewalDocs = document.getElementById('renewal-documents');
+        if (regularDocs) regularDocs.style.display = 'none';
+        if (renewalDocs) renewalDocs.style.display = 'grid';
+        
+        // Hide all form steps except step 6
+        document.querySelectorAll('.form-step').forEach(step => {
+            step.classList.add('hidden');
+        });
+        const step6 = document.getElementById('step-6');
+        if (step6) {
+            step6.classList.remove('hidden');
+        }
+        
+        // Update form header for renewal
+        const formHeader = document.querySelector('.form-header h2');
+        if (formHeader) {
+            formHeader.textContent = 'Scholarship Renewal - Document Upload';
+        }
+        
+        // Update step counter
+        const stepNum = document.getElementById('current-step-num');
+        if (stepNum) {
+            stepNum.textContent = '1';
+        }
+        
+        // Update section title
+        const sectionTitle = document.getElementById('form-section-title');
+        if (sectionTitle) {
+            sectionTitle.textContent = 'Document Requirements';
+        }
+        
+        // Set renewal flag
+        const renewalInput = document.getElementById('is_renewal_input');
+        if (renewalInput) {
+            renewalInput.value = '1';
+        }
+        
+        // Hide navigation buttons (no prev/next needed for renewal)
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        if (submitBtn) {
+            submitBtn.style.display = 'inline-flex';
+            submitBtn.disabled = false;
+        }
+        
+        // Remove pointer-events-none from form if it exists (for renewals)
+        const form = document.getElementById('applicationForm');
+        if (form) {
+            form.classList.remove('pointer-events-none');
+            form.removeAttribute('onsubmit');
+            // Re-enable all form inputs
+            const inputs = form.querySelectorAll('input, select, textarea, button');
+            inputs.forEach(input => {
+                if (input.type !== 'hidden' && input.id !== 'clearDraftBtn') {
+                    input.disabled = false;
+                }
+            });
+        }
+        
+        // Show renewal notice
+        const formBody = document.querySelector('.form-body');
+        if (formBody && !document.getElementById('renewal-notice')) {
+            const notice = document.createElement('div');
+            notice.id = 'renewal-notice';
+            notice.className = 'mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+            notice.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <h4 class="text-sm font-semibold text-blue-900 mb-1">Scholarship Renewal</h4>
+                        <p class="text-xs text-blue-800">Please upload the required renewal documents: Certificate of Enrollment, Statement of Account, and GWA of Previous Semester.</p>
+                    </div>
+                </div>
+            `;
+            formBody.insertBefore(notice, formBody.firstChild);
+        }
+        
+        // Update sidebar title
+        const sidebarTitle = document.querySelector('.step-nav h1');
+        if (sidebarTitle) {
+            sidebarTitle.innerHTML = 'Scholarship<br>Renewal';
+        }
+        
+        const sidebarDesc = document.querySelector('.step-nav p');
+        if (sidebarDesc) {
+            sidebarDesc.textContent = 'Upload required renewal documents.';
+        }
+        
+        // Setup file input listeners for renewal documents
+        setTimeout(() => {
+            if (typeof setupFileInputListeners === 'function') {
+                setupFileInputListeners();
+            }
+        }, 100);
     };
 
     window.continueDraft = function(draftId) {
@@ -1176,6 +1653,9 @@
     
     function updateUI() {
         // Step is tracked in currentStep variable and saved with draft
+        
+        // Check if in renewal mode
+        const isRenewalMode = window.isRenewal === true;
 
         // Hide all steps
         document.querySelectorAll('.form-step').forEach(el => {
@@ -1183,41 +1663,111 @@
             el.classList.remove('fade-enter-active');
         });
         
-        // Show current step
-        const currentStepEl = document.getElementById('step-' + currentStep);
-        currentStepEl.classList.remove('hidden');
-        // Trigger animation
-        setTimeout(() => currentStepEl.classList.add('fade-enter-active'), 10);
+        // For renewal mode, only show step 6 (documents)
+        if (isRenewalMode) {
+            const step6 = document.getElementById('step-6');
+            if (step6) {
+                step6.classList.remove('hidden');
+                setTimeout(() => step6.classList.add('fade-enter-active'), 10);
+            }
+            
+            // Hide regular documents, show renewal documents
+            const regularDocs = document.getElementById('regular-documents');
+            const renewalDocs = document.getElementById('renewal-documents');
+            if (regularDocs) regularDocs.style.display = 'none';
+            if (renewalDocs) renewalDocs.style.display = 'grid';
+            
+            // Update sidebar nav for renewal (only one step)
+            const renewalStep = document.getElementById('nav-step-renewal');
+            if (renewalStep) {
+                document.querySelectorAll('.step-item').forEach(el => {
+                    el.classList.remove('active', 'completed');
+                });
+                renewalStep.classList.add('active');
+            }
+            
+            // Update header info for renewal
+            const stepNum = document.getElementById('current-step-num');
+            if (stepNum) stepNum.textContent = '1';
+            
+            const sectionTitle = document.getElementById('form-section-title');
+            if (sectionTitle) sectionTitle.textContent = 'Document Requirements';
+            
+            // Hide navigation buttons, show submit
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (submitBtn) {
+                submitBtn.style.display = 'inline-flex';
+                submitBtn.disabled = false;
+            }
+            
+            // Remove pointer-events-none from form if it exists (for renewals)
+            const form = document.getElementById('applicationForm');
+            if (form) {
+                form.classList.remove('pointer-events-none');
+                form.removeAttribute('onsubmit');
+                // Re-enable all form inputs
+                const inputs = form.querySelectorAll('input, select, textarea, button');
+                inputs.forEach(input => {
+                    if (input.type !== 'hidden' && input.id !== 'clearDraftBtn') {
+                        input.disabled = false;
+                    }
+                });
+            }
+        } else {
+            // Hide renewal documents, show regular documents
+            const regularDocs = document.getElementById('regular-documents');
+            const renewalDocs = document.getElementById('renewal-documents');
+            if (regularDocs) regularDocs.style.display = 'grid';
+            if (renewalDocs) renewalDocs.style.display = 'none';
+            // Regular application flow
+            const currentStepEl = document.getElementById('step-' + currentStep);
+            if (currentStepEl) {
+                currentStepEl.classList.remove('hidden');
+                setTimeout(() => currentStepEl.classList.add('fade-enter-active'), 10);
+            }
 
-        // Update sidebar nav
-        document.querySelectorAll('.step-item').forEach((el, idx) => {
-            el.classList.remove('active', 'completed');
-            if (idx + 1 === currentStep) el.classList.add('active');
-            if (idx + 1 < currentStep) el.classList.add('completed');
-        });
+            // Update sidebar nav (regular steps)
+            document.querySelectorAll('#regular-steps .step-item').forEach((el, idx) => {
+                el.classList.remove('active', 'completed');
+                if (idx + 1 === currentStep) el.classList.add('active');
+                if (idx + 1 < currentStep) el.classList.add('completed');
+            });
 
-        // Update header info
-        document.getElementById('current-step-num').textContent = currentStep;
-        
-        const titles = [
-            'Personal Information', 
-            'Address Details', 
-            'Educational Background', 
-            'Family Information', 
-            'School Preference',
-            'Document Requirements'
-        ];
-        document.getElementById('form-section-title').textContent = titles[currentStep - 1];
+            // Update header info
+            const stepNum = document.getElementById('current-step-num');
+            if (stepNum) stepNum.textContent = currentStep;
+            
+            const titles = [
+                'Personal Information', 
+                'Address Details', 
+                'Educational Background', 
+                'Family Information', 
+                'School Preference',
+                'Document Requirements'
+            ];
+            const sectionTitle = document.getElementById('form-section-title');
+            if (sectionTitle && titles[currentStep - 1]) {
+                sectionTitle.textContent = titles[currentStep - 1];
+            }
 
-        // Buttons
-        document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-flex';
-        document.getElementById('nextBtn').style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
-        document.getElementById('submitBtn').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+            // Buttons
+            document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-flex';
+            document.getElementById('nextBtn').style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
+            document.getElementById('submitBtn').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+        }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     document.getElementById('nextBtn').addEventListener('click', () => {
+        if (isApplicationLocked) {
+            alert('You have already submitted an application. You cannot proceed.');
+            return;
+        }
         if (validateStep(currentStep)) {
             currentStep++;
             updateUI();
@@ -1225,6 +1775,10 @@
     });
 
     document.getElementById('prevBtn').addEventListener('click', () => {
+        if (isApplicationLocked) {
+            alert('You have already submitted an application. You cannot proceed.');
+            return;
+        }
         if (currentStep > 1) {
             currentStep--;
             updateUI();
@@ -1232,7 +1786,41 @@
     });
 
     function validateStep(step) {
+        // For renewal mode, only validate documents (step 6)
+        if (window.isRenewal === true) {
+            const stepEl = document.getElementById('step-6');
+            if (!stepEl) return true;
+            
+            // Check if at least one renewal document is uploaded
+            const renewalDocs = document.getElementById('renewal-documents');
+            if (!renewalDocs) return true;
+            
+            const fileInputs = renewalDocs.querySelectorAll('.doc-file-input');
+            let hasFile = false;
+            fileInputs.forEach(input => {
+                if (input.files && input.files.length > 0) {
+                    hasFile = true;
+                }
+            });
+            
+            // Check for already uploaded documents
+            const uploadedDocs = renewalDocs.querySelectorAll('a[href*="documents/view"]');
+            if (uploadedDocs.length > 0) {
+                hasFile = true;
+            }
+            
+            if (!hasFile) {
+                alert('Please upload at least one required renewal document.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Regular validation for non-renewal applications
         const stepEl = document.getElementById('step-' + step);
+        if (!stepEl) return true;
+        
         const requiredInputs = stepEl.querySelectorAll('[required]');
         let isValid = true;
 
@@ -1625,6 +2213,13 @@
         };
 
         formEl.addEventListener('submit', (e) => {
+            // Prevent submission if application is locked
+            if (isApplicationLocked) {
+                e.preventDefault();
+                alert('You have already submitted an application. You cannot submit another one.');
+                return false;
+            }
+            
             // Delete draft on successful submission
             if (window.currentDraftId) {
                 fetch(`/student/drafts/${window.currentDraftId}`, {

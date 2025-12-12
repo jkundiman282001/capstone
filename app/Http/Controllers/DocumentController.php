@@ -127,7 +127,7 @@ class DocumentController extends Controller
         return response()->file(Storage::disk('public')->path($document->filepath));
     }
 
-    public function destroy(Document $document)
+    public function destroy(Request $request, Document $document)
     {
         // Check if user owns the document
         if ($document->user_id !== Auth::id()) {
@@ -140,6 +140,13 @@ class DocumentController extends Controller
         }
 
         $document->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Document deleted successfully.'
+            ]);
+        }
 
         return back()->with('success', 'Document deleted successfully.');
     }

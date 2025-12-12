@@ -279,6 +279,105 @@ class ApplicantPriorityService
     }
 
     /**
+     * Get related/relevant courses for each priority course
+     * These courses are considered "mid-scale" (partially relevant)
+     */
+    private function getRelatedCourses(): array
+    {
+        return [
+            'Agriculture' => ['Agricultural Engineering', 'Agribusiness', 'Agricultural Economics', 'Animal Science', 'Crop Science', 'Agricultural Technology'],
+            'Aqua-Culture and Fisheries' => ['Marine Biology', 'Fisheries', 'Aquaculture', 'Marine Science', 'Oceanography'],
+            'Anthropology' => ['Sociology', 'Cultural Studies', 'Ethnic Studies', 'Archaeology'],
+            'Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)' => ['Business Management', 'Marketing', 'Economics', 'Entrepreneurship', 'Finance', 'Human Resource Management', 'Operations Management'],
+            'Civil Engineering' => ['Structural Engineering', 'Environmental Engineering', 'Construction Engineering', 'Transportation Engineering'],
+            'Community Development' => ['Rural Development', 'Urban Planning', 'Public Administration', 'Development Studies'],
+            'Criminology' => ['Criminal Justice', 'Forensic Science', 'Law Enforcement', 'Security Management'],
+            'Education' => ['Elementary Education', 'Secondary Education', 'Special Education', 'Educational Administration', 'Curriculum Development'],
+            'Foreign Service' => ['International Relations', 'Diplomatic Studies', 'International Studies', 'Public Administration'],
+            'Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)' => ['Environmental Science', 'Forestry', 'Ecology', 'Conservation', 'Natural Resource Management', 'Environmental Management'],
+            'Geodetic Engineering' => ['Surveying', 'Geomatics', 'Land Surveying', 'Geographic Information Systems'],
+            'Geology' => ['Geological Engineering', 'Geophysics', 'Earth Science', 'Mining Engineering'],
+            'Law' => ['Legal Studies', 'Jurisprudence', 'Constitutional Law'],
+            'Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)' => ['Public Health', 'Health Sciences', 'Medical Laboratory Science', 'Radiologic Technology', 'Physical Therapy', 'Occupational Therapy', 'Pharmacy'],
+            'Mechanical Engineering' => ['Industrial Engineering', 'Manufacturing Engineering', 'Automotive Engineering', 'Aerospace Engineering'],
+            'Mining Engineering' => ['Geological Engineering', 'Mineral Processing', 'Mining Technology'],
+            'Social Sciences (AB courses)' => ['Psychology', 'History', 'Philosophy', 'Literature', 'Communication Arts', 'Journalism'],
+            'Social Work' => ['Human Services', 'Community Services', 'Social Welfare', 'Counseling'],
+        ];
+    }
+
+    /**
+     * Check if course is related/relevant to priority courses
+     */
+    private function isRelatedCourse(?string $courseName): bool
+    {
+        if (!$courseName) {
+            return false;
+        }
+
+        $courseName = trim($courseName);
+
+        // First check if it's already a priority course - if so, it's not "related", it's priority
+        if ($this->isPriorityCourse($courseName)) {
+            return false;
+        }
+
+        // Check if it's an excluded course - excluded courses are not related
+        if ($this->isExcludedCourse($courseName)) {
+            return false;
+        }
+
+        $relatedCourses = $this->getRelatedCourses();
+
+        foreach ($relatedCourses as $priorityCourse => $related) {
+            foreach ($related as $relatedCourse) {
+                // Check if course name contains related course keywords or vice versa
+                if (stripos($courseName, $relatedCourse) !== false || 
+                    stripos($relatedCourse, $courseName) !== false) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate Course Priority rubric score (0-10 scale)
+     * 
+     * Scoring Rubric:
+     * - 10/10: Exact match with priority course
+     * - 6/10: Course is related/relevant to priority courses (mid-scale)
+     * - 0/10: Course is not priority and not related (low-scale)
+     */
+    private function calculateCourseRubricScore(?string $courseName): float
+    {
+        if (!$courseName) {
+            return 0;
+        }
+
+        $courseName = trim($courseName);
+
+        // Check if it's an excluded course (these get 0)
+        if ($this->isExcludedCourse($courseName)) {
+            return 0;
+        }
+
+        // Check if it's a priority course (high-scale: 10/10)
+        if ($this->isPriorityCourse($courseName)) {
+            return 10;
+        }
+
+        // Check if it's related to priority courses (mid-scale: 6/10)
+        if ($this->isRelatedCourse($courseName)) {
+            return 6;
+        }
+
+        // Not priority and not related (low-scale: 0/10)
+        return 0;
+    }
+
+    /**
      * Check if applicant has approved tribal certificate
      */
     private function hasApprovedTribalCertificate(User $applicant): bool
@@ -382,15 +481,16 @@ class ApplicantPriorityService
             // Check for all other required documents (Rank 6 - Other Requirements)
             $hasAllOtherRequirements = $this->hasAllOtherRequirements($applicant);
 
-            // Get course
+            // Get course and calculate rubric score (0-10 scale)
             $courseName = $this->getApplicantCourse($applicant);
             $normalizedCourse = $this->normalizeCourseName($courseName);
             $isPriorityCourse = $this->isPriorityCourse($courseName);
+            $courseRubricScore = $this->calculateCourseRubricScore($courseName); // 0-10 scale rubric score
 
             $priorityScore = $this->calculatePriorityScore(
                 $ipRubricScore, // Now passing rubric score (0-10) instead of boolean
                 $isPriorityEthno, // Pass priority IP group status for bonus calculation
-                $isPriorityCourse,
+                $courseRubricScore, // Now passing course rubric score (0-10) instead of boolean
                 $hasApprovedTribalCert,
                 $hasApprovedIncomeTax,
                 $hasApprovedGrades,
@@ -411,6 +511,7 @@ class ApplicantPriorityService
                 'course' => $courseName,
                 'normalized_course' => $normalizedCourse ?? 'Other',
                 'is_priority_course' => $isPriorityCourse,
+                'course_rubric_score' => $courseRubricScore, // 0-10 scale rubric score
                 'priority_rank' => null, // Will be assigned after sorting
                 'priority_score' => $priorityScore,
             ];
@@ -462,7 +563,7 @@ class ApplicantPriorityService
      * 
      * @param float $ipRubricScore IP Group rubric score (0-10 scale)
      * @param bool $isPriorityEthno Whether applicant is in a priority IP group
-     * @param bool $isPriorityCourse Whether course is in priority list
+     * @param float $courseRubricScore Course rubric score (0-10 scale)
      * @param bool $hasApprovedTribalCert Whether tribal certificate is approved
      * @param bool $hasApprovedIncomeTax Whether income tax document is approved
      * @param bool $hasApprovedGrades Whether grades document is approved
@@ -472,7 +573,7 @@ class ApplicantPriorityService
     private function calculatePriorityScore(
         float $ipRubricScore, // Now accepts 0-10 rubric score instead of boolean
         bool $isPriorityEthno, // Whether applicant is in a priority IP group
-        bool $isPriorityCourse,
+        float $courseRubricScore, // Now accepts 0-10 rubric score instead of boolean
         bool $hasApprovedTribalCert,
         bool $hasApprovedIncomeTax,
         bool $hasApprovedGrades,
@@ -488,10 +589,14 @@ class ApplicantPriorityService
         $maxRubricScore = 12; // Use same max for all to ensure priority groups rank higher
         $normalizedIpScore = $this->normalizeScore($ipRubricScore, 0, $maxRubricScore);
 
-        // Step 2: Normalize all other criteria scores to 0-1 scale (AHP normalization)
+        // Step 2: Normalize course rubric score to 0-1 scale (0-10 scale → 0-1)
+        $maxCourseRubricScore = 10;
+        $normalizedCourseScore = $this->normalizeScore($courseRubricScore, 0, $maxCourseRubricScore);
+
+        // Step 3: Normalize all other criteria scores to 0-1 scale (AHP normalization)
         $normalizedScores = [
             'ip' => $normalizedIpScore, // Now includes priority IP group bonus
-            'course' => $isPriorityCourse ? 1.0 : 0.0, // Binary → 0-1
+            'course' => $normalizedCourseScore, // Now uses rubric score (0-10) normalized to 0-1
             'tribal' => $hasApprovedTribalCert ? 1.0 : 0.0, // Binary → 0-1
             'income_tax' => $hasApprovedIncomeTax ? 1.0 : 0.0, // Binary → 0-1
             'academic_performance' => $hasApprovedGrades ? 1.0 : 0.0, // Binary → 0-1

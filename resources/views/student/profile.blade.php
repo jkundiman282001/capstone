@@ -264,23 +264,62 @@
                 <!-- Current Academic Performance - GPA Only -->
                 <div class="glass-card rounded-[2rem] shadow-xl shadow-slate-200/40 overflow-hidden">
                     <div class="px-8 py-6 border-b border-slate-100 bg-white/50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-slate-800">Current Academic Performance</h3>
+                                    <p class="text-slate-500 text-sm mt-0.5">Grade Point Average (GPA)</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="toggleGPAEdit()" id="edit-gpa-btn" class="group relative px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 text-sm font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 flex items-center gap-2 overflow-hidden">
+                                <span class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                                <svg class="w-4 h-4 relative z-10 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl text-slate-800">Current Academic Performance</h3>
-                                <p class="text-slate-500 text-sm mt-0.5">Grade Point Average (GPA)</p>
-                            </div>
+                                <span id="edit-gpa-text" class="relative z-10">Edit GPA</span>
+                            </button>
                         </div>
                     </div>
 
                     <div class="p-8">
                         @if($currentGPA !== null)
+                            <!-- GPA Edit Form (Hidden by default) -->
+                            <form id="gpa-edit-form" class="mb-6 hidden" onsubmit="updateGPA(event)">
+                                @csrf
+                                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        <h4 class="font-bold text-blue-900">Edit GPA</h4>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 block">Grade Point Average</label>
+                                            <input type="number" name="gpa" id="gpa-input" value="{{ number_format($currentGPA, 2) }}" step="0.01" min="1.0" max="5.0" required
+                                                class="w-full rounded-xl border-slate-200 bg-white focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm p-3.5 text-slate-800"
+                                                placeholder="Enter GPA (1.0 - 5.0)">
+                                            <p class="text-xs text-slate-500 mt-1">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                        </div>
+                                        <div class="flex gap-3">
+                                            <button type="submit" class="flex-1 btn bg-blue-600 text-white hover:bg-blue-700 rounded-xl px-6 py-2.5 text-sm font-bold shadow-lg shadow-blue-600/20">
+                                                Save GPA
+                                            </button>
+                                            <button type="button" onclick="toggleGPAEdit()" class="px-6 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all text-sm font-semibold">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
                             <!-- GPA Display Card -->
-                            <div class="text-center mb-6">
+                            <div id="gpa-display" class="text-center mb-6">
                                 <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-4 
                                     @if($currentGPA >= 3.5) border-green-300
                                     @elseif($currentGPA >= 2.5) border-amber-300
@@ -291,7 +330,7 @@
                                             @if($currentGPA >= 3.5) text-green-600
                                             @elseif($currentGPA >= 2.5) text-amber-600
                                             @else text-red-600
-                                            @endif leading-none">{{ number_format($currentGPA, 2) }}</p>
+                                            @endif leading-none" id="gpa-display-value">{{ number_format($currentGPA, 2) }}</p>
                                         <p class="text-lg font-bold text-slate-600 mt-1">GPA</p>
                                     </div>
                                 </div>
@@ -379,7 +418,7 @@
                                 </p>
                             </div>
                         @else
-                            <!-- No GPA Recorded -->
+                            <!-- No GPA Recorded - Allow Adding GPA -->
                             <div class="text-center py-12">
                                 <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-100 mb-4">
                                     <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,7 +426,26 @@
                                     </svg>
                                 </div>
                                 <h4 class="text-lg font-bold text-slate-700 mb-2">GPA Not Yet Recorded</h4>
-                                <p class="text-sm text-slate-600 max-w-md mx-auto">Your GPA has not been recorded yet. Once your academic records are reviewed by the staff, your GPA will be displayed here.</p>
+                                <p class="text-sm text-slate-600 max-w-md mx-auto mb-6">Add your current Grade Point Average to track your academic performance.</p>
+                                
+                                <!-- Add GPA Form -->
+                                <form id="gpa-add-form" onsubmit="updateGPA(event)" class="max-w-md mx-auto">
+                                    @csrf
+                                    <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 block">Grade Point Average</label>
+                                                <input type="number" name="gpa" id="gpa-input-new" step="0.01" min="1.0" max="5.0" required
+                                                    class="w-full rounded-xl border-slate-200 bg-white focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm p-3.5 text-slate-800"
+                                                    placeholder="Enter GPA (1.0 - 5.0)">
+                                                <p class="text-xs text-slate-500 mt-1">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                            </div>
+                                            <button type="submit" class="w-full btn bg-blue-600 text-white hover:bg-blue-700 rounded-xl px-6 py-3 text-sm font-bold shadow-lg shadow-blue-600/20">
+                                                Add GPA
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         @endif
                     </div>
@@ -558,5 +616,127 @@
             });
         }
     });
+
+    // --- GPA Edit Functions ---
+    function toggleGPAEdit() {
+        const editForm = document.getElementById('gpa-edit-form');
+        const display = document.getElementById('gpa-display');
+        const editBtn = document.getElementById('edit-gpa-btn');
+        const editText = document.getElementById('edit-gpa-text');
+        
+        if (editForm && display) {
+            const isHidden = editForm.classList.contains('hidden');
+            editForm.classList.toggle('hidden');
+            display.classList.toggle('hidden');
+            
+            if (editBtn && editText) {
+                if (isHidden) {
+                    editText.textContent = 'Cancel';
+                    editBtn.className = 'group relative px-5 py-2.5 rounded-xl bg-gradient-to-r from-slate-500 to-slate-600 text-white hover:from-slate-600 hover:to-slate-700 transition-all duration-300 text-sm font-semibold shadow-lg shadow-slate-500/30 hover:shadow-slate-600/40 hover:-translate-y-0.5 flex items-center gap-2 overflow-hidden';
+                    // Re-initialize icons after showing form
+                    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                        window.lucide.createIcons();
+                    }
+                } else {
+                    editText.textContent = 'Edit GPA';
+                    editBtn.className = 'group relative px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 text-sm font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 flex items-center gap-2 overflow-hidden';
+                }
+            }
+        }
+    }
+
+    function updateGPA(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const gpaValue = formData.get('gpa');
+        
+        // Validate GPA
+        const gpa = parseFloat(gpaValue);
+        if (isNaN(gpa) || gpa < 1.0 || gpa > 5.0) {
+            alert('Please enter a valid GPA between 1.0 and 5.0');
+            return;
+        }
+
+        // Show loading
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+        }
+
+        fetch('{{ route("student.update-gpa") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ gpa: gpa })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the display
+                const gpaDisplayValue = document.getElementById('gpa-display-value');
+                if (gpaDisplayValue) {
+                    gpaDisplayValue.textContent = parseFloat(gpa).toFixed(2);
+                }
+                
+                // Update GPA status colors
+                updateGPADisplay(gpa);
+                
+                // Hide edit form and show display
+                toggleGPAEdit();
+                
+                // Show success message
+                showGPASuccessMessage('GPA updated successfully!');
+                
+                // Reload page to update all GPA-dependent elements
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                alert(data.message || 'Failed to update GPA. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating GPA. Please try again.');
+        })
+        .finally(() => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+
+    function updateGPADisplay(gpa) {
+        // This will be handled by page reload, but we can update the immediate display
+        const gpaDisplayValue = document.getElementById('gpa-display-value');
+        if (gpaDisplayValue) {
+            gpaDisplayValue.textContent = parseFloat(gpa).toFixed(2);
+        }
+    }
+
+    function showGPASuccessMessage(message) {
+        // Create a temporary success message
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'fixed top-20 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2';
+        messageDiv.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
 </script>
 @endpush 

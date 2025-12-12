@@ -73,10 +73,106 @@ class StudentController extends Controller
     {
         $user = auth()->user();
 
+        // Check if this is a renewal application
+        $isRenewal = $request->has('is_renewal') && $request->input('is_renewal') == '1';
+        
+        // Check if user has already submitted an application
+        $hasSubmitted = BasicInfo::where('user_id', $user->id)
+            ->whereNotNull('type_assist')
+            ->exists();
+        
+        // Allow renewal if user is a validated grantee, otherwise block
+        if ($hasSubmitted && !$isRenewal) {
+            return redirect()->route('student.apply')
+                ->with('error', 'You have already submitted an application. You cannot submit another application.');
+        }
+        
+        // For renewals, check if user is eligible (validated grantee)
+        if ($isRenewal) {
+            $existingApplication = BasicInfo::where('user_id', $user->id)
+                ->whereNotNull('type_assist')
+                ->first();
+            
+            if (!$existingApplication || 
+                $existingApplication->application_status !== 'validated' || 
+                strtolower(trim($existingApplication->grant_status ?? '')) !== 'grantee') {
+                return redirect()->route('student.apply')
+                    ->with('error', 'You are not eligible for scholarship renewal. Only validated grantees can renew their scholarship.');
+            }
+        }
+
         $request->validate([
             'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
         ]);
 
+        // For renewals, only process document uploads and skip form data
+        if ($isRenewal) {
+            // Handle document uploads for renewal
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $type => $file) {
+                    if (!$file) {
+                        continue;
+                    }
+
+                    $path = $file->store('documents', 'public');
+
+                    // Check if document already exists for this user and type
+                    $existingDocument = Document::where('user_id', $user->id)
+                        ->where('type', $type)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+
+                    if ($existingDocument) {
+                        // Update existing document
+                        if (Storage::disk('public')->exists($existingDocument->filepath)) {
+                            Storage::disk('public')->delete($existingDocument->filepath);
+                        }
+                        
+                        $existingDocument->filename = $file->getClientOriginalName();
+                        $existingDocument->filepath = $path;
+                        $existingDocument->filetype = $file->getClientMimeType();
+                        $existingDocument->filesize = $file->getSize();
+                        $existingDocument->status = 'pending';
+                        $existingDocument->rejection_reason = null;
+                        $existingDocument->priority_rank = null;
+                        $existingDocument->priority_score = 0;
+                        $existingDocument->submitted_at = now();
+                        $existingDocument->save();
+                        
+                        $document = $existingDocument;
+                    } else {
+                        // Create new document
+                        $document = new Document();
+                        $document->user_id = $user->id;
+                        $document->filename = $file->getClientOriginalName();
+                        $document->filepath = $path;
+                        $document->filetype = $file->getClientMimeType();
+                        $document->filesize = $file->getSize();
+                        $document->description = null;
+                        $document->status = 'pending';
+                        $document->type = $type;
+                        $document->save();
+                    }
+
+                    $priorityService = new \App\Services\DocumentPriorityService();
+                    $priorityService->onDocumentUploaded($document);
+
+                    foreach (\App\Models\Staff::all() as $staff) {
+                        $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                    }
+                }
+            }
+
+            // Notify all staff about renewal submission
+            foreach (\App\Models\Staff::all() as $staff) {
+                $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+            }
+
+            $message = 'Your scholarship renewal application has been submitted!';
+            $request->session()->flash('status', $message);
+
+            return redirect()->route('student.dashboard');
+        }
     
         // Get the selected type of assistance (only one allowed)
         $typeAssist = null;
@@ -242,7 +338,10 @@ class StudentController extends Controller
             }
         }
 
-        $request->session()->flash('status', 'Your IP Scholarship application has been submitted!');
+        $message = $isRenewal 
+            ? 'Your scholarship renewal application has been submitted!' 
+            : 'Your IP Scholarship application has been submitted!';
+        $request->session()->flash('status', $message);
 
         // Handle document uploads submitted with the form
         if ($request->hasFile('documents')) {
@@ -1023,6 +1122,39 @@ class StudentController extends Controller
         return back()->with('success', 'Profile updated successfully!');
     }
 
+    public function updateGPA(Request $request)
+    {
+        $user = Auth::user();
+        
+        $validated = $request->validate([
+            'gpa' => 'required|numeric|min:1.0|max:5.0'
+        ], [
+            'gpa.required' => 'GPA value is required.',
+            'gpa.numeric' => 'GPA must be a number.',
+            'gpa.min' => 'GPA must be at least 1.0.',
+            'gpa.max' => 'GPA cannot exceed 5.0.',
+        ]);
+        
+        // Get or create basic_info record
+        $basicInfo = $user->basicInfo;
+        
+        if (!$basicInfo) {
+            // Create basic_info if it doesn't exist
+            $basicInfo = BasicInfo::create([
+                'user_id' => $user->id,
+            ]);
+        }
+        
+        // Update GPA in basic_info table
+        $basicInfo->gpa = $validated['gpa'];
+        $basicInfo->save();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'GPA updated successfully.',
+            'gpa' => $validated['gpa'],
+        ]);
+    }
 
     public function typeOfAssistance()
     {

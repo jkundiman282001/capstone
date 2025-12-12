@@ -65,6 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/student/apply', [StudentController::class, 'apply'])->name('student.apply');
     Route::post('/student/update-profile-pic', [StudentController::class, 'updateProfilePic'])->name('student.update-profile-pic');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
+    Route::post('/student/update-gpa', [StudentController::class, 'updateGPA'])->name('student.update-gpa');
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
     
     // Application Draft Routes
@@ -81,6 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Document data
         $user = \Illuminate\Support\Facades\Auth::user();
         $documents = \App\Models\Document::where('user_id', $user->id)->latest()->get();
+        
+        // Regular application required documents
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
             'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
@@ -89,8 +92,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
             'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
+        
+        // Renewal application required documents
+        $renewalRequiredTypes = [
+            'certificate_of_enrollment' => 'Certificate of Enrollment',
+            'statement_of_account' => 'Statement of Account',
+            'gwa_previous_sem' => 'GWA of Previous Semester',
+        ];
 
-        return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes'));
+        // Check if user has already submitted an application
+        $hasSubmitted = \App\Models\BasicInfo::where('user_id', $user->id)
+            ->whereNotNull('type_assist')
+            ->exists();
+        
+        $submittedApplication = null;
+        $canRenew = false;
+        if ($hasSubmitted) {
+            $submittedApplication = \App\Models\BasicInfo::where('user_id', $user->id)
+                ->whereNotNull('type_assist')
+                ->first();
+            
+            // Check if user can renew (must be validated and a grantee)
+            if ($submittedApplication) {
+                $canRenew = ($submittedApplication->application_status === 'validated' && 
+                           strtolower(trim($submittedApplication->grant_status ?? '')) === 'grantee');
+            }
+        }
+
+        return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes', 'renewalRequiredTypes', 'hasSubmitted', 'submittedApplication', 'canRenew'));
     })->name('student.apply');
 });
 
