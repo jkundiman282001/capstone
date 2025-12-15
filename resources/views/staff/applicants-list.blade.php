@@ -1434,9 +1434,6 @@
             const rsscScore = applicant.manual_rssc_score !== null && applicant.manual_rssc_score !== undefined 
                 ? applicant.manual_rssc_score 
                 : (applicant.rssc_score || applicant.priority_score || 0);
-        const rsscScore = applicant.manual_rssc_score !== null && applicant.manual_rssc_score !== undefined 
-            ? applicant.manual_rssc_score 
-            : (applicant.rssc_score || applicant.priority_score || 0);
             
             // Rank
             const rank = applicant.rank || applicant.priority_rank || '';
