@@ -136,7 +136,6 @@ Route::post('staff/register', [App\Http\Controllers\StaffAuthController::class, 
 Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
     Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
-    Route::post('/staff/feedback', [StaffDashboardController::class, 'submitFeedback'])->name('staff.feedback');
     Route::post('/staff/notifications/mark-read', [App\Http\Controllers\StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
     Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
     Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
@@ -168,6 +167,9 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/masterlist/regular/waiting', [StaffDashboardController::class, 'masterlistRegularWaiting'])->name('staff.masterlist.regular.waiting');
     Route::get('/staff/masterlist/pamana', [StaffDashboardController::class, 'masterlistPamana'])->name('staff.masterlist.pamana');
     Route::get('/staff/grantees/report', [StaffDashboardController::class, 'granteesReport'])->name('staff.grantees.report');
+    Route::get('/staff/waiting-list/report', [StaffDashboardController::class, 'waitingListReport'])->name('staff.waiting-list.report');
+    Route::post('/staff/waiting-list/update', [StaffDashboardController::class, 'updateWaitingList'])->name('staff.waiting-list.update');
+    Route::post('/staff/grantees/update-grants', [StaffDashboardController::class, 'updateGrants'])->name('staff.grantees.update-grants');
     
     // Announcements routes
     Route::get('/staff/announcements', [StaffDashboardController::class, 'announcements'])->name('staff.announcements.index');

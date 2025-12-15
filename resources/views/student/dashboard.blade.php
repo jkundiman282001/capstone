@@ -177,6 +177,35 @@
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
     }
+
+    /* Alert Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .animate-scaleIn {
+        animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 </style>
 @endpush
 
@@ -246,8 +275,11 @@
                     <div class="text-sm text-slate-700 font-medium mb-0.5">Slots Left</div>
                     <div class="text-xs text-slate-500">of {{ number_format($stats['maxSlots']) }} maximum</div>
                     @if($stats['isFull'])
-                        <div class="mt-2 px-3 py-1 bg-red-500/30 rounded-lg text-red-700 text-xs font-bold">
-                            Scholarship Slots Full
+                        <div class="mt-3 px-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl text-white text-sm font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Scholarship Slots Full</span>
                         </div>
                     @endif
                 </div>
@@ -266,58 +298,74 @@
 
 <!-- Performance Lock Modal -->
 @if (isset($hasApplied) && ! $hasApplied)
-<div id="performance-lock-overlay" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden">
-    <div class="absolute inset-0 bg-black/50 modal-backdrop"></div>
-    <div id="performance-lock-modal" class="relative w-full max-w-lg modern-card p-8 space-y-6 z-10">
-        <button id="performance-lock-close" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors">
+<div id="performance-lock-overlay" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden animate-fadeIn">
+    <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 modal-backdrop animate-fadeIn"></div>
+    <div id="performance-lock-modal" class="relative w-full max-w-2xl modern-card p-10 space-y-8 z-10 transform scale-95 animate-scaleIn shadow-2xl">
+        <button id="performance-lock-close" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition-all duration-300 p-2 rounded-full hover:bg-red-50">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
-        <div class="flex items-center gap-4">
-            <div class="icon-container">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex items-start gap-6">
+            <div class="icon-container shadow-xl transform hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z" />
                 </svg>
             </div>
-            <div>
-                <p class="text-2xl font-black text-slate-900">Performance Dashboard Locked</p>
-                <p class="text-sm text-slate-600 mt-1">Submit your NCIP-EAP application to unlock your performance analytics.</p>
+            <div class="flex-1">
+                <p class="text-3xl font-black text-slate-900 mb-2 gradient-text">Performance Dashboard Locked</p>
+                <p class="text-base text-slate-600 leading-relaxed">Submit your NCIP-EAP application to unlock your performance analytics and gain access to comprehensive insights.</p>
             </div>
         </div>
-        <div class="space-y-3 text-sm text-slate-700 bg-slate-50 rounded-xl p-5">
-            <p class="font-bold text-slate-900">Once your application is submitted, you'll gain access to:</p>
-            <ul class="space-y-2">
-                <li class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Real-time performance metrics and scoring insights</span>
+        <div class="space-y-4 text-base text-slate-700 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl p-6 border-2 border-orange-100 shadow-inner">
+            <p class="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Once your application is submitted, you'll gain access to:
+            </p>
+            <ul class="space-y-3">
+                <li class="flex items-start gap-4 p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
+                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <span class="font-semibold text-slate-800 pt-1">Real-time performance metrics and scoring insights</span>
                 </li>
-                <li class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Document checklist and tracking</span>
+                <li class="flex items-start gap-4 p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
+                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <span class="font-semibold text-slate-800 pt-1">Document checklist and tracking</span>
                 </li>
-                <li class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Priority status updates</span>
+                <li class="flex items-start gap-4 p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
+                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <span class="font-semibold text-slate-800 pt-1">Priority status updates</span>
                 </li>
             </ul>
         </div>
-        <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex flex-col sm:flex-row gap-4">
             <button 
                 onclick="window.location.href='{{ url('student/apply') }}'" 
-                class="flex-1 btn-modern text-white font-bold px-6 py-4 rounded-xl shadow-lg relative z-10"
+                class="flex-1 btn-modern text-white font-bold px-8 py-4 rounded-xl shadow-xl relative z-10 transform hover:scale-105 transition-transform duration-300"
             >
-                Complete Application
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Complete Application
+                </span>
             </button>
             <button 
                 id="performance-lock-later" 
-                class="flex-1 border-2 border-orange-300 text-orange-600 font-bold px-6 py-4 rounded-xl hover:bg-orange-50 transition-all"
+                class="flex-1 border-2 border-orange-300 text-orange-600 font-bold px-8 py-4 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
                 Maybe Later
             </button>
@@ -369,14 +417,14 @@
                 @endforeach
             </div>
         @else
-            <div class="text-center py-12 bg-slate-50 rounded-2xl">
-                <div class="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="text-center py-16 bg-gradient-to-br from-slate-50 via-white to-orange-50/50 rounded-3xl border-2 border-dashed border-slate-200 shadow-inner">
+                <div class="w-24 h-24 bg-gradient-to-br from-orange-100 to-amber-100 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg transform hover:scale-110 transition-transform duration-300">
+                    <svg class="w-12 h-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                     </svg>
                 </div>
-                <h3 class="text-slate-900 font-bold text-lg mb-2">No announcements yet</h3>
-                <p class="text-slate-500 text-sm">Check back later for updates and important information.</p>
+                <h3 class="text-slate-900 font-black text-2xl mb-3 gradient-text">No announcements yet</h3>
+                <p class="text-slate-600 text-base max-w-md mx-auto leading-relaxed">Check back later for updates and important information. We'll notify you when new announcements are posted.</p>
             </div>
         @endif
     </div>

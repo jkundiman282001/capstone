@@ -28,6 +28,9 @@ class BasicInfo extends Model
         'grant_status',
         'current_year_level',
         'gpa',
+        'grant_1st_sem',
+        'grant_2nd_sem',
+        'rssc_score',
     ];
 
     /**
@@ -37,6 +40,7 @@ class BasicInfo extends Model
      */
     protected $casts = [
         'gpa' => 'decimal:2', // Cast to decimal with 2 decimal places
+        'rssc_score' => 'decimal:2', // Cast to decimal with 2 decimal places
     ];
 
     public function user()

@@ -300,93 +300,151 @@
         </div>
     </div>
 
-
-    <!-- Alerts/Deadlines Table -->
-    <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8 overflow-hidden">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+    <!-- Additional Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Course Distribution -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Course Distribution</h2>
+                    <p class="text-xs text-slate-500 font-medium">Top 10 courses by applicant count</p>
+                </div>
             </div>
-            <div>
-                <h2 class="font-black text-slate-900 text-xl">Recent Alerts & Deadlines</h2>
-                <p class="text-sm text-slate-500 font-medium">Track important dates and notifications</p>
+            <div class="h-80">
+                <canvas id="courseChart"></canvas>
             </div>
         </div>
-        <div class="overflow-x-auto -mx-8 px-8">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-gradient-to-r from-orange-50 to-amber-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Scholar</th>
-                        <th class="px-6 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Alert</th>
-                        <th class="px-6 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Due Date</th>
-                        <th class="px-6 py-4 text-left text-xs font-black text-slate-700 uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-slate-100">
-                    @foreach($alerts as $alert)
-                    <tr class="hover:bg-orange-50 transition-all duration-200 group">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{{ $alert->scholar_name }}</td>
-                        <td class="px-6 py-4 text-sm text-slate-600 font-medium">{{ $alert->message }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-semibold">{{ $alert->due_date }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-4 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 shadow-sm">{{ $alert->status }}</span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+        <!-- Document Status -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Document Status</h2>
+                    <p class="text-xs text-slate-500 font-medium">Overall document status breakdown</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="documentChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Feedback/Support -->
-    <div id="feedback-section" class="bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 rounded-3xl shadow-xl border border-orange-200 p-8 mt-8 max-w-3xl mx-auto">
+    <!-- Geographic & Trends Analytics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Province Distribution -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Province Distribution</h2>
+                    <p class="text-xs text-slate-500 font-medium">Applicants by province</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="provinceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Application Trends -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Application Trends</h2>
+                    <p class="text-xs text-slate-500 font-medium">New applications over the last 6 months</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority Snapshot -->
+    <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8">
+        @php
+            $totalApplicants = $applicantPriorityStatistics['total_applicants'] ?? 0;
+            $priorityIpCount = $applicantPriorityStatistics['priority_ethno_count'] ?? 0;
+            $priorityCourseCount = $applicantPriorityStatistics['priority_course_count'] ?? 0;
+            $tribalCertCount = $applicantPriorityStatistics['tribal_cert_count'] ?? 0;
+            $incomeTaxCount = $applicantPriorityStatistics['income_tax_count'] ?? 0;
+            $pendingDocsTotal = $priorityStatistics['total_pending'] ?? 0;
+            $rankedPending = $priorityStatistics['ranked_pending'] ?? 0;
+            $oldestHours = $priorityStatistics['oldest_submission']['hours_waiting'] ?? 0;
+        @endphp
+
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4l3 10 4-18 3 8h4" />
                 </svg>
             </div>
             <div>
-                <h2 class="font-black text-slate-900 text-xl">Feedback & Support</h2>
-                <p class="text-sm text-slate-500 font-medium">Share your thoughts or report issues</p>
+                <h2 class="font-black text-slate-900 text-lg">Priority Snapshot</h2>
+                <p class="text-xs text-slate-500 font-medium">Quick view of queues and priority signals</p>
             </div>
         </div>
-        @if(session('success'))
-            <div class="mb-5 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-l-4 border-emerald-500 text-emerald-700 rounded-2xl font-semibold shadow-sm flex items-center gap-3">
-                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ session('success') }}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Applicant Queue</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($totalApplicants) }}</p>
+                <p class="text-xs text-slate-500 mt-1">Total applicants with computed priority</p>
+                <div class="mt-3 flex items-center gap-2 text-[11px] text-slate-500">
+                    <span class="inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
+                    <span>{{ number_format($priorityIpCount) }} priority IP &middot; {{ number_format($priorityCourseCount) }} priority courses</span>
+                </div>
             </div>
-        @endif
-        <form method="POST" action="{{ route('staff.feedback') }}" class="mb-6">
-            @csrf
-            <textarea name="feedback_text" class="form-textarea w-full mb-4 border-slate-200 bg-white rounded-2xl p-4 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium shadow-sm" rows="4" placeholder="Describe your issue or suggestion..." required></textarea>
-            <button class="btn btn-secondary w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Submit Feedback
-            </button>
-        </form>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-            <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Previous Feedback</h3>
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-        </div>
-        <div class="bg-white rounded-2xl border border-slate-200 max-h-48 overflow-y-auto p-4 shadow-inner">
-            <ul class="space-y-3 text-sm">
-                @forelse($feedbacks as $fb)
-                    <li class="pb-3 border-b border-slate-100 last:border-0">
-                        <p class="mb-2 text-slate-700 font-medium leading-relaxed">{{ $fb['text'] }}</p>
-                        <span class="text-xs text-slate-400 font-semibold">{{ $fb['submitted_at'] }}</span>
-                    </li>
-                @empty
-                    <li class="text-center text-slate-400 py-6 font-medium">No feedback submitted yet.</li>
-                @endforelse
-            </ul>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Documents Queue</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($pendingDocsTotal) }}</p>
+                <p class="text-xs text-slate-500 mt-1">Pending documents across all applicants</p>
+                <div class="mt-3 flex items-center justify-between text-[11px] text-slate-500">
+                    <span class="inline-flex items-center gap-1">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        Ranked: <span class="font-semibold text-slate-800">{{ number_format($rankedPending) }}</span>
+                    </span>
+                    <span>Oldest: <span class="font-semibold text-slate-800">{{ $oldestHours }}</span> hrs</span>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Key Requirements</p>
+                <div class="mt-3 space-y-2 text-xs text-slate-600">
+                    <div class="flex items-center justify-between">
+                        <span>Tribal Certificates</span>
+                        <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700 border border-rose-200">
+                            {{ number_format($tribalCertCount) }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Income Tax Docs</span>
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
+                            {{ number_format($incomeTaxCount) }}
+                        </span>
+                    </div>
+                    <p class="mt-2 text-[11px] text-slate-500">Use the priority views for full ladders and document queues.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -550,6 +608,217 @@
                             weight: '600'
                         },
                         color: '#334155'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Course Distribution Chart
+    new Chart(document.getElementById('courseChart'), {
+        type: 'bar',
+        data: {!! json_encode($courseChartData) !!},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 11,
+                            weight: '600'
+                        },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: 11,
+                            weight: '600'
+                        },
+                        color: '#334155'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Document Status Chart
+    new Chart(document.getElementById('documentChart'), {
+        type: 'doughnut',
+        data: {!! json_encode($documentChartData) !!},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        color: '#334155',
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // Province Distribution Chart
+    new Chart(document.getElementById('provinceChart'), {
+        type: 'bar',
+        data: {!! json_encode($provinceChartData) !!},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 11,
+                            weight: '600'
+                        },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Application Trends Chart
+    new Chart(document.getElementById('trendsChart'), {
+        type: 'line',
+        data: {!! json_encode($trendsChartData) !!},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        color: '#64748b',
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 11,
+                            weight: '600'
+                        },
+                        color: '#64748b'
                     },
                     grid: {
                         display: false

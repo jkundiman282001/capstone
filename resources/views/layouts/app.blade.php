@@ -246,12 +246,6 @@
                         <h2 class="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Account</h2>
                     </div>
                     <div class="space-y-2">
-                        <a href="#feedback-section" class="group block px-5 py-4 rounded-2xl bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm tracking-wide">Feedback & Support</span>
-                                <div class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-orange-500 transition-colors"></div>
-                            </div>
-                        </a>
                         <form method="POST" action="{{ route('staff.logout') }}" class="inline w-full">
                             @csrf
                             <button type="submit" class="group w-full px-5 py-4 rounded-2xl bg-white hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-50 border-2 border-slate-200 hover:border-rose-300 font-semibold text-slate-700 hover:text-rose-700 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">

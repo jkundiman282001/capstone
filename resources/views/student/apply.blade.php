@@ -114,13 +114,14 @@
     }
     
     .form-footer {
-        padding: 1.5rem 2.5rem;
-        background-color: #f8fafc;
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
         border-top: 1px solid #f1f5f9;
         border-radius: 0 0 1rem 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 1rem;
     }
 
     .input-group {
@@ -190,6 +191,102 @@
         position: relative;
         z-index: 10;
         pointer-events: auto;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    #saveDraftBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    }
+
+    #saveDraftBtn:active {
+        transform: translateY(0);
+    }
+
+    #saveDraftBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    #nextBtn {
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    #nextBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);
+        background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+    }
+
+    #nextBtn:active {
+        transform: translateY(0);
+    }
+
+    #nextBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    #submitBtn {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    #submitBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(34, 197, 94, 0.3);
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+
+    #submitBtn:active {
+        transform: translateY(0);
+    }
+
+    #submitBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .section-heading {
@@ -215,6 +312,28 @@
         opacity: 1;
         transform: translateY(0);
         transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #DC2626 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     /* Toast Notification */
@@ -306,6 +425,26 @@
     .toast.hiding {
         animation: slideOutRight 0.3s ease-in forwards;
     }
+
+    /* Success Modal Styles */
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .animate-scaleIn {
+        animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #successModal button:hover {
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
     </style>
 @endpush
 
@@ -323,35 +462,42 @@
 
         @if($hasSubmitted)
         <!-- Lock Message -->
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8">
-            <div class="flex items-start gap-4">
-                <div class="flex-shrink-0">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-gradient-to-r from-amber-50 via-orange-50/50 to-amber-50 border-l-4 border-amber-500 rounded-2xl shadow-xl p-8 mb-8 animate-fadeIn">
+            <div class="flex items-start gap-6">
+                <div class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
                 </div>
                 <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-amber-900 mb-2">Application Already Submitted</h3>
-                    <p class="text-amber-800 text-sm mb-3">
+                    <h3 class="text-2xl font-black text-amber-900 mb-3 gradient-text">Application Already Submitted</h3>
+                    <p class="text-amber-800 text-base mb-4 leading-relaxed">
                         You have already submitted a scholarship application. You cannot create or submit another application at this time.
                     </p>
                     @if($submittedApplication)
-                    <div class="bg-white rounded-lg p-4 border border-amber-200">
-                        <p class="text-sm text-amber-700">
-                            <span class="font-medium">Application Status:</span> 
-                            <span class="capitalize">{{ $submittedApplication->application_status ?? 'Pending Review' }}</span>
-                        </p>
+                    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 border-2 border-amber-200 shadow-inner mb-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm font-bold text-amber-900">
+                                <span>Application Status:</span> 
+                                <span class="capitalize ml-2 px-3 py-1 bg-amber-100 rounded-lg">{{ $submittedApplication->application_status ?? 'Pending Review' }}</span>
+                            </p>
+                        </div>
                         @if($submittedApplication->application_status === 'rejected' && $submittedApplication->application_rejection_reason)
-                        <p class="text-sm text-amber-700 mt-2">
-                            <span class="font-medium">Rejection Reason:</span> 
-                            {{ $submittedApplication->application_rejection_reason }}
-                        </p>
+                        <div class="mt-3 pt-3 border-t border-amber-200">
+                            <p class="text-sm text-amber-800">
+                                <span class="font-bold">Rejection Reason:</span> 
+                                <span class="ml-2">{{ $submittedApplication->application_rejection_reason }}</span>
+                            </p>
+                        </div>
                         @endif
                     </div>
                     @endif
-                    <div class="mt-4">
-                        <a href="{{ route('student.dashboard') }}" class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mt-6">
+                        <a href="{{ route('student.dashboard') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 text-sm font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                             </svg>
                             Go to Dashboard
@@ -471,12 +617,16 @@
                         </div>
             </div>
 
-                    <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                        <div class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div>
-                                <p class="text-sm font-medium text-blue-900">Need Assistance?</p>
-                                <p class="text-xs text-blue-700 mt-1">Contact support at (02) 888-1234 or email support@ncip.gov.ph</p>
+                    <div class="mt-8 bg-gradient-to-r from-blue-50 via-cyan-50/50 to-blue-50 border-l-4 border-blue-500 rounded-xl shadow-lg p-6">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-md">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-base font-black text-blue-900 mb-2">Need Assistance?</p>
+                                <p class="text-sm text-blue-800 leading-relaxed">Contact support at (02) 888-1234 or email support@ncip.gov.ph</p>
                 </div>
                         </div>
                     </div>
@@ -504,16 +654,23 @@
 
                     <!-- Error Display -->
                 @if ($errors->any())
-                        <div class="p-4 mx-8 mt-6 bg-red-50 border border-red-100 rounded-lg">
-                            <div class="flex">
-                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        <div class="mx-8 mt-6 bg-gradient-to-r from-red-50 via-red-50/50 to-red-50 border-l-4 border-red-500 rounded-xl shadow-lg p-6 animate-fadeIn">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-md">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-red-800">There were errors with your submission</h3>
-                                    <ul class="mt-1 text-sm text-red-700 list-disc list-inside">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-black text-red-900 mb-3">There were errors with your submission</h3>
+                                    <ul class="space-y-2">
                             @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
+                                <li class="flex items-start gap-2 text-sm text-red-800">
+                                    <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span>{{ $error }}</span>
+                                </li>
                             @endforeach
                         </ul>
                     </div>
@@ -522,27 +679,31 @@
                     @endif
 
                     @if(session('error'))
-                        <div class="p-4 mx-8 mt-6 bg-red-50 border border-red-100 rounded-lg">
-                            <div class="flex">
-                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        <div class="mx-8 mt-6 bg-gradient-to-r from-red-50 via-red-50/50 to-red-50 border-l-4 border-red-500 rounded-xl shadow-lg p-6 animate-fadeIn">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-md">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-red-800">{{ session('error') }}</h3>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-black text-red-900">{{ session('error') }}</h3>
                                 </div>
                             </div>
                         </div>
                     @endif
 
                     @if($hasSubmitted)
-                        <div class="p-4 mx-8 mt-6 bg-amber-50 border border-amber-200 rounded-lg">
-                            <div class="flex">
-                                <svg class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="mx-8 mt-6 bg-gradient-to-r from-amber-50 via-orange-50/50 to-amber-50 border-l-4 border-amber-500 rounded-xl shadow-lg p-6 animate-fadeIn">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                 </svg>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-amber-800">Application Locked</h3>
-                                    <p class="text-sm text-amber-700 mt-1">You have already submitted an application. This form is read-only.</p>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-black text-amber-900 mb-2">Application Locked</h3>
+                                    <p class="text-sm text-amber-800 leading-relaxed">You have already submitted an application. This form is read-only.</p>
                                 </div>
                             </div>
                         </div>
@@ -636,20 +797,28 @@
 
                         <!-- Step 2 -->
                         <div class="form-step hidden" id="step-2">
-                            @foreach(['mailing' => 'Mailing Address', 'permanent' => 'Permanent Address', 'origin' => 'Place of Origin'] as $prefix => $title)
+                            @foreach(['mailing' => 'Mailing Address', 'permanent' => 'Permanent Address', 'origin' => 'Place of Origin/Place of Birth'] as $prefix => $title)
                             <div class="mb-8 {{ !$loop->last ? 'pb-8 border-b border-slate-100' : '' }}">
-                                <h3 class="section-heading">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="section-heading mb-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12.414a4 4 0 10-5.657 5.657L12 22l5.657-5.343z"/></svg>
                                     {{ $title }}
                                 </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    @if($prefix !== 'mailing')
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" id="same_as_mailing_{{ $prefix }}" class="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 same-as-mailing-checkbox" data-target-prefix="{{ $prefix }}">
+                                        <span class="text-sm font-medium text-slate-700 group-hover:text-orange-600 transition-colors">Same as Mailing Address</span>
+                                    </label>
+                                    @endif
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="address-fields-{{ $prefix }}">
                                     <div class="input-group">
                                         <label class="input-label">Province</label>
                                         <input type="text" name="{{ $prefix }}_province" class="form-control bg-slate-50" value="Davao del Sur" readonly>
                         </div>
                                     <div class="input-group">
                                         <label class="input-label">Municipality</label>
-                                        <select name="{{ $prefix }}_municipality" class="form-control muni-select" data-prefix="{{ $prefix }}" required>
+                                        <select name="{{ $prefix }}_municipality" class="form-control muni-select" data-prefix="{{ $prefix }}" id="{{ $prefix }}_municipality" required>
                                 <option value="">Select Municipality</option>
                                 @foreach($municipalities as $municipality)
                                                 <option value="{{ $municipality }}" {{ old($prefix.'_municipality') == $municipality ? 'selected' : '' }}>{{ $municipality }}</option>
@@ -667,7 +836,7 @@
                         </div>
                                     <div class="input-group">
                                         <label class="input-label">House No. / Street</label>
-                                        <input type="text" name="{{ $prefix }}_house_num" class="form-control" value="{{ old($prefix.'_house_num') }}">
+                                        <input type="text" name="{{ $prefix }}_house_num" class="form-control" id="{{ $prefix }}_house_num" value="{{ old($prefix.'_house_num') }}">
                                     </div>
                                 </div>
                             </div>
@@ -782,7 +951,94 @@
                                 </div>
                                     <div class="input-group">
                                         <label class="input-label">Occupation</label>
-                                        <input type="text" name="{{ $parent }}_occupation" class="form-control">
+                                        <select name="{{ $parent }}_occupation" id="{{ $parent }}_occupation" class="form-control occupation-select">
+                                            <option value="">Select Occupation</option>
+                                            <option value="Farmer">Farmer</option>
+                                            <option value="Fisherman">Fisherman</option>
+                                            <option value="Teacher">Teacher</option>
+                                            <option value="Nurse">Nurse</option>
+                                            <option value="Doctor">Doctor</option>
+                                            <option value="Engineer">Engineer</option>
+                                            <option value="Accountant">Accountant</option>
+                                            <option value="Business Owner">Business Owner</option>
+                                            <option value="Entrepreneur">Entrepreneur</option>
+                                            <option value="Government Employee">Government Employee</option>
+                                            <option value="Police Officer">Police Officer</option>
+                                            <option value="Soldier">Soldier</option>
+                                            <option value="Driver">Driver</option>
+                                            <option value="Construction Worker">Construction Worker</option>
+                                            <option value="Carpenter">Carpenter</option>
+                                            <option value="Electrician">Electrician</option>
+                                            <option value="Plumber">Plumber</option>
+                                            <option value="Mechanic">Mechanic</option>
+                                            <option value="Barangay Official">Barangay Official</option>
+                                            <option value="Barangay Health Worker">Barangay Health Worker</option>
+                                            <option value="Social Worker">Social Worker</option>
+                                            <option value="Lawyer">Lawyer</option>
+                                            <option value="Judge">Judge</option>
+                                            <option value="Architect">Architect</option>
+                                            <option value="Veterinarian">Veterinarian</option>
+                                            <option value="Dentist">Dentist</option>
+                                            <option value="Pharmacist">Pharmacist</option>
+                                            <option value="Midwife">Midwife</option>
+                                            <option value="Medical Technologist">Medical Technologist</option>
+                                            <option value="Physical Therapist">Physical Therapist</option>
+                                            <option value="Chef">Chef</option>
+                                            <option value="Cook">Cook</option>
+                                            <option value="Waiter/Waitress">Waiter/Waitress</option>
+                                            <option value="Housekeeper">Housekeeper</option>
+                                            <option value="Security Guard">Security Guard</option>
+                                            <option value="Janitor">Janitor</option>
+                                            <option value="Salesperson">Salesperson</option>
+                                            <option value="Cashier">Cashier</option>
+                                            <option value="Store Manager">Store Manager</option>
+                                            <option value="Bank Teller">Bank Teller</option>
+                                            <option value="Bank Manager">Bank Manager</option>
+                                            <option value="Real Estate Agent">Real Estate Agent</option>
+                                            <option value="Insurance Agent">Insurance Agent</option>
+                                            <option value="Call Center Agent">Call Center Agent</option>
+                                            <option value="IT Professional">IT Professional</option>
+                                            <option value="Programmer">Programmer</option>
+                                            <option value="Web Developer">Web Developer</option>
+                                            <option value="Graphic Designer">Graphic Designer</option>
+                                            <option value="Photographer">Photographer</option>
+                                            <option value="Journalist">Journalist</option>
+                                            <option value="Writer">Writer</option>
+                                            <option value="Tour Guide">Tour Guide</option>
+                                            <option value="Travel Agent">Travel Agent</option>
+                                            <option value="Hotel Staff">Hotel Staff</option>
+                                            <option value="Flight Attendant">Flight Attendant</option>
+                                            <option value="Pilot">Pilot</option>
+                                            <option value="Seafarer">Seafarer</option>
+                                            <option value="OFW (Overseas Filipino Worker)">OFW (Overseas Filipino Worker)</option>
+                                            <option value="Domestic Helper">Domestic Helper</option>
+                                            <option value="Caregiver">Caregiver</option>
+                                            <option value="Tricycle Driver">Tricycle Driver</option>
+                                            <option value="Jeepney Driver">Jeepney Driver</option>
+                                            <option value="Taxi Driver">Taxi Driver</option>
+                                            <option value="Delivery Rider">Delivery Rider</option>
+                                            <option value="Barber">Barber</option>
+                                            <option value="Hairdresser">Hairdresser</option>
+                                            <option value="Tailor">Tailor</option>
+                                            <option value="Dressmaker">Dressmaker</option>
+                                            <option value="Vendor">Vendor</option>
+                                            <option value="Market Vendor">Market Vendor</option>
+                                            <option value="Sari-Sari Store Owner">Sari-Sari Store Owner</option>
+                                            <option value="Retailer">Retailer</option>
+                                            <option value="Factory Worker">Factory Worker</option>
+                                            <option value="Laborer">Laborer</option>
+                                            <option value="Mason">Mason</option>
+                                            <option value="Welder">Welder</option>
+                                            <option value="Baker">Baker</option>
+                                            <option value="Gardener">Gardener</option>
+                                            <option value="Freelancer">Freelancer</option>
+                                            <option value="Self-Employed">Self-Employed</option>
+                                            <option value="Unemployed">Unemployed</option>
+                                            <option value="Retired">Retired</option>
+                                            <option value="Student">Student</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <input type="text" name="{{ $parent }}_occupation_other" id="{{ $parent }}_occupation_other" class="form-control mt-3 hidden" placeholder="Please specify occupation">
                                 </div>
                                     <div class="input-group">
                                         <label class="input-label">Educational Attainment</label>
@@ -1026,19 +1282,34 @@
                                 <h3 class="section-heading mb-0">Document Requirements</h3>
                             </div>
 
-                            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-8 flex gap-3">
-                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="bg-gradient-to-r from-blue-50 via-cyan-50/50 to-blue-50 border-l-4 border-blue-500 rounded-xl shadow-lg p-6 mb-8 animate-fadeIn">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-md">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                <div class="text-sm text-blue-800">
-                                    <span class="font-semibold">Upload Instructions:</span> Please upload clear PDF files or images (JPG, PNG) of your documents. Maximum file size is 10MB per file.
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-base font-black text-blue-900 mb-2">Upload Instructions</h4>
+                                        <p class="text-sm text-blue-800 leading-relaxed">
+                                            Please upload clear PDF files or images (JPG, PNG) of your documents. Maximum file size is 10MB per file.
+                                        </p>
+                                    </div>
                             </div>
                             </div>
 
                             @if(session('success'))
-                                <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-6 text-sm font-medium flex items-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    {{ session('success') }}
+                                <div class="bg-gradient-to-r from-green-50 via-emerald-50/50 to-green-50 border-l-4 border-green-500 rounded-xl shadow-lg p-6 mb-6 animate-fadeIn">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="text-lg font-black text-green-900">{{ session('success') }}</h3>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
 
@@ -1091,6 +1362,13 @@
                         </div>
 
                                                 <div class="mt-auto">
+                                                    @if($typeKey === 'grades')
+                                                    <div class="mb-3">
+                                                        <label class="input-label text-xs">GPA (Grade Point Average) <span class="text-red-500">*</span></label>
+                                                        <input type="number" name="gpa" id="gpa-input-grades" step="0.01" min="1.0" max="5.0" class="form-control text-sm" placeholder="Enter GPA (1.0 - 5.0)">
+                                                        <p class="text-xs text-slate-500 mt-1">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                                    </div>
+                                                    @endif
                                                     <div class="doc-upload-container">
                                                         <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-orange-50 hover:border-orange-300 transition-colors relative group/upload">
                                                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -1157,6 +1435,13 @@
                                                 </div>
 
                                                 <div class="mt-auto">
+                                                    @if($typeKey === 'gwa_previous_sem')
+                                                    <div class="mb-3">
+                                                        <label class="input-label text-xs">GPA (Grade Point Average) <span class="text-red-500">*</span></label>
+                                                        <input type="number" name="gpa" id="gpa-input-renewal" step="0.01" min="1.0" max="5.0" class="form-control text-sm" placeholder="Enter GPA (1.0 - 5.0)">
+                                                        <p class="text-xs text-slate-500 mt-1">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                                    </div>
+                                                    @endif
                                                     <div class="doc-upload-container">
                                                         <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors relative group/upload">
                                                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -1183,15 +1468,23 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             Back
                         </button>
-                        <button type="button" class="btn btn-outline ml-3" id="saveDraftBtn" {{ $hasSubmitted ? 'disabled' : '' }}>
+                        <div class="ml-auto flex items-center gap-2">
+                            <button type="button" id="saveDraftBtn" {{ $hasSubmitted ? 'disabled' : '' }}>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
                             Save as Draft
                         </button>
-                        <div class="ml-auto">
-                            <button type="button" class="btn btn-primary" id="nextBtn" {{ $hasSubmitted ? 'disabled' : '' }}>
+                            <button type="button" id="nextBtn" {{ $hasSubmitted ? 'disabled' : '' }}>
                                 Next Step
-                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
                             </button>
-                            <button type="submit" class="btn btn-primary bg-green-600 hover:bg-green-700 border-green-600" id="submitBtn" style="display: none" {{ $hasSubmitted ? 'disabled' : '' }}>
+                            <button type="submit" id="submitBtn" style="display: none" {{ $hasSubmitted ? 'disabled' : '' }}>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 Submit Application
                             </button>
                                         </div>
@@ -1204,6 +1497,25 @@
 
 <!-- Toast Notification Container -->
 <div id="toastContainer" class="toast-container"></div>
+
+<!-- Custom Success Modal -->
+<div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn"></div>
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 z-10 transform scale-95 animate-scaleIn">
+        <div class="text-center">
+            <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-3" id="successModalTitle">Success!</h3>
+            <p class="text-base text-slate-600 mb-6" id="successModalMessage">Your action was completed successfully.</p>
+            <button onclick="closeSuccessModal()" class="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Sibling Modal -->
 <div id="siblingModalBackdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden"></div>
@@ -1449,15 +1761,17 @@
         if (formBody && !document.getElementById('renewal-notice')) {
             const notice = document.createElement('div');
             notice.id = 'renewal-notice';
-            notice.className = 'mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+            notice.className = 'mb-6 bg-gradient-to-r from-blue-50 via-cyan-50/50 to-blue-50 border-l-4 border-blue-500 rounded-xl shadow-lg p-6 animate-fadeIn';
             notice.innerHTML = `
-                <div class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-md">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <div>
-                        <h4 class="text-sm font-semibold text-blue-900 mb-1">Scholarship Renewal</h4>
-                        <p class="text-xs text-blue-800">Please upload the required renewal documents: Certificate of Enrollment, Statement of Account, and GWA of Previous Semester.</p>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-base font-black text-blue-900 mb-2">Scholarship Renewal</h4>
+                        <p class="text-sm text-blue-800 leading-relaxed">Please upload the required renewal documents: Certificate of Enrollment, Statement of Account, and GWA of Previous Semester.</p>
                     </div>
                 </div>
             `;
@@ -1756,8 +2070,10 @@
 
             // Buttons
             document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-flex';
-            document.getElementById('nextBtn').style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
-            document.getElementById('submitBtn').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            if (nextBtn) nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
+            if (submitBtn) submitBtn.style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
         }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1930,11 +2246,146 @@
                             opt.textContent = b;
                             brgySelect.appendChild(opt);
                         });
+                        // Dispatch custom event when barangays are loaded
+                        brgySelect.dispatchEvent(new CustomEvent('barangaysLoaded', { bubbles: true }));
                     });
             });
         }
     };
     ['mailing', 'permanent', 'origin'].forEach(setupLocation);
+
+    // Copy mailing address functionality
+    function copyMailingAddressTo(targetPrefix) {
+        const mailingFields = {
+            municipality: document.getElementById('mailing_municipality'),
+            barangay: document.getElementById('mailing_barangay'),
+            house_num: document.getElementById('mailing_house_num')
+        };
+
+        const targetFields = {
+            municipality: document.getElementById(`${targetPrefix}_municipality`),
+            barangay: document.getElementById(`${targetPrefix}_barangay`),
+            house_num: document.getElementById(`${targetPrefix}_house_num`)
+        };
+
+        // Copy municipality
+        if (mailingFields.municipality && targetFields.municipality) {
+            const mailingMuniValue = mailingFields.municipality.value;
+            const mailingBrgyValue = mailingFields.barangay ? mailingFields.barangay.value : '';
+            
+            // Set municipality value
+            targetFields.municipality.value = mailingMuniValue;
+            
+            // Set up one-time listener for when barangays are loaded
+            const onBarangaysLoaded = () => {
+                if (mailingBrgyValue && targetFields.barangay) {
+                    // Check if the barangay option exists
+                    const optionExists = Array.from(targetFields.barangay.options).some(
+                        opt => opt.value === mailingBrgyValue
+                    );
+                    if (optionExists) {
+                        targetFields.barangay.value = mailingBrgyValue;
+                        targetFields.barangay.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+                // Remove the listener after use
+                targetFields.barangay.removeEventListener('barangaysLoaded', onBarangaysLoaded);
+            };
+            
+            // Add listener before triggering change
+            if (targetFields.barangay) {
+                targetFields.barangay.addEventListener('barangaysLoaded', onBarangaysLoaded, { once: true });
+            }
+            
+            // Trigger change event to load barangays
+            targetFields.municipality.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Fallback: if barangays are already loaded (same municipality), set immediately
+            if (targetFields.barangay && mailingBrgyValue) {
+                const optionExists = Array.from(targetFields.barangay.options).some(
+                    opt => opt.value === mailingBrgyValue
+                );
+                if (optionExists) {
+                    targetFields.barangay.value = mailingBrgyValue;
+                    targetFields.barangay.dispatchEvent(new Event('change', { bubbles: true }));
+                    // Remove the listener since we already set it
+                    targetFields.barangay.removeEventListener('barangaysLoaded', onBarangaysLoaded);
+                }
+            }
+        }
+
+        // Copy house number
+        if (mailingFields.house_num && targetFields.house_num) {
+            targetFields.house_num.value = mailingFields.house_num.value;
+        }
+    }
+
+    // Setup "Same as Mailing Address" checkboxes
+    document.querySelectorAll('.same-as-mailing-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const targetPrefix = this.dataset.targetPrefix;
+            const addressFields = document.getElementById(`address-fields-${targetPrefix}`);
+            
+            if (this.checked) {
+                // Copy mailing address values
+                copyMailingAddressTo(targetPrefix);
+                
+                // Disable target fields
+                if (addressFields) {
+                    addressFields.querySelectorAll('select, input:not([readonly])').forEach(field => {
+                        field.disabled = true;
+                        field.classList.add('bg-slate-50', 'cursor-not-allowed');
+                    });
+                }
+            } else {
+                // Enable target fields
+                if (addressFields) {
+                    addressFields.querySelectorAll('select, input:not([readonly])').forEach(field => {
+                        field.disabled = false;
+                        field.classList.remove('bg-slate-50', 'cursor-not-allowed');
+                    });
+                }
+            }
+        });
+
+        // Also copy when mailing address changes (if checkbox is checked)
+        const targetPrefix = checkbox.dataset.targetPrefix;
+        ['municipality', 'barangay', 'house_num'].forEach(fieldType => {
+            const mailingField = document.getElementById(`mailing_${fieldType}`);
+            if (mailingField) {
+                mailingField.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        copyMailingAddressTo(targetPrefix);
+                    }
+                });
+            }
+        });
+    });
+
+    // Setup occupation "Other" field toggle
+    document.querySelectorAll('.occupation-select').forEach(select => {
+        const parentPrefix = select.id.replace('_occupation', '');
+        const otherInput = document.getElementById(`${parentPrefix}_occupation_other`);
+        
+        if (otherInput) {
+            // Initial check for existing value
+            if (select.value === 'Other') {
+                otherInput.classList.remove('hidden');
+                otherInput.setAttribute('required', 'required');
+            }
+            
+            select.addEventListener('change', function() {
+                if (this.value === 'Other') {
+                    otherInput.classList.remove('hidden');
+                    otherInput.setAttribute('required', 'required');
+                } else {
+                    otherInput.classList.add('hidden');
+                    otherInput.removeAttribute('required');
+                    otherInput.value = '';
+                }
+            });
+        }
+    });
 
     // Draft persistence using database (AJAX)
     (function() {
@@ -2220,6 +2671,46 @@
                 return false;
             }
             
+            // Validate GPA if grades document is being uploaded
+            const gradesFileInput = formEl.querySelector('input[name="documents[grades]"]');
+            const gwaFileInput = formEl.querySelector('input[name="documents[gwa_previous_sem]"]');
+            const gpaInputGrades = document.getElementById('gpa-input-grades');
+            const gpaInputRenewal = document.getElementById('gpa-input-renewal');
+            
+            if (gradesFileInput && gradesFileInput.files && gradesFileInput.files.length > 0) {
+                if (!gpaInputGrades || !gpaInputGrades.value || gpaInputGrades.value.trim() === '') {
+                    e.preventDefault();
+                    alert('Please enter your GPA when uploading grades document.');
+                    if (gpaInputGrades) {
+                        gpaInputGrades.focus();
+                        gpaInputGrades.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return false;
+                }
+            }
+            
+            if (gwaFileInput && gwaFileInput.files && gwaFileInput.files.length > 0) {
+                if (!gpaInputRenewal || !gpaInputRenewal.value || gpaInputRenewal.value.trim() === '') {
+                    e.preventDefault();
+                    alert('Please enter your GPA when uploading GWA document.');
+                    if (gpaInputRenewal) {
+                        gpaInputRenewal.focus();
+                        gpaInputRenewal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return false;
+                }
+            }
+            
+            // Remove required attribute from hidden GPA inputs to prevent validation errors
+            const allGpaInputs = formEl.querySelectorAll('input[name="gpa"]');
+            allGpaInputs.forEach(input => {
+                // Check if input is in a hidden step or not visible
+                const stepContainer = input.closest('.form-step');
+                if (stepContainer && stepContainer.classList.contains('hidden')) {
+                    input.removeAttribute('required');
+                }
+            });
+            
             // Delete draft on successful submission
             if (window.currentDraftId) {
                 fetch(`/student/drafts/${window.currentDraftId}`, {
@@ -2244,10 +2735,11 @@
             saveDraft();
             // Wait a bit for the save to complete
             setTimeout(() => {
-                alert('Application draft saved successfully!');
+                showSuccessModal('Draft Saved!', 'Application draft saved successfully!', () => {
                 if (window.returnToHub) {
                     window.returnToHub();
                 }
+                });
             }, 500);
         };
     })();
@@ -2272,6 +2764,48 @@
             });
         }
     }
+    
+    // Success Modal Functions
+    window.showSuccessModal = function(title, message, onClose) {
+        const modal = document.getElementById('successModal');
+        const titleEl = document.getElementById('successModalTitle');
+        const messageEl = document.getElementById('successModalMessage');
+        
+        if (modal && titleEl && messageEl) {
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            
+            // Store callback
+            if (onClose) {
+                modal.dataset.onClose = 'true';
+                window.successModalCallback = onClose;
+            }
+        }
+    };
+
+    window.closeSuccessModal = function() {
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            
+            // Execute callback if exists
+            if (modal.dataset.onClose === 'true' && window.successModalCallback) {
+                window.successModalCallback();
+                delete window.successModalCallback;
+                delete modal.dataset.onClose;
+            }
+        }
+    };
+
+    // Close modal on backdrop click
+    document.getElementById('successModal')?.addEventListener('click', function(e) {
+        if (e.target === this || e.target.classList.contains('bg-black/60')) {
+            closeSuccessModal();
+        }
+    });
     
     // Setup when DOM is ready
     if (document.readyState === 'loading') {
@@ -2389,6 +2923,15 @@
                         fileNameDisplay.textContent = `${file.name} (${size} MB)`;
                         fileNameDisplay.classList.remove('hidden');
                     }
+                    
+                    // If this is a grades or gwa_previous_sem file input, make GPA required
+                    const fileInputName = this.name;
+                    if (fileInputName.includes('grades') || fileInputName.includes('gwa_previous_sem')) {
+                        const gpaInput = document.getElementById('gpa-input-grades') || document.getElementById('gpa-input-renewal');
+                        if (gpaInput) {
+                            gpaInput.setAttribute('required', 'required');
+                        }
+                    }
                 } else {
                     // Reset state
                     label.classList.add('bg-slate-50', 'border-slate-300');
@@ -2402,6 +2945,15 @@
                     }
                     if (fileNameDisplay) {
                         fileNameDisplay.classList.add('hidden');
+                    }
+                    
+                    // If this is a grades or gwa_previous_sem file input, remove GPA required
+                    const fileInputName = this.name;
+                    if (fileInputName.includes('grades') || fileInputName.includes('gwa_previous_sem')) {
+                        const gpaInput = document.getElementById('gpa-input-grades') || document.getElementById('gpa-input-renewal');
+                        if (gpaInput) {
+                            gpaInput.removeAttribute('required');
+                        }
                     }
                 }
             });
