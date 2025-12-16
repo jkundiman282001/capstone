@@ -2402,7 +2402,7 @@
             saveTimeout = setTimeout(saveDraft, 1000); // Increased delay to reduce server load
         };
 
-        function saveDraft() {
+        function collectFormData() {
             const data = {};
             const elements = formEl.querySelectorAll('input, select, textarea');
             elements.forEach(el => {
@@ -2431,6 +2431,11 @@
                     data[el.name] = el.value;
                 }
             });
+            return data;
+        }
+
+        function saveDraft() {
+            const data = collectFormData();
 
             // Prepare request payload
             const payload = {
@@ -2467,6 +2472,64 @@
             .catch(error => {
                 console.error('Error saving draft:', error);
                 // Silently fail - don't interrupt user experience
+            });
+        }
+
+        // Track if form is being submitted normally (to prevent duplicate save on unload)
+        let isSubmitting = false;
+
+        // Auto-save on page unload/refresh using fetch with keepalive for reliability
+        function saveDraftOnUnload() {
+            // Don't save if form is being submitted normally
+            if (isSubmitting) {
+                return;
+            }
+
+            // Check if form has any data worth saving
+            const data = collectFormData();
+            const hasData = Object.keys(data).some(key => {
+                const value = data[key];
+                if (Array.isArray(value)) {
+                    return value.length > 0 && value.some(v => v && v.toString().trim() !== '');
+                }
+                return value && value.toString().trim() !== '';
+            });
+
+            if (!hasData) {
+                return; // No data to save
+            }
+
+            // Prepare payload
+            const payload = {
+                draft_id: window.currentDraftId,
+                current_step: currentStep || 1,
+                form_data: data,
+            };
+
+            const fname = data['first_name'] || '';
+            const lname = data['last_name'] || '';
+            if (fname || lname) {
+                payload.name = `${fname} ${lname}`.trim() + ' - Scholarship Application';
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                             document.querySelector('input[name="_token"]')?.value;
+
+            // Use fetch with keepalive flag for reliable delivery during page unload
+            // keepalive ensures the request continues even after page unloads
+            fetch('/student/drafts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify(payload),
+                keepalive: true, // Critical: allows request to complete after page unload
+            }).catch(error => {
+                // Silently fail - we don't want to interrupt page navigation
+                console.error('Error auto-saving draft on unload:', error);
             });
         }
 
@@ -2596,6 +2659,42 @@
         formEl.addEventListener('change', scheduleDraftSave, true);
         document.addEventListener('apply:sibling-changed', scheduleDraftSave);
 
+        // Auto-save on page unload/refresh to prevent data loss
+        let isUnloading = false;
+        window.addEventListener('beforeunload', function(e) {
+            // Only save if we're in the form view (not hub view)
+            const formView = document.getElementById('application-form-view');
+            if (!formView || formView.classList.contains('hidden')) {
+                return;
+            }
+
+            // Check if application is locked (don't save if locked)
+            if (isApplicationLocked) {
+                return;
+            }
+
+            // Save draft before page unloads
+            saveDraftOnUnload();
+            
+            // Optional: Show browser confirmation dialog
+            // Uncomment the lines below if you want to warn users before leaving
+            // const message = 'You have unsaved changes. Are you sure you want to leave?';
+            // e.returnValue = message;
+            // return message;
+        });
+
+        // Also save on visibility change (when user switches tabs/apps)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Page is now hidden, save draft
+                const formView = document.getElementById('application-form-view');
+                if (formView && !formView.classList.contains('hidden') && !isApplicationLocked) {
+                    // Use regular saveDraft for visibility change (not unload)
+                    saveDraft();
+                }
+            }
+        });
+
         const clearDraftBtn = document.getElementById('clearDraftBtn');
         clearDraftBtn?.addEventListener('click', () => {
             if (!window.currentDraftId) {
@@ -2664,9 +2763,13 @@
         };
 
         formEl.addEventListener('submit', (e) => {
+            // Mark as submitting to prevent auto-save on unload
+            isSubmitting = true;
+
             // Prevent submission if application is locked
             if (isApplicationLocked) {
                 e.preventDefault();
+                isSubmitting = false; // Reset flag if submission prevented
                 alert('You have already submitted an application. You cannot submit another one.');
                 return false;
             }
@@ -2680,6 +2783,7 @@
             if (gradesFileInput && gradesFileInput.files && gradesFileInput.files.length > 0) {
                 if (!gpaInputGrades || !gpaInputGrades.value || gpaInputGrades.value.trim() === '') {
                     e.preventDefault();
+                    isSubmitting = false; // Reset flag if validation fails
                     alert('Please enter your GPA when uploading grades document.');
                     if (gpaInputGrades) {
                         gpaInputGrades.focus();
@@ -2692,6 +2796,7 @@
             if (gwaFileInput && gwaFileInput.files && gwaFileInput.files.length > 0) {
                 if (!gpaInputRenewal || !gpaInputRenewal.value || gpaInputRenewal.value.trim() === '') {
                     e.preventDefault();
+                    isSubmitting = false; // Reset flag if validation fails
                     alert('Please enter your GPA when uploading GWA document.');
                     if (gpaInputRenewal) {
                         gpaInputRenewal.focus();
