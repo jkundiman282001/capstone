@@ -88,7 +88,7 @@
                                 if (tableBody) {
                                     tableBody.innerHTML = `
                                         <tr>
-                                            <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
+                    <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
                                                 Error: Could not render report. Please refresh the page.
                                             </td>
                                         </tr>
@@ -278,9 +278,11 @@
             const isFemale = grantee.is_female || false;
             const isMale = grantee.is_male || false;
             
-            // School type checkboxes
+            // School info from first intended school; fallback to legacy flags
             const isPrivate = grantee.is_private || false;
             const isPublic = grantee.is_public || false;
+            const schoolType = (grantee.school_type || grantee.school1_type || '').toLowerCase();
+            const schoolName = grantee.school_name || grantee.school1_name || grantee.school || '';
             
             // Year level checkboxes (using boolean flags from controller)
             const is1st = grantee.is_1st || false;
@@ -300,34 +302,26 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.ethnicity || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPrivate ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPublic ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
+                        <input type="text"
+                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
+                               value="${(schoolType === 'private' || isPrivate) ? schoolName : ''}"
+                               readonly>
+                    </td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
+                        <input type="text"
+                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
+                               value="${(schoolType === 'public' || isPublic) ? schoolName : ''}"
+                               readonly>
+                    </td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.course || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is1st ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is2nd ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is3rd ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is4th ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is5th ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
-                        <label class="flex items-center justify-center cursor-pointer">
-                            <input type="checkbox" 
-                                   class="grant-checkbox w-5 h-5 text-orange-600 border-slate-300 rounded focus:ring-orange-500" 
-                                   data-user-id="${grantee.user_id}"
-                                   data-sem="1st"
-                                   ${grantee.grant_1st_sem ? 'checked' : ''}
-                                   onchange="window.markAsChanged()">
-                        </label>
-                    </td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
-                        <label class="flex items-center justify-center cursor-pointer">
-                            <input type="checkbox" 
-                                   class="grant-checkbox w-5 h-5 text-orange-600 border-slate-300 rounded focus:ring-orange-500" 
-                                   data-user-id="${grantee.user_id}"
-                                   data-sem="2nd"
-                                   ${grantee.grant_2nd_sem ? 'checked' : ''}
-                                   onchange="window.markAsChanged()">
-                        </label>
-                    </td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.remarks || ''}</td>
                 </tr>
             `;
@@ -635,7 +629,7 @@
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GENDER</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
-                                    <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">SCHOOL</th>
+                                    <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">NAME OF SCHOOL</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">COURSE</th>
                                     <th colspan="5" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">YEAR</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GRANTS</th>
@@ -665,20 +659,6 @@
                 <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm text-slate-600">
                     <span id="reportCount" class="font-medium"></span>
                     <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex items-center gap-2">
-                            <button onclick="window.checkAll1stSem()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                Check 1st Sem
-                            </button>
-                            <button onclick="window.checkAll2ndSem()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                Check 2nd Sem
-                            </button>
-                        </div>
-                        <button onclick="window.saveGrants()" id="saveGrantsBtn" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Save Grants
-                        </button>
                         <button onclick="window.exportToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Export to CSV
@@ -1021,9 +1001,13 @@
             if (is5th) yearLevels.push('5th');
             const yearValue = yearLevels.join(', ');
             
-            // Get current checkbox states for grants
-            const grant1stSem = grantee.grant_1st_sem ? '✓' : '';
-            const grant2ndSem = grantee.grant_2nd_sem ? '✓' : '';
+            // Grants are now fixed-value display
+            const grant1stSem = '10,000';
+            const grant2ndSem = '10,000';
+            
+            // School type/name for CSV
+            const schoolType = (grantee.school_type || grantee.school1_type || '').toLowerCase();
+            const schoolName = grantee.school_name || grantee.school1_name || grantee.school || '';
             
             return [
                 addressLine,
@@ -1034,8 +1018,8 @@
                 grantee.age || '',
                 genderValue,
                 grantee.ethnicity || '',
-                grantee.is_private ? '✓' : '',
-                grantee.is_public ? '✓' : '',
+                (schoolType === 'private' || grantee.is_private) ? schoolName : '',
+                (schoolType === 'public' || grantee.is_public) ? schoolName : '',
                 grantee.course || '',
                 yearValue,
                 grant1stSem,

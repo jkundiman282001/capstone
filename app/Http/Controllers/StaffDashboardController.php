@@ -1528,8 +1528,9 @@ class StaffDashboardController extends Controller
                     }
                 }
                 
-                // Determine school type (Private/Public)
+                // Determine school type (Private/Public) and school name (first intended school)
                 $schoolType = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_type ?? '') : '';
+                $schoolName = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_name ?? '') : '';
                 $isPrivate = stripos($schoolType, 'private') !== false;
                 $isPublic = stripos($schoolType, 'public') !== false || stripos($schoolType, 'state') !== false;
                 
@@ -1588,6 +1589,8 @@ class StaffDashboardController extends Controller
                     'is_male' => $isMale,
                     'ethnicity' => $grantee->ethno ? ($grantee->ethno->ethnicity ?? '') : '',
                     'school_type' => $schoolType,
+                    'school_name' => $schoolName,
+                    'school1_name' => $schoolName, // alias for front-end fallback
                     'is_private' => $isPrivate,
                     'is_public' => $isPublic,
                     'course' => $course,
