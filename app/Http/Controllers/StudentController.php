@@ -616,21 +616,22 @@ class StudentController extends Controller
         // Calculate priority factors for display (if student has applied OR is validated OR has documents)
         // Also check if basicInfo exists OR student has documents
         if (($basicInfo && ($basicInfo->type_assist || $isStudentValidated)) || $hasDocuments) {
-            $student->load(['ethno', 'documents', 'basicInfo.schoolPref']);
+            $student->load(['ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education']);
             
             // Get priority factors
             $priorityService = new \App\Services\ApplicantPriorityService();
+            $breakdown = $priorityService->calculateApplicantPriority($student);
             $priorityFactors = [
-                'is_priority_ethno' => $this->checkPriorityEthno($student),
-                'is_priority_course' => $this->checkPriorityCourse($student),
-                'has_approved_tribal_cert' => $student->documents()->where('type', 'tribal_certificate')->where('status', 'approved')->exists(),
-                'has_approved_income_tax' => $student->documents()->where('type', 'income_document')->where('status', 'approved')->exists(),
-                'has_approved_grades' => $student->documents()->where('type', 'grades')->where('status', 'approved')->exists(),
-                'has_all_other_requirements' => $this->checkAllOtherRequirements($student),
+                'is_priority_ethno' => $breakdown['is_priority_ethno'] ?? false,
+                'ip_rubric_score' => $breakdown['ip_rubric_score'] ?? 0,
+                'academic_rubric_score' => $breakdown['academic_rubric_score'] ?? 0,
+                'has_approved_income_tax' => $breakdown['has_approved_income_tax'] ?? false,
+                'awards_rubric_score' => $breakdown['awards_rubric_score'] ?? 0,
+                'social_responsibility_rubric_score' => $breakdown['social_responsibility_rubric_score'] ?? 0,
             ];
             
             // Calculate student's priority score for weighted lottery
-            $studentPriorityScore = $this->calculateStudentPriorityScore($student, $priorityService);
+            $studentPriorityScore = $breakdown['priority_score'] ?? 0;
         }
         
         // ============================================
@@ -820,51 +821,8 @@ class StudentController extends Controller
     private function calculateStudentPriorityScore($student, $priorityService): float
     {
         try {
-            $reflection = new \ReflectionClass($priorityService);
-            
-            // Get IP rubric score
-            $ipRubricMethod = $reflection->getMethod('calculateIpRubricScore');
-            $ipRubricMethod->setAccessible(true);
-            $ipRubricScore = $ipRubricMethod->invoke($priorityService, $student);
-            
-            // Get course check
-            $getCourseMethod = $reflection->getMethod('getApplicantCourse');
-            $getCourseMethod->setAccessible(true);
-            $courseName = $getCourseMethod->invoke($priorityService, $student);
-            
-            $isPriorityCourseMethod = $reflection->getMethod('isPriorityCourse');
-            $isPriorityCourseMethod->setAccessible(true);
-            $isPriorityCourse = $isPriorityCourseMethod->invoke($priorityService, $courseName);
-            
-            // Check documents
-            $hasTribalMethod = $reflection->getMethod('hasApprovedTribalCertificate');
-            $hasTribalMethod->setAccessible(true);
-            $hasApprovedTribalCert = $hasTribalMethod->invoke($priorityService, $student);
-            
-            $hasIncomeMethod = $reflection->getMethod('hasApprovedIncomeTax');
-            $hasIncomeMethod->setAccessible(true);
-            $hasApprovedIncomeTax = $hasIncomeMethod->invoke($priorityService, $student);
-            
-            $hasGradesMethod = $reflection->getMethod('hasApprovedGrades');
-            $hasGradesMethod->setAccessible(true);
-            $hasApprovedGrades = $hasGradesMethod->invoke($priorityService, $student);
-            
-            $hasOtherMethod = $reflection->getMethod('hasAllOtherRequirements');
-            $hasOtherMethod->setAccessible(true);
-            $hasAllOtherRequirements = $hasOtherMethod->invoke($priorityService, $student);
-            
-            // Calculate priority score
-            $calculateMethod = $reflection->getMethod('calculatePriorityScore');
-            $calculateMethod->setAccessible(true);
-            return $calculateMethod->invoke(
-                $priorityService,
-                $ipRubricScore,
-                $isPriorityCourse,
-                $hasApprovedTribalCert,
-                $hasApprovedIncomeTax,
-                $hasApprovedGrades,
-                $hasAllOtherRequirements
-            );
+            $breakdown = $priorityService->calculateApplicantPriority($student);
+            return (float) ($breakdown['priority_score'] ?? 0.0);
         } catch (\Exception $e) {
             return 0.0;
         }

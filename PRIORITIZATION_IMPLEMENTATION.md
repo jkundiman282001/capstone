@@ -75,35 +75,28 @@ This document outlines where prioritization is implemented in the codebase. Ther
 
 ---
 
-## 2. Applicant Scoring System (Multi-Criteria Scoring)
+## 2. Applicant Priority Scoring (Multi-Criteria Scoring)
 
 ### Service Layer
-**File:** `app/Services/ApplicantScoringService.php`
-- **Main Class:** `ApplicantScoringService`
-- **Scoring Weights:** (lines 12-19)
-  - Financial Need: 25%
-  - Academic Performance: 20%
-  - Document Completeness: 15%
-  - Geographic Priority: 15%
-  - Indigenous Heritage: 15%
-  - Family Situation: 10%
+**File:** `app/Services/ApplicantPriorityService.php`
+- **Main Class:** `ApplicantPriorityService`
+- **Scoring Weights (current):**
+  - IP Group rubric: 20%
+  - GPA (1.0–5.0): 30%
+  - Income Tax Return (ITR): 30%
+  - Citations/Awards: 10%
+  - Social Responsibility (essays): 10%
 
 **Key Methods:**
-- `calculateApplicantScore()` - Calculates weighted score for a single applicant (lines 34-78)
-- `calculateFinancialNeedScore()` - Financial need scoring (lines 84-134)
-- `calculateAcademicPerformanceScore()` - Academic performance scoring (lines 140-200)
-- `calculateDocumentCompletenessScore()` - Document completeness scoring (lines 206-242)
-- `calculateGeographicPriorityScore()` - Geographic priority scoring (lines 248-296)
-- `calculateIndigenousHeritageScore()` - Indigenous heritage scoring (lines 302-330)
-- `calculateFamilySituationScore()` - Family situation scoring (lines 336-371)
-- `calculateAllApplicantScores()` - Calculates scores for all applicants and assigns ranks (lines 424-455)
-- `getTopPriorityApplicants()` - Gets top priority applicants (lines 460-477)
-- `getScoringStatistics()` - Gets scoring statistics (lines 482-503)
+- `getPrioritizedApplicants()` - Calculates scores for all applicants and assigns ranks (FCFS tiebreaker)
+- `getTopPriorityApplicants()` - Gets top priority applicants
+- `getPriorityStatistics()` - Counts coverage statistics for dashboard/overview
+- `calculateApplicantPriority()` - Returns a single applicant’s priority breakdown (useful for student views)
 
 **Priority Logic:**
-- Calculates weighted total score from 6 criteria
+- Calculates weighted total score (0–100)
 - Assigns `priority_rank` based on total score (higher score = higher rank)
-- Stores individual category scores and scoring notes
+- Uses FCFS as tie-breaker (earlier submission wins)
 
 ### Controller Layer
 **File:** `app/Http/Controllers/StaffDashboardController.php`
@@ -120,18 +113,12 @@ This document outlines where prioritization is implemented in the codebase. Ther
 - **Method:** `viewApplication()` - Line 254
   - Loads applicant score when viewing application
 
-### Model Layer
-**File:** `app/Models/ApplicantScore.php`
-- **Fields:** All score fields and `priority_rank` (lines 10-22)
-- **Accessor:** `getPriorityLevelAttribute()` - Returns priority level based on score (lines 46-57)
-- **Accessor:** `getPriorityColorAttribute()` - Returns color for UI (lines 62-73)
-- **Scopes:** `highPriority()`, `mediumPriority()`, `lowPriority()`, `veryLowPriority()` (lines 78-105)
-
-### Database Schema
-**File:** `database/migrations/2025_09_17_120218_create_applicant_scores_table.php`
-- Creates `applicant_scores` table
-- Stores individual category scores and `priority_rank` (line 24)
-- Creates indexes on `total_score` and `priority_rank` (line 29)
+### Data Sources
+- **IP rubric inputs**: document statuses for `tribal_certificate`, `endorsement`, `birth_certificate` (+priority ethno bonus)
+- **Academic input (GPA)**: `basic_info.gpa` (1.0–5.0 scale)
+- **ITR**: approved `income_document`
+- **Awards**: `education.rank`
+- **Social responsibility**: `school_pref.ques_answer1` + `school_pref.ques_answer2`
 
 ### Routes
 **File:** `routes/web.php`
@@ -165,14 +152,10 @@ This document outlines where prioritization is implemented in the codebase. Ther
    - `created_at` timestamp
 
 ### Applicant Score Calculation
-1. **Weighted Scoring:** Multiplies each category score by its weight
-2. **Total Score:** Sum of weighted scores (0-100 scale)
-3. **Ranking:** Sorts by `total_score DESC` (highest score = rank #1)
-4. **Priority Levels:**
-   - High: ≥80
-   - Medium: 60-79
-   - Low: 40-59
-   - Very Low: <40
+1. **Weighted Scoring:** Multiplies each normalized criterion score by its weight
+2. **Total Score:** Sum of weighted scores (0–100 scale)
+3. **Ranking:** Sorts by `priority_score DESC` (highest score = rank #1)
+4. **Tie-breaker:** FCFS via application submission timestamp
 
 ### Priority Initialization
 - Document priorities are initialized in `StaffDashboardController::index()` when dashboard loads

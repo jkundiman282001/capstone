@@ -216,7 +216,7 @@ class StaffDashboardController extends Controller
         $overallCoursePrioritization = $coursePriorityService->getOverallCoursePrioritization();
         $courseStatistics = $coursePriorityService->getCourseStatistics();
 
-        // Get prioritized applicants (FCFS → IP Group → Course)
+        // Get prioritized applicants (weighted scoring + FCFS tiebreaker)
         $applicantPriorityService = new \App\Services\ApplicantPriorityService();
         $prioritizedApplicants = $applicantPriorityService->getTopPriorityApplicants(50);
         $applicantPriorityStatistics = $applicantPriorityService->getPriorityStatistics();

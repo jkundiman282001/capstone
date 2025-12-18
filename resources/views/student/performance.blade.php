@@ -108,12 +108,11 @@
     $chancePercentage = $acceptanceChance;
     
     $studentPriorityBreakdown = [
-        ['label' => 'Priority IP group', 'weight' => '30%', 'met' => $priorityFactors['is_priority_ethno'] ?? false],
-        ['label' => 'Priority course', 'weight' => '25%', 'met' => $priorityFactors['is_priority_course'] ?? false],
-        ['label' => 'Tribal certificate', 'weight' => '20%', 'met' => $priorityFactors['has_approved_tribal_cert'] ?? false],
-        ['label' => 'Income tax document', 'weight' => '15%', 'met' => $priorityFactors['has_approved_income_tax'] ?? false],
-        ['label' => 'Academic performance', 'weight' => '5%', 'met' => $priorityFactors['has_approved_grades'] ?? false],
-        ['label' => 'Other requirements', 'weight' => '5%', 'met' => $priorityFactors['has_all_other_requirements'] ?? false],
+        ['label' => 'IP group rubric', 'weight' => '20%', 'met' => ($priorityFactors['ip_rubric_score'] ?? 0) > 0],
+        ['label' => 'Academic (GPA 1.0–5.0)', 'weight' => '30%', 'met' => ($priorityFactors['academic_rubric_score'] ?? 0) > 0],
+        ['label' => 'Income Tax Return (ITR)', 'weight' => '30%', 'met' => $priorityFactors['has_approved_income_tax'] ?? false],
+        ['label' => 'Citations / Awards', 'weight' => '10%', 'met' => ($priorityFactors['awards_rubric_score'] ?? 0) > 0],
+        ['label' => 'Social responsibility (essays)', 'weight' => '10%', 'met' => ($priorityFactors['social_responsibility_rubric_score'] ?? 0) > 0],
     ];
 @endphp
 
@@ -332,15 +331,11 @@
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     @foreach($studentPriorityBreakdown as $factor)
       @php
-        $isBinaryStatus = in_array($factor['label'], ['Priority IP group', 'Priority course']);
-        $statusLabel = $factor['met']
-            ? 'Met'
-            : ($isBinaryStatus ? 'Not met' : 'Pending');
+        $statusLabel = $factor['met'] ? 'Met' : 'Not met';
       @endphp
       <div class="group relative bg-gradient-to-br from-slate-50 to-white rounded-xl border-2 
         @if($factor['met']) border-green-200 hover:border-green-300
-        @elseif($statusLabel === 'Not met') border-red-200 hover:border-red-300
-        @else border-amber-200 hover:border-amber-300
+        @else border-red-200 hover:border-red-300
         @endif p-5 transition-all hover:shadow-lg">
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
@@ -354,27 +349,17 @@
               </svg>
             </div>
           @else
-            <div class="flex-shrink-0 w-10 h-10 rounded-full 
-              @if($statusLabel === 'Not met') bg-red-100
-              @else bg-amber-100
-              @endif flex items-center justify-center">
-              @if($statusLabel === 'Not met')
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              @else
-                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3"></path>
-                </svg>
-              @endif
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
             </div>
           @endif
         </div>
         <div class="mt-3 pt-3 border-t border-slate-200">
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
             @if($factor['met']) bg-green-100 text-green-700
-            @elseif($statusLabel === 'Not met') bg-red-100 text-red-700
-            @else bg-amber-100 text-amber-700
+            @else bg-red-100 text-red-700
             @endif">
             {{ $statusLabel }}
           </span>

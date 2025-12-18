@@ -13,12 +13,11 @@ class ApplicantPriorityService
      * Based on AHP (Analytical Hierarchy Process) principles
      */
     private array $priorityWeights = [
-        'ip' => 0.30,          // 30%
-        'course' => 0.25,      // 25%
-        'tribal' => 0.20,      // 20%
-        'income_tax' => 0.15,  // 15%
-        'academic_performance' => 0.05,  // 5%
-        'other_requirements' => 0.05,  // 5%
+        'ip' => 0.20,                    // 20% - IP group rubric (with priority IP bonus baked in)
+        'academic' => 0.30,              // 30% - GWA/GPA (from education.grade_ave or basic_info.gpa)
+        'income_tax' => 0.30,            // 30% - ITR / Income Tax Return document approval
+        'awards' => 0.10,                // 10% - Citations/Awards (from education.rank)
+        'social_responsibility' => 0.10, // 10% - Social responsibility (from essays in school_pref)
     ];
 
     /**
@@ -27,12 +26,42 @@ class ApplicantPriorityService
      * Scale: 1 = equal, 3 = moderate, 5 = strong, 7 = very strong, 9 = extreme
      */
     private array $pairwiseComparisonMatrix = [
-        'ip' => ['ip' => 1, 'course' => 2, 'tribal' => 2, 'income_tax' => 3, 'academic_performance' => 6, 'other_requirements' => 6],
-        'course' => ['ip' => 0.5, 'course' => 1, 'tribal' => 1, 'income_tax' => 2, 'academic_performance' => 5, 'other_requirements' => 5],
-        'tribal' => ['ip' => 0.5, 'course' => 1, 'tribal' => 1, 'income_tax' => 1.5, 'academic_performance' => 4, 'other_requirements' => 4],
-        'income_tax' => ['ip' => 0.33, 'course' => 0.5, 'tribal' => 0.67, 'income_tax' => 1, 'academic_performance' => 3, 'other_requirements' => 3],
-        'academic_performance' => ['ip' => 0.17, 'course' => 0.2, 'tribal' => 0.25, 'income_tax' => 0.33, 'academic_performance' => 1, 'other_requirements' => 1],
-        'other_requirements' => ['ip' => 0.17, 'course' => 0.2, 'tribal' => 0.25, 'income_tax' => 0.33, 'academic_performance' => 1, 'other_requirements' => 1],
+        // Note: This matrix is illustrative and kept for future AHP work.
+        'ip' => [
+            'ip' => 1,
+            'academic' => 0.5,
+            'income_tax' => 0.5,
+            'awards' => 2,
+            'social_responsibility' => 2,
+        ],
+        'academic' => [
+            'ip' => 2,
+            'academic' => 1,
+            'income_tax' => 1,
+            'awards' => 3,
+            'social_responsibility' => 3,
+        ],
+        'income_tax' => [
+            'ip' => 2,
+            'academic' => 1,
+            'income_tax' => 1,
+            'awards' => 3,
+            'social_responsibility' => 3,
+        ],
+        'awards' => [
+            'ip' => 0.5,
+            'academic' => 0.33,
+            'income_tax' => 0.33,
+            'awards' => 1,
+            'social_responsibility' => 1,
+        ],
+        'social_responsibility' => [
+            'ip' => 0.5,
+            'academic' => 0.33,
+            'income_tax' => 0.33,
+            'awards' => 1,
+            'social_responsibility' => 1,
+        ],
     ];
 
     /**
@@ -434,7 +463,7 @@ class ApplicantPriorityService
      * Get prioritized applicants based on weighted scoring with FCFS (First Come First Serve) as tiebreaker
      * 
      * Priority Order:
-     * 1. Weighted Priority Score (IP Group 30%, Course 25%, Tribal Cert 20%, Income Tax 15%, Academic 5%, Other 5%)
+     * 1. Weighted Priority Score (IP Group 20%, GPA/GWA 30%, ITR 30%, Citations/Awards 10%, Social Responsibility 10%)
      * 2. FCFS Tiebreaker: When scores are equal, earlier submission time wins
      * 3. User ID: Final tiebreaker for stable sorting
      */
@@ -445,6 +474,7 @@ class ApplicantPriorityService
             'basicInfo',
             'ethno',
             'basicInfo.schoolPref',
+            'basicInfo.education',
             'documents'
         ])
             ->whereHas('basicInfo', function($query) {
@@ -469,32 +499,24 @@ class ApplicantPriorityService
             $isPriorityEthno = $this->isPriorityEthno($ethnicity);
             $ipRubricScore = $this->calculateIpRubricScore($applicant, $isPriorityEthno); // 0-10 scale (includes priority bonus)
 
-            // Check for approved tribal certificate (Rank 3)
-            $hasApprovedTribalCert = $this->hasApprovedTribalCertificate($applicant);
-
-            // Check for approved income tax document (Rank 4)
+            // Check for approved ITR / income tax document
             $hasApprovedIncomeTax = $this->hasApprovedIncomeTax($applicant);
 
-            // Check for approved grades document (Rank 5 - Academic Performance)
-            $hasApprovedGrades = $this->hasApprovedGrades($applicant);
+            // Academic score (GWA/GPA) rubric score (0-10 scale)
+            $academicRubricScore = $this->calculateAcademicRubricScore($applicant);
 
-            // Check for all other required documents (Rank 6 - Other Requirements)
-            $hasAllOtherRequirements = $this->hasAllOtherRequirements($applicant);
+            // Citations/Awards rubric score (0-10 scale), based on education.rank
+            $awardsRubricScore = $this->calculateAwardsRubricScore($applicant);
 
-            // Get course and calculate rubric score (0-10 scale)
-            $courseName = $this->getApplicantCourse($applicant);
-            $normalizedCourse = $this->normalizeCourseName($courseName);
-            $isPriorityCourse = $this->isPriorityCourse($courseName);
-            $courseRubricScore = $this->calculateCourseRubricScore($courseName); // 0-10 scale rubric score
+            // Social Responsibility rubric score (0-10 scale), based on essays in school_pref
+            $socialResponsibilityRubricScore = $this->calculateSocialResponsibilityRubricScore($applicant);
 
             $priorityScore = $this->calculatePriorityScore(
-                $ipRubricScore, // Now passing rubric score (0-10) instead of boolean
-                $isPriorityEthno, // Pass priority IP group status for bonus calculation
-                $courseRubricScore, // Now passing course rubric score (0-10) instead of boolean
-                $hasApprovedTribalCert,
+                $ipRubricScore,
+                $academicRubricScore,
                 $hasApprovedIncomeTax,
-                $hasApprovedGrades,
-                $hasAllOtherRequirements
+                $awardsRubricScore,
+                $socialResponsibilityRubricScore
             );
 
             $prioritizedApplicants[] = [
@@ -503,15 +525,11 @@ class ApplicantPriorityService
                 'application_submitted_at' => $applicationSubmittedAt,
                 'ethnicity' => $ethnicity,
                 'is_priority_ethno' => $isPriorityEthno,
-                'ip_rubric_score' => $ipRubricScore, // 0-10 scale rubric score
-                'has_approved_tribal_cert' => $hasApprovedTribalCert,
+                'ip_rubric_score' => $ipRubricScore, // 0-12 scale rubric score (priority bonus can push above 10)
                 'has_approved_income_tax' => $hasApprovedIncomeTax,
-                'has_approved_grades' => $hasApprovedGrades,
-                'has_all_other_requirements' => $hasAllOtherRequirements,
-                'course' => $courseName,
-                'normalized_course' => $normalizedCourse ?? 'Other',
-                'is_priority_course' => $isPriorityCourse,
-                'course_rubric_score' => $courseRubricScore, // 0-10 scale rubric score
+                'academic_rubric_score' => $academicRubricScore, // 0-10
+                'awards_rubric_score' => $awardsRubricScore, // 0-10
+                'social_responsibility_rubric_score' => $socialResponsibilityRubricScore, // 0-10
                 'priority_rank' => null, // Will be assigned after sorting
                 'priority_score' => $priorityScore,
             ];
@@ -561,59 +579,216 @@ class ApplicantPriorityService
      * Priority IP Group Bonus: Applicants in priority IP groups (B'laan, Bagobo, Kalagan, Kaulo)
      * receive a bonus multiplier on their IP rubric score to reflect their higher priority status.
      * 
-     * @param float $ipRubricScore IP Group rubric score (0-10 scale)
-     * @param bool $isPriorityEthno Whether applicant is in a priority IP group
-     * @param float $courseRubricScore Course rubric score (0-10 scale)
-     * @param bool $hasApprovedTribalCert Whether tribal certificate is approved
+     * @param float $ipRubricScore IP Group rubric score (0-12 scale)
+     * @param float $academicRubricScore Academic rubric score (0-10 scale) derived from GPA/GWA
      * @param bool $hasApprovedIncomeTax Whether income tax document is approved
-     * @param bool $hasApprovedGrades Whether grades document is approved
-     * @param bool $hasAllOtherRequirements Whether all other requirements are met
+     * @param float $awardsRubricScore Citations/Awards rubric score (0-10 scale)
+     * @param float $socialResponsibilityRubricScore Social responsibility rubric score (0-10 scale)
      * @return float Final priority score (0-100 scale)
      */
     private function calculatePriorityScore(
-        float $ipRubricScore, // Now accepts 0-10 rubric score instead of boolean
-        bool $isPriorityEthno, // Whether applicant is in a priority IP group
-        float $courseRubricScore, // Now accepts 0-10 rubric score instead of boolean
-        bool $hasApprovedTribalCert,
+        float $ipRubricScore,
+        float $academicRubricScore,
         bool $hasApprovedIncomeTax,
-        bool $hasApprovedGrades,
-        bool $hasAllOtherRequirements
+        float $awardsRubricScore,
+        float $socialResponsibilityRubricScore
     ): float {
         // Validate weights consistency (AHP principle)
         $this->validateWeightsConsistency();
 
-        // Step 1: Normalize IP rubric score to 0-1 scale
-        // Priority IP groups get +2 points bonus (can score up to 12)
-        // We normalize ALL IP scores using max=12 so priority groups get higher normalized scores
-        // Example: Priority IP with perfect docs = 12/12 = 1.0, Non-priority with perfect docs = 10/12 = 0.833
-        $maxRubricScore = 12; // Use same max for all to ensure priority groups rank higher
-        $normalizedIpScore = $this->normalizeScore($ipRubricScore, 0, $maxRubricScore);
+        // Normalize rubric scores to 0-1 scale (AHP normalization)
+        $normalizedIpScore = $this->normalizeScore($ipRubricScore, 0, 12);
+        $normalizedAcademicScore = $this->normalizeScore($academicRubricScore, 0, 10);
+        $normalizedAwardsScore = $this->normalizeScore($awardsRubricScore, 0, 10);
+        $normalizedSocialScore = $this->normalizeScore($socialResponsibilityRubricScore, 0, 10);
 
-        // Step 2: Normalize course rubric score to 0-1 scale (0-10 scale → 0-1)
-        $maxCourseRubricScore = 10;
-        $normalizedCourseScore = $this->normalizeScore($courseRubricScore, 0, $maxCourseRubricScore);
-
-        // Step 3: Normalize all other criteria scores to 0-1 scale (AHP normalization)
         $normalizedScores = [
-            'ip' => $normalizedIpScore, // Now includes priority IP group bonus
-            'course' => $normalizedCourseScore, // Now uses rubric score (0-10) normalized to 0-1
-            'tribal' => $hasApprovedTribalCert ? 1.0 : 0.0, // Binary → 0-1
+            'ip' => $normalizedIpScore,
+            'academic' => $normalizedAcademicScore,
             'income_tax' => $hasApprovedIncomeTax ? 1.0 : 0.0, // Binary → 0-1
-            'academic_performance' => $hasApprovedGrades ? 1.0 : 0.0, // Binary → 0-1
-            'other_requirements' => $hasAllOtherRequirements ? 1.0 : 0.0, // Binary → 0-1
+            'awards' => $normalizedAwardsScore,
+            'social_responsibility' => $normalizedSocialScore,
         ];
 
-        // Step 2: Calculate weighted sum (AHP weighted aggregation)
+        // Calculate weighted sum (AHP weighted aggregation)
         // Formula: Score = Σ (Normalized_Score_i × Weight_i) × 100
         $weightedSum = 0.0;
         foreach ($normalizedScores as $criterion => $normalizedScore) {
             $weightedSum += $normalizedScore * $this->priorityWeights[$criterion];
         }
 
-        // Step 3: Scale to 0-100 for readability
+        // Scale to 0-100 for readability
         $finalScore = $weightedSum * 100;
 
         return round($finalScore, 2);
+    }
+
+    /**
+     * Calculate academic rubric score (0-10) from:
+     * - basic_info.gpa (1.0 - 5.0, lower is better)
+     *
+     * NOTE: Per current policy, we DO NOT derive academic score from education.grade_ave anymore.
+     */
+    private function calculateAcademicRubricScore(User $user): float
+    {
+        $basicInfo = $user->basicInfo;
+
+        if (!$basicInfo || $basicInfo->gpa === null) {
+            return 0.0;
+        }
+
+        // GPA scale: 1.0 (best) → 5.0 (worst), map to 0–10 where higher is better.
+        $gpa = (float) $basicInfo->gpa;
+        if ($gpa < 1.0 || $gpa > 5.0) {
+            return 0.0;
+        }
+
+        // Normalize GPA to 0..1 then scale to 0..10
+        // 1.0 → 1.0, 5.0 → 0.0
+        $normalized = (5.0 - $gpa) / 4.0;
+        return round(max(0.0, min(1.0, $normalized)) * 10, 2);
+    }
+
+    /**
+     * Calculate citations/awards rubric score (0-10) based on education.rank.
+     * Uses the best (max) award across all education records.
+     */
+    private function calculateAwardsRubricScore(User $user): float
+    {
+        $education = $user->basicInfo?->education ?? collect();
+        $best = 0.0;
+
+        foreach ($education as $record) {
+            $best = max($best, $this->mapEducationRankToScore($record?->rank));
+        }
+
+        return round($best, 2);
+    }
+
+    private function mapEducationRankToScore(?string $rank): float
+    {
+        $value = strtolower(trim((string) $rank));
+        if ($value === '') {
+            return 0.0;
+        }
+
+        return match ($value) {
+            'valedictorian' => 10.0,
+            'salutatorian' => 9.5,
+            'with highest honors' => 9.0,
+            'with high honors' => 8.0,
+            'with honors' => 7.0,
+            "dean's lister", 'deans lister', 'dean’s lister' => 6.5,
+            'top 10' => 6.0,
+            'academic awardee' => 5.0,
+            'none' => 0.0,
+            default => 0.0,
+        };
+    }
+
+    /**
+     * Calculate social responsibility rubric score (0-10) based on essays:
+     * - school_pref.ques_answer1 (contribution to IP community)
+     * - school_pref.ques_answer2 (plans after graduation)
+     *
+     * This is a deterministic heuristic rubric (no AI calls) so results are stable.
+     */
+    private function calculateSocialResponsibilityRubricScore(User $user): float
+    {
+        $schoolPref = $user->basicInfo?->schoolPref;
+        $text = trim((string) ($schoolPref?->ques_answer1 ?? '') . ' ' . (string) ($schoolPref?->ques_answer2 ?? ''));
+
+        if ($text === '') {
+            return 0.0;
+        }
+
+        $lower = strtolower($text);
+        $length = mb_strlen($text);
+        $score = 0.0;
+
+        // Length / completeness (max 4)
+        if ($length >= 800) {
+            $score += 4.0;
+        } elseif ($length >= 500) {
+            $score += 3.0;
+        } elseif ($length >= 250) {
+            $score += 2.0;
+        } elseif ($length >= 120) {
+            $score += 1.0;
+        } else {
+            $score += 0.5;
+        }
+
+        // Keyword coverage (max 5)
+        $keywords = [
+            // community / IP context
+            'community', 'barangay', 'sitio', 'tribe', 'indigenous', 'ip', 'ncip', 'culture', 'tradition', 'ancestral',
+            // action / service
+            'volunteer', 'service', 'serve', 'help', 'support', 'organize', 'conduct', 'teach', 'mentor', 'train', 'lead', 'leadership',
+            // impact areas
+            'education', 'health', 'livelihood', 'environment', 'development', 'youth', 'scholarship',
+            // planning/structure
+            'program', 'project', 'initiative', 'activity',
+        ];
+
+        $hits = 0;
+        foreach (array_unique($keywords) as $kw) {
+            if (str_contains($lower, $kw)) {
+                $hits++;
+            }
+        }
+        $score += min(5.0, $hits * 0.5);
+
+        // Bonus for explicit intention + concrete framing (max 1)
+        if (
+            preg_match('/\b(will|plan|intend|aim|goal)\b/i', $text) &&
+            preg_match('/\b(community|barangay|tribe|ip)\b/i', $text) &&
+            preg_match('/\b(program|project|initiative|activity)\b/i', $text)
+        ) {
+            $score += 1.0;
+        }
+
+        return round(min(10.0, $score), 2);
+    }
+
+    /**
+     * Public helper: calculate and return a single applicant's priority breakdown.
+     * Useful for student-facing views without duplicating the scoring logic.
+     */
+    public function calculateApplicantPriority(User $user): array
+    {
+        $user->loadMissing(['basicInfo.schoolPref', 'basicInfo.education', 'ethno', 'documents']);
+        $basicInfo = $user->basicInfo;
+
+        $applicationSubmittedAt = $basicInfo?->updated_at ?? $basicInfo?->created_at ?? now();
+        $ethnicity = optional($user->ethno)->ethnicity ?? null;
+        $isPriorityEthno = $this->isPriorityEthno($ethnicity);
+
+        $ipRubricScore = $this->calculateIpRubricScore($user, $isPriorityEthno);
+        $academicRubricScore = $this->calculateAcademicRubricScore($user);
+        $awardsRubricScore = $this->calculateAwardsRubricScore($user);
+        $socialRubricScore = $this->calculateSocialResponsibilityRubricScore($user);
+        $hasApprovedIncomeTax = $this->hasApprovedIncomeTax($user);
+
+        $priorityScore = $this->calculatePriorityScore(
+            $ipRubricScore,
+            $academicRubricScore,
+            $hasApprovedIncomeTax,
+            $awardsRubricScore,
+            $socialRubricScore
+        );
+
+        return [
+            'application_submitted_at' => $applicationSubmittedAt,
+            'ethnicity' => $ethnicity,
+            'is_priority_ethno' => $isPriorityEthno,
+            'ip_rubric_score' => $ipRubricScore,
+            'academic_rubric_score' => $academicRubricScore,
+            'awards_rubric_score' => $awardsRubricScore,
+            'social_responsibility_rubric_score' => $socialRubricScore,
+            'has_approved_income_tax' => $hasApprovedIncomeTax,
+            'priority_score' => $priorityScore,
+        ];
     }
 
     /**
@@ -766,20 +941,17 @@ class ApplicantPriorityService
         $priorityEthnoCount = count(array_filter($applicants, function($a) {
             return $a['is_priority_ethno'];
         }));
-        $tribalCertCount = count(array_filter($applicants, function($a) {
-            return $a['has_approved_tribal_cert'];
-        }));
         $incomeTaxCount = count(array_filter($applicants, function($a) {
             return $a['has_approved_income_tax'];
         }));
-        $academicPerformanceCount = count(array_filter($applicants, function($a) {
-            return $a['has_approved_grades'];
+        $academicCount = count(array_filter($applicants, function($a) {
+            return ($a['academic_rubric_score'] ?? 0) > 0;
         }));
-        $otherRequirementsCount = count(array_filter($applicants, function($a) {
-            return $a['has_all_other_requirements'];
+        $awardsCount = count(array_filter($applicants, function($a) {
+            return ($a['awards_rubric_score'] ?? 0) > 0;
         }));
-        $priorityCourseCount = count(array_filter($applicants, function($a) {
-            return $a['is_priority_course'];
+        $socialCount = count(array_filter($applicants, function($a) {
+            return ($a['social_responsibility_rubric_score'] ?? 0) > 0;
         }));
 
         $oldestApplication = !empty($applicants) ? $applicants[0] : null;
@@ -798,11 +970,10 @@ class ApplicantPriorityService
         return [
             'total_applicants' => $totalApplicants,
             'priority_ethno_count' => $priorityEthnoCount,
-            'tribal_cert_count' => $tribalCertCount,
             'income_tax_count' => $incomeTaxCount,
-            'academic_performance_count' => $academicPerformanceCount,
-            'other_requirements_count' => $otherRequirementsCount,
-            'priority_course_count' => $priorityCourseCount,
+            'academic_count' => $academicCount,
+            'awards_count' => $awardsCount,
+            'social_responsibility_count' => $socialCount,
             'slots_left' => $slotsLeft,
             'grantees_count' => $granteesCount,
             'max_slots' => $maxSlots,
