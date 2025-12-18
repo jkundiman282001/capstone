@@ -136,7 +136,6 @@
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">SCHOOL</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">COURSE</th>
                                     <th colspan="5" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">YEAR</th>
-                                    <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GRANTS</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">RSSC's Score</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Rank</th>
                                 </tr>
@@ -150,8 +149,6 @@
                                     <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">3rd</th>
                                     <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">4th</th>
                                     <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">5th</th>
-                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">1st Sem</th>
-                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">2nd Sem</th>
                                 </tr>
                             </thead>
                             <tbody id="waitingTableBody" class="bg-white"></tbody>
@@ -405,7 +402,7 @@
         if (!rows.length) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
+                    <td colspan="19" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
                         No wait listed applicants found
                     </td>
                 </tr>
@@ -428,6 +425,8 @@
 
             const isPrivate = applicant.is_private || false;
             const isPublic = applicant.is_public || false;
+            const schoolType = (applicant.school_type || applicant.school1_type || '').toLowerCase();
+            const schoolName = applicant.school_name || applicant.school1_name || applicant.school || '';
 
             const is1st = applicant.is_1st || false;
             const is2nd = applicant.is_2nd || false;
@@ -452,34 +451,20 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.ethnicity || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPrivate ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPublic ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
+                        <input type="text" class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
+                               value="${(schoolType === 'private' || isPrivate) ? schoolName : ''}" readonly>
+                    </td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
+                        <input type="text" class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
+                               value="${(schoolType === 'public' || isPublic) ? schoolName : ''}" readonly>
+                    </td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.course || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is1st ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is2nd ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is3rd ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is4th ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is5th ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
-                        <label class="flex items-center justify-center cursor-pointer">
-                            <input type="checkbox"
-                                   class="waiting-grant-checkbox w-5 h-5 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
-                                   data-user-id="${applicant.user_id}"
-                                   data-sem="1st"
-                                   ${applicant.grant_1st_sem ? 'checked' : ''}
-                                   onchange="window.markWaitingAsChanged()">
-                        </label>
-                    </td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
-                        <label class="flex items-center justify-center cursor-pointer">
-                            <input type="checkbox"
-                                   class="waiting-grant-checkbox w-5 h-5 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
-                                   data-user-id="${applicant.user_id}"
-                                   data-sem="2nd"
-                                   ${applicant.grant_2nd_sem ? 'checked' : ''}
-                                   onchange="window.markWaitingAsChanged()">
-                        </label>
-                    </td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
                         <input type="number"
                                step="0.01"
@@ -770,31 +755,16 @@
         const btn = document.getElementById('saveWaitingBtn');
         if (!btn) return;
 
-        const checkboxes = document.querySelectorAll('.waiting-grant-checkbox');
         const rsscInputs = document.querySelectorAll('.waiting-rssc-score');
-        const grants = [];
-        const grantMap = {};
-
-        checkboxes.forEach(checkbox => {
-            const userId = checkbox.getAttribute('data-user-id');
-            const sem = checkbox.getAttribute('data-sem');
-            if (!grantMap[userId]) {
-                grantMap[userId] = { user_id: parseInt(userId), grant_1st_sem: false, grant_2nd_sem: false, rssc_score: null };
-            }
-            if (sem === '1st') grantMap[userId].grant_1st_sem = checkbox.checked;
-            if (sem === '2nd') grantMap[userId].grant_2nd_sem = checkbox.checked;
-        });
-
+        const applicants = [];
         rsscInputs.forEach(input => {
             const userId = parseInt(input.getAttribute('data-user-id'));
             const rsscValue = parseFloat(input.value);
-            if (!grantMap[userId]) {
-                grantMap[userId] = { user_id: userId, grant_1st_sem: false, grant_2nd_sem: false, rssc_score: null };
-            }
-            grantMap[userId].rssc_score = isNaN(rsscValue) ? null : rsscValue;
+            applicants.push({
+                user_id: userId,
+                rssc_score: isNaN(rsscValue) ? null : rsscValue,
+            });
         });
-
-        grants.push(...Object.values(grantMap));
 
         const originalHtml = btn.innerHTML;
         btn.disabled = true;
@@ -808,7 +778,7 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ applicants: grants })
+                body: JSON.stringify({ applicants })
             });
             const data = await res.json();
             if (data && data.success) {
@@ -836,18 +806,7 @@
             return;
         }
 
-        // Refresh state.waiting from current inputs
-        const checkboxes = document.querySelectorAll('.waiting-grant-checkbox');
         const rsscInputs = document.querySelectorAll('.waiting-rssc-score');
-
-        checkboxes.forEach(checkbox => {
-            const userId = parseInt(checkbox.getAttribute('data-user-id'));
-            const sem = checkbox.getAttribute('data-sem');
-            const applicant = state.waiting.find(a => a.user_id === userId);
-            if (!applicant) return;
-            if (sem === '1st') applicant.grant_1st_sem = checkbox.checked;
-            if (sem === '2nd') applicant.grant_2nd_sem = checkbox.checked;
-        });
 
         rsscInputs.forEach(input => {
             const userId = parseInt(input.getAttribute('data-user-id'));
@@ -870,8 +829,6 @@
             'SCHOOL (Public)',
             'COURSE',
             'YEAR',
-            'GRANTS (1st Sem)',
-            'GRANTS (2nd Sem)',
             'RSSC\'s Score',
             'Rank'
         ];
@@ -904,14 +861,16 @@
             if (is5th) yearLevels.push('5th');
             const yearValue = yearLevels.join(', ');
 
-            const grant1stSem = applicant.grant_1st_sem ? '✓' : '';
-            const grant2ndSem = applicant.grant_2nd_sem ? '✓' : '';
-
             const rsscScore = applicant.manual_rssc_score !== null && applicant.manual_rssc_score !== undefined
                 ? applicant.manual_rssc_score
                 : (applicant.rssc_score || applicant.priority_score || 0);
 
             const rank = applicant.rank || applicant.priority_rank || '';
+
+            const schoolType = (applicant.school_type || applicant.school1_type || '').toLowerCase();
+            const schoolName = applicant.school_name || applicant.school1_name || applicant.school || '';
+            const privateSchool = (schoolType === 'private' || applicant.is_private) ? schoolName : '';
+            const publicSchool = (schoolType === 'public' || applicant.is_public) ? schoolName : '';
 
             return [
                 addressLine,
@@ -922,12 +881,10 @@
                 applicant.age || '',
                 genderValue,
                 applicant.ethnicity || '',
-                applicant.is_private ? '✓' : '',
-                applicant.is_public ? '✓' : '',
+                privateSchool,
+                publicSchool,
                 applicant.course || '',
                 yearValue,
-                grant1stSem,
-                grant2ndSem,
                 Number(rsscScore).toFixed(2),
                 rank ? '#' + rank : ''
             ];

@@ -1566,6 +1566,8 @@
             // School type checkboxes
             const isPrivate = applicant.is_private || false;
             const isPublic = applicant.is_public || false;
+            const schoolType = (applicant.school_type || applicant.school1_type || '').toLowerCase();
+            const schoolName = applicant.school_name || applicant.school1_name || applicant.school || '';
             
             // Year level checkboxes
             const is1st = applicant.is_1st || false;
@@ -1593,8 +1595,18 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.ethnicity || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPrivate ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isPublic ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
+                        <input type="text"
+                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
+                               value="${(schoolType === 'private' || isPrivate) ? schoolName : ''}"
+                               readonly>
+                    </td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
+                        <input type="text"
+                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
+                               value="${(schoolType === 'public' || isPublic) ? schoolName : ''}"
+                               readonly>
+                    </td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.course || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is1st ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is2nd ? '✓' : ''}</td>
@@ -1838,6 +1850,11 @@
             
             // Rank
             const rank = applicant.rank || applicant.priority_rank || '';
+
+            const schoolType = (applicant.school_type || applicant.school1_type || '').toLowerCase();
+            const schoolName = applicant.school_name || applicant.school1_name || applicant.school || '';
+            const privateSchool = (schoolType === 'private' || applicant.is_private) ? schoolName : '';
+            const publicSchool = (schoolType === 'public' || applicant.is_public) ? schoolName : '';
             
             return [
                 addressLine,
@@ -1848,8 +1865,8 @@
                 applicant.age || '',
                 genderValue,
                 applicant.ethnicity || '',
-                applicant.is_private ? '✓' : '',
-                applicant.is_public ? '✓' : '',
+                privateSchool,
+                publicSchool,
                 applicant.course || '',
                 yearValue,
                 grant1stSem,

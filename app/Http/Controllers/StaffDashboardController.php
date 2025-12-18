@@ -1896,6 +1896,7 @@ class StaffDashboardController extends Controller
                 
                 // Determine school type (Private/Public)
                 $schoolType = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_type ?? '') : '';
+                $schoolName = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_name ?? '') : '';
                 $isPrivate = stripos($schoolType, 'private') !== false;
                 $isPublic = stripos($schoolType, 'public') !== false || stripos($schoolType, 'state') !== false;
                 
@@ -1953,6 +1954,8 @@ class StaffDashboardController extends Controller
                     'is_male' => $isMale,
                     'ethnicity' => $applicant->ethno ? ($applicant->ethno->ethnicity ?? '') : '',
                     'school_type' => $schoolType,
+                    'school_name' => $schoolName,
+                    'school1_name' => $schoolName,
                     'is_private' => $isPrivate,
                     'is_public' => $isPublic,
                     'course' => $course,
@@ -1999,14 +2002,24 @@ class StaffDashboardController extends Controller
         foreach ($validated['applicants'] as $applicantData) {
             $user = User::find($applicantData['user_id']);
             if ($user && $user->basicInfo) {
-                $updateData = [
-                    'grant_1st_sem' => $applicantData['grant_1st_sem'] ?? false,
-                    'grant_2nd_sem' => $applicantData['grant_2nd_sem'] ?? false,
-                ];
-                
-                // Only update RSSC score if provided
-                if (isset($applicantData['rssc_score']) && $applicantData['rssc_score'] !== null) {
+                $updateData = [];
+
+                // Only update grant flags if explicitly provided in the payload.
+                // This prevents screens that don't show grants (e.g. reports waiting list) from overwriting existing values.
+                if (array_key_exists('grant_1st_sem', $applicantData)) {
+                    $updateData['grant_1st_sem'] = $applicantData['grant_1st_sem'] ?? false;
+                }
+                if (array_key_exists('grant_2nd_sem', $applicantData)) {
+                    $updateData['grant_2nd_sem'] = $applicantData['grant_2nd_sem'] ?? false;
+                }
+
+                // Update RSSC score if provided (allow null to clear)
+                if (array_key_exists('rssc_score', $applicantData)) {
                     $updateData['rssc_score'] = $applicantData['rssc_score'];
+                }
+
+                if (empty($updateData)) {
+                    continue;
                 }
                 
                 $user->basicInfo->update($updateData);
