@@ -153,6 +153,39 @@
                             </thead>
                             <tbody id="waitingTableBody" class="bg-white"></tbody>
                         </table>
+
+                        <!-- Replacements Report Table -->
+                        <table id="replacementsTable" class="hidden w-full border-collapse" style="min-width: 2600px;">
+                            <thead class="bg-yellow-300 sticky top-0 z-10">
+                                <tr>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
+                                    <th colspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">GENDER</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
+                                    <th colspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">SCHOOL</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">COURSE</th>
+                                    <th colspan="5" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">YEAR</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Name of Replaced Grantee/Awardee</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Reason/s of Replacement</th>
+                                </tr>
+                                <tr>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">F</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">M</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Private</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Public</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">1st</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">2nd</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">3rd</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">4th</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">5th</th>
+                                </tr>
+                            </thead>
+                            <tbody id="replacementsTableBody" class="bg-white"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -200,6 +233,7 @@
         document.getElementById('granteesTable')?.classList.toggle('hidden', tab !== 'grantees');
         document.getElementById('pamanaTable')?.classList.toggle('hidden', tab !== 'pamana');
         document.getElementById('waitingTable')?.classList.toggle('hidden', tab !== 'waiting');
+        document.getElementById('replacementsTable')?.classList.toggle('hidden', tab !== 'replacements');
 
         // meta
         const exportBtn = document.getElementById('exportBtn');
@@ -221,9 +255,15 @@
             document.getElementById('reportSubtitle').textContent = 'Grid view of Pamana scholarship applicants';
             if (exportBtnText) exportBtnText.textContent = 'Export to CSV';
         } else {
-            document.getElementById('reportTitle').textContent = 'Master List of Wait Listed Applicants (MLWLA)';
-            document.getElementById('reportSubtitle').textContent = 'Educational Assistance Program / Merit-based Scholarship Program';
-            if (exportBtnText) exportBtnText.textContent = 'Export to CSV';
+            if (tab === 'waiting') {
+                document.getElementById('reportTitle').textContent = 'Master List of Wait Listed Applicants (MLWLA)';
+                document.getElementById('reportSubtitle').textContent = 'Educational Assistance Program / Merit-based Scholarship Program';
+                if (exportBtnText) exportBtnText.textContent = 'Export to CSV';
+            } else {
+                document.getElementById('reportTitle').textContent = 'Master List of Replacements';
+                document.getElementById('reportSubtitle').textContent = 'Replacement awardees list';
+                if (exportBtnText) exportBtnText.textContent = 'Export to Excel';
+            }
         }
 
         // count reset
@@ -481,6 +521,79 @@
         }).join('');
     }
 
+    function renderReplacementsTable(rows) {
+        const tableBody = document.getElementById('replacementsTableBody');
+        const countEl = document.getElementById('reportCount');
+        if (!tableBody) return;
+        if (countEl) countEl.textContent = `Total Replacements: ${rows.length}`;
+
+        if (!rows.length) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="19" class="border border-black px-4 py-8 text-center text-slate-600">
+                        No replacements found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = rows.map((row, index) => {
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+
+            const addressLine = [
+                row.province || '',
+                row.municipality || '',
+                row.barangay || '',
+                row.ad_reference || ''
+            ].filter(Boolean).join(', ');
+
+            const isFemale = row.is_female || false;
+            const isMale = row.is_male || false;
+
+            const isPrivate = row.is_private || false;
+            const isPublic = row.is_public || false;
+            const schoolType = (row.school_type || row.school1_type || '').toLowerCase();
+            const schoolName = row.school_name || row.school1_name || row.school || '';
+
+            const is1st = row.is_1st || false;
+            const is2nd = row.is_2nd || false;
+            const is3rd = row.is_3rd || false;
+            const is4th = row.is_4th || false;
+            const is5th = row.is_5th || false;
+
+            return `
+                <tr class="${rowClass}">
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${addressLine}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${row.contact_email || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${row.batch || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center font-medium">${row.no || (index + 1)}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${row.name || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${row.age || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isFemale ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isMale ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${row.ethnicity || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">
+                        <input type="text" class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-white"
+                               value="${(schoolType === 'private' || isPrivate) ? schoolName : ''}" readonly>
+                    </td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">
+                        <input type="text" class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-white"
+                               value="${(schoolType === 'public' || isPublic) ? schoolName : ''}" readonly>
+                    </td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${row.course || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${is1st ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${is2nd ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${is3rd ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${is4th ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${is5th ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${row.replaced_name || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${row.replacement_reason || ''}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
     window.markWaitingAsChanged = markWaitingAsChanged;
 
     // ===== data loaders =====
@@ -500,7 +613,7 @@
                 const data = await res.json();
                 state.pamana = (data && data.success && Array.isArray(data.pamana)) ? data.pamana : [];
                 renderPamanaTable(state.pamana);
-            } else {
+            } else if (state.active === 'waiting') {
                 const url = `{{ route('staff.waiting-list.report') }}`;
                 const res = await fetch(url);
                 const data = await res.json();
@@ -512,6 +625,12 @@
                 const indicator = document.getElementById('waitingUnsavedIndicator');
                 if (btn) btn.disabled = true;
                 if (indicator) indicator.classList.add('hidden');
+            } else {
+                const url = `{{ route('staff.replacements.report') }}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const rows = (data && data.success && Array.isArray(data.replacements)) ? data.replacements : [];
+                renderReplacementsTable(rows);
             }
         } catch (e) {
             console.error(e);
@@ -914,13 +1033,43 @@
         document.body.removeChild(link);
     }
 
+    function exportReplacementsExcel() {
+        const table = document.getElementById('replacementsTable');
+        if (!table) {
+            alert('No data to export');
+            return;
+        }
+
+        // Export the visible table as HTML Excel (similar to grantees)
+        const html = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:x="urn:schemas-microsoft-com:office:excel"
+                  xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta charset="UTF-8"></head>
+            <body>${table.outerHTML}</body>
+            </html>
+        `;
+
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.download = `Replacements_Report_${dateStr}.xls`;
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     // ===== init =====
     document.addEventListener('DOMContentLoaded', function() {
         // buttons
         document.getElementById('exportBtn')?.addEventListener('click', function() {
             if (state.active === 'grantees') exportGranteesExcel();
             else if (state.active === 'pamana') exportPamanaToCSV();
-            else exportWaitingToCSV();
+            else if (state.active === 'waiting') exportWaitingToCSV();
+            else exportReplacementsExcel();
         });
         document.getElementById('saveWaitingBtn')?.addEventListener('click', saveWaitingChanges);
 

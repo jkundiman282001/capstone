@@ -753,10 +753,28 @@
                         </div>
 
                         <!-- Action Button -->
-                        <a href="{{ route('staff.applications.view', $applicant->id) }}" class="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-orange-600 text-white rounded-xl px-4 py-2.5 font-bold text-sm shadow-md hover:shadow-lg transition-all group/btn">
-                            <span>Review</span>
-                            <svg class="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </a>
+                        @php
+                            $appStatus = strtolower(trim((string) ($applicant->basicInfo->application_status ?? 'pending')));
+                            $grantStatus = strtolower(trim((string) ($applicant->basicInfo->grant_status ?? '')));
+                            $canReplaceFromWaiting = ($appStatus === 'validated' && $grantStatus === 'waiting');
+                            $fullName = trim(($applicant->first_name ?? '') . ' ' . ($applicant->middle_name ?? '') . ' ' . ($applicant->last_name ?? ''));
+                        @endphp
+
+                        <div class="grid grid-cols-1 gap-2">
+                            <a href="{{ route('staff.applications.view', $applicant->id) }}" class="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-orange-600 text-white rounded-xl px-4 py-2.5 font-bold text-sm shadow-md hover:shadow-lg transition-all group/btn">
+                                <span>Review</span>
+                                <svg class="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+
+                            <button type="button"
+                                    onclick='window.openReplacementModal("waiting", {{ $applicant->id }}, @json($fullName))'
+                                    class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all
+                                        {{ $canReplaceFromWaiting ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed' }}"
+                                    {{ $canReplaceFromWaiting ? '' : 'disabled' }}
+                                    title="{{ $canReplaceFromWaiting ? 'Replace a grantee with this waiting-list applicant' : 'Only validated waiting-list applicants can replace a grantee' }}">
+                                <span>Replace Grantee</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             @empty
@@ -1014,6 +1032,7 @@
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GRANTS</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">RSSC's Score</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Rank</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Replacement</th>
                                 </tr>
                                 <!-- Second row with sub-headers -->
                                 <tr>
@@ -1060,6 +1079,61 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Replacement Modal (for Waiting List) -->
+<div id="replacementModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="flex items-center justify-between p-5 border-b border-slate-200 bg-gradient-to-r from-yellow-500 to-amber-500">
+            <div>
+                <h3 id="replacementModalTitle" class="text-xl font-black text-white">Record Replacement</h3>
+                <p id="replacementModalSubtitle" class="text-sm text-white/90">Select the replaced grantee/awardee and enter a reason.</p>
+            </div>
+            <button onclick="window.closeReplacementModal()" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <p class="text-sm text-slate-700">
+                    <span id="replacementFixedLabel" class="font-bold">Replacement awardee:</span>
+                    <span id="replacementFixedName" class="font-semibold"></span>
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label id="replacementSelectLabel" class="text-xs font-bold text-slate-600 uppercase tracking-wide">Replaced Grantee/Awardee</label>
+                    <select id="replacementReplacedSelect" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all">
+                        <option value="">Loading...</option>
+                    </select>
+                    <p id="replacementSelectHelp" class="text-[11px] text-slate-500">Select the grantee/awardee that will be replaced.</p>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Reason/s of Replacement <span class="text-red-500">*</span></label>
+                <textarea id="replacementReason" rows="3" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all" placeholder="Enter reason..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">School Year (optional)</label>
+                    <input id="replacementSchoolYear" type="text" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all" placeholder="e.g., SY 2022-2023">
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+            <button onclick="window.closeReplacementModal()" class="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition-all">
+                Cancel
+            </button>
+            <button id="saveReplacementBtn" onclick="window.saveReplacement()" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all">
+                Save Replacement
+            </button>
         </div>
     </div>
 </div>
@@ -1644,6 +1718,13 @@
                                onchange="window.markWaitingAsChanged()">
                     </td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-bold">${rank ? '#' + rank : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
+                        <button type="button"
+                                onclick="window.openReplacementModal('waiting', ${applicant.user_id}, ${JSON.stringify(applicant.name || '')})"
+                                class="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs shadow-sm transition-all">
+                            Replace
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -1905,6 +1986,202 @@
         link.click();
         document.body.removeChild(link);
     }
+
+    // ========== REPLACEMENTS (swap grantee <-> waiting) ==========
+    // mode = 'waiting' -> fixed user is waiting-list applicant (replacement awardee), select grantee to replace
+    // mode = 'grantee' -> fixed user is grantee to be replaced, select waiting-list replacement awardee
+    window.replacementModalMode = 'waiting';
+    window.replacementFixedUserId = null;
+
+    window.openReplacementModal = function(arg1, arg2 = null, arg3 = null) {
+        // Backward compatible signature:
+        // - openReplacementModal(waitingUserId, waitingName)
+        // New signature:
+        // - openReplacementModal(mode, fixedUserId, fixedUserName)
+        let mode = 'waiting';
+        let fixedUserId = null;
+        let fixedUserName = null;
+
+        if (typeof arg1 === 'string') {
+            mode = arg1;
+            fixedUserId = arg2;
+            fixedUserName = arg3;
+        } else {
+            fixedUserId = arg1;
+            fixedUserName = arg2;
+        }
+
+        window.replacementModalMode = mode;
+        window.replacementFixedUserId = fixedUserId;
+
+        const modal = document.getElementById('replacementModal');
+        const titleEl = document.getElementById('replacementModalTitle');
+        const subtitleEl = document.getElementById('replacementModalSubtitle');
+        const fixedLabelEl = document.getElementById('replacementFixedLabel');
+        const fixedNameEl = document.getElementById('replacementFixedName');
+        const selectLabelEl = document.getElementById('replacementSelectLabel');
+        const selectHelpEl = document.getElementById('replacementSelectHelp');
+        const reasonEl = document.getElementById('replacementReason');
+        const schoolYearEl = document.getElementById('replacementSchoolYear');
+        const selectEl = document.getElementById('replacementReplacedSelect');
+
+        if (titleEl) titleEl.textContent = 'Replace Applicant';
+        if (mode === 'grantee') {
+            if (subtitleEl) subtitleEl.textContent = 'Select a waiting-list applicant to replace this grantee, and enter a reason.';
+            if (fixedLabelEl) fixedLabelEl.textContent = 'Grantee/Awardee to be replaced:';
+            if (selectLabelEl) selectLabelEl.textContent = 'Replacement awardee (Waiting List)';
+            if (selectHelpEl) selectHelpEl.textContent = 'Select the waiting-list applicant who will replace this grantee.';
+        } else {
+            if (subtitleEl) subtitleEl.textContent = 'Select the grantee/awardee to be replaced, and enter a reason.';
+            if (fixedLabelEl) fixedLabelEl.textContent = 'Replacement awardee (Waiting List):';
+            if (selectLabelEl) selectLabelEl.textContent = 'Replaced Grantee/Awardee';
+            if (selectHelpEl) selectHelpEl.textContent = 'Select the grantee/awardee that will be replaced.';
+        }
+
+        if (fixedNameEl) {
+            fixedNameEl.textContent = (fixedUserName && String(fixedUserName).trim())
+                ? String(fixedUserName).trim()
+                : `User #${fixedUserId}`;
+        }
+
+        if (reasonEl) reasonEl.value = '';
+        if (schoolYearEl) schoolYearEl.value = '';
+
+        if (selectEl) {
+            selectEl.innerHTML = '<option value="">Loading...</option>';
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        window.loadOptionsForReplacement();
+    };
+
+    window.closeReplacementModal = function() {
+        const modal = document.getElementById('replacementModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        window.replacementFixedUserId = null;
+    };
+
+    window.loadOptionsForReplacement = async function() {
+        const selectEl = document.getElementById('replacementReplacedSelect');
+        if (!selectEl) return;
+
+        try {
+            if (window.replacementModalMode === 'grantee') {
+                const res = await fetch(`{{ route('staff.replacements.waiting') }}`);
+                const data = await res.json();
+                const waiting = (data && data.success && Array.isArray(data.waiting)) ? data.waiting : [];
+
+                selectEl.innerHTML = `<option value="">Select waiting-list applicant...</option>`;
+                waiting.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = String(w.user_id || '');
+                    opt.textContent = w.name || `User #${w.user_id}`;
+                    selectEl.appendChild(opt);
+                });
+            } else {
+                const res = await fetch(`{{ route('staff.replacements.grantees') }}`);
+                const data = await res.json();
+                const grantees = (data && data.success && Array.isArray(data.grantees)) ? data.grantees : [];
+
+                selectEl.innerHTML = `<option value="">Select grantee/awardee to replace...</option>`;
+                grantees.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = String(g.user_id || '');
+                    opt.textContent = g.name || `User #${g.user_id}`;
+                    selectEl.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load replacement options', e);
+            selectEl.innerHTML = `
+                <option value="">Failed to load options</option>
+            `;
+        }
+    };
+
+    window.saveReplacement = async function() {
+        const fixedUserId = window.replacementFixedUserId;
+        const mode = window.replacementModalMode || 'waiting';
+        if (!fixedUserId) return;
+
+        const selectEl = document.getElementById('replacementReplacedSelect');
+        const reasonEl = document.getElementById('replacementReason');
+        const schoolYearEl = document.getElementById('replacementSchoolYear');
+        const saveBtn = document.getElementById('saveReplacementBtn');
+
+        const reason = (reasonEl?.value || '').trim();
+        if (!reason) {
+            alert('Please enter a reason for replacement.');
+            return;
+        }
+
+        const selected = selectEl?.value || '';
+        if (!selected) {
+            alert(mode === 'grantee'
+                ? 'Please select the waiting-list applicant who will replace this grantee.'
+                : 'Please select the grantee/awardee to be replaced.');
+            return;
+        }
+        const pickedUserId = parseInt(selected, 10);
+
+        // storeReplacement expects:
+        // replacement_user_id = waiting-list applicant
+        // replaced_user_id = grantee
+        const payload = (mode === 'grantee')
+            ? {
+                replacement_user_id: pickedUserId,
+                replaced_user_id: fixedUserId,
+                replacement_reason: reason,
+                school_year: (schoolYearEl?.value || '').trim() || null,
+            }
+            : {
+                replacement_user_id: fixedUserId,
+                replaced_user_id: pickedUserId,
+                replacement_reason: reason,
+                school_year: (schoolYearEl?.value || '').trim() || null,
+            };
+
+        const originalText = saveBtn?.innerHTML;
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = 'Saving...';
+        }
+
+        try {
+            const res = await fetch(`{{ route('staff.replacements.store') }}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (res.ok && data && data.success) {
+                alert(data.message || 'Replacement recorded.');
+                window.closeReplacementModal();
+                // Reload to reflect status changes (waiting applicant promoted; replaced grantee terminated)
+                window.location.reload();
+            } else {
+                alert('Failed to record replacement: ' + (data.message || 'Unknown error'));
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Failed to record replacement. Please try again.');
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText || 'Save Replacement';
+            }
+        }
+    };
 
     // Close waiting list modal on outside click
     document.getElementById('waitingListReportModal')?.addEventListener('click', function(e) {

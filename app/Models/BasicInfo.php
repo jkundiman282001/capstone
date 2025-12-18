@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class BasicInfo extends Model
 {
@@ -53,8 +54,13 @@ class BasicInfo extends Model
                 strtolower(trim((string) $model->application_status)) === 'pending'
             ) {
                 $model->grant_status = null;
-                $model->grant_1st_sem = false;
-                $model->grant_2nd_sem = false;
+                // Only touch these flags if the current DB schema has the columns
+                if (Schema::hasColumn('basic_info', 'grant_1st_sem')) {
+                    $model->grant_1st_sem = false;
+                }
+                if (Schema::hasColumn('basic_info', 'grant_2nd_sem')) {
+                    $model->grant_2nd_sem = false;
+                }
             }
         });
     }

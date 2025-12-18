@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('basic_info', function (Blueprint $table) {
-            $table->decimal('rssc_score', 5, 2)->nullable()->after('grant_2nd_sem');
+            $table->decimal('rssc_score', 5, 2)->nullable()->after('gpa');
         });
     }
 

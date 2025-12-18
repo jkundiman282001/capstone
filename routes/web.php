@@ -170,6 +170,10 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/grantees/report', [StaffDashboardController::class, 'granteesReport'])->name('staff.grantees.report');
     Route::get('/staff/pamana/report', [StaffDashboardController::class, 'pamanaReport'])->name('staff.pamana.report');
     Route::get('/staff/waiting-list/report', [StaffDashboardController::class, 'waitingListReport'])->name('staff.waiting-list.report');
+    Route::get('/staff/replacements/report', [StaffDashboardController::class, 'replacementsReport'])->name('staff.replacements.report');
+    Route::get('/staff/replacements/grantees', [StaffDashboardController::class, 'replacementGrantees'])->name('staff.replacements.grantees');
+    Route::get('/staff/replacements/waiting', [StaffDashboardController::class, 'replacementWaiting'])->name('staff.replacements.waiting');
+    Route::post('/staff/replacements', [StaffDashboardController::class, 'storeReplacement'])->name('staff.replacements.store');
     Route::post('/staff/waiting-list/update', [StaffDashboardController::class, 'updateWaitingList'])->name('staff.waiting-list.update');
     Route::post('/staff/grantees/update-grants', [StaffDashboardController::class, 'updateGrants'])->name('staff.grantees.update-grants');
     

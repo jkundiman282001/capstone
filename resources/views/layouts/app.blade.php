@@ -256,6 +256,12 @@
                                         <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700' }}">CSV</span>
                                     </div>
                                 </a>
+                                <a href="{{ route('staff.reports.index', ['tab' => 'replacements']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'replacements' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold shadow-lg shadow-yellow-500/20' : 'bg-white hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 border-2 border-slate-200 hover:border-yellow-300 font-semibold text-slate-700 hover:text-yellow-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Replacements</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'replacements' ? 'bg-white/20 text-white' : 'bg-yellow-50 text-yellow-800' }}">XLS</span>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                         <a href="{{ route('staff.reports.download') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.reports.download') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">

@@ -11,6 +11,7 @@ use App\Models\Document;
 use App\Models\Ethno;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
@@ -1062,8 +1063,12 @@ class StaffDashboardController extends Controller
         // The applicants list excludes grant_status='grantee', so we must clear grant_status (and grant flags) on pending.
         if ($validated['status'] === 'pending') {
             $updateData['grant_status'] = null;
-            $updateData['grant_1st_sem'] = false;
-            $updateData['grant_2nd_sem'] = false;
+            if (Schema::hasColumn('basic_info', 'grant_1st_sem')) {
+                $updateData['grant_1st_sem'] = false;
+            }
+            if (Schema::hasColumn('basic_info', 'grant_2nd_sem')) {
+                $updateData['grant_2nd_sem'] = false;
+            }
         }
         
         $basicInfo->update($updateData);
@@ -1986,6 +1991,299 @@ class StaffDashboardController extends Controller
     }
 
     /**
+     * Replacements Report
+     * Master list of replacement awardees and the grantees/awardees they replace.
+     */
+    public function replacementsReport(Request $request)
+    {
+        $rows = \App\Models\Replacement::with([
+            'replacementUser.basicInfo.fullAddress.address',
+            'replacementUser.ethno',
+            'replacementUser.basicInfo.schoolPref',
+            'replacedUser',
+        ])
+        ->latest()
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'replacements' => $rows->map(function($replacement, $index) {
+                $user = $replacement->replacementUser;
+                $basicInfo = $user ? $user->basicInfo : null;
+                $address = $basicInfo && $basicInfo->fullAddress ? ($basicInfo->fullAddress->address ?? null) : null;
+
+                // Age
+                $age = '';
+                if ($basicInfo && $basicInfo->birthdate) {
+                    try {
+                        $birthdate = Carbon::parse($basicInfo->birthdate);
+                        $age = $birthdate->age;
+                    } catch (\Exception $e) {
+                        $age = '';
+                    }
+                }
+
+                // School
+                $schoolType = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_type ?? '') : '';
+                $schoolName = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_name ?? '') : '';
+                $isPrivate = stripos($schoolType, 'private') !== false;
+                $isPublic = stripos($schoolType, 'public') !== false || stripos($schoolType, 'state') !== false;
+
+                // AD Reference No. (formatted user ID)
+                $adReference = $user ? ('NCIP-' . date('Y') . '-' . str_pad($user->id, 4, '0', STR_PAD_LEFT)) : '';
+
+                // Batch
+                $batch = $user && $user->created_at ? $user->created_at->format('Y') : date('Y');
+
+                // Name
+                $fullName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->middle_name ?? '') . ' ' . ($user->last_name ?? '')) : '';
+
+                // Contact/Email
+                $contactEmail = $user ? trim(($user->contact_num ?? '') . ($user->email ? ' / ' . $user->email : '')) : '';
+
+                // Course
+                $course = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->degree ?? ($user->course ?? '')) : ($user->course ?? '');
+
+                // Gender
+                $gender = $basicInfo ? ($basicInfo->gender ?? '') : '';
+                $isFemale = strtolower($gender) === 'female';
+                $isMale = strtolower($gender) === 'male';
+
+                // Year level flags
+                $yearLevel = $basicInfo ? ($basicInfo->current_year_level ?? '') : '';
+                $is1st = in_array(strtolower($yearLevel), ['1', '1st', 'first', 'first year', '1st year']);
+                $is2nd = in_array(strtolower($yearLevel), ['2', '2nd', 'second', 'second year', '2nd year']);
+                $is3rd = in_array(strtolower($yearLevel), ['3', '3rd', 'third', 'third year', '3rd year']);
+                $is4th = in_array(strtolower($yearLevel), ['4', '4th', 'fourth', 'fourth year', '4th year']);
+                $is5th = in_array(strtolower($yearLevel), ['5', '5th', 'fifth', 'fifth year', '5th year']);
+
+                // Grants
+                $grant1stSem = $basicInfo ? ($basicInfo->grant_1st_sem ?? false) : false;
+                $grant2ndSem = $basicInfo ? ($basicInfo->grant_2nd_sem ?? false) : false;
+
+                // Replaced grantee/awardee name
+                $replacedName = '';
+                if ($replacement->replacedUser) {
+                    $replacedName = trim(($replacement->replacedUser->first_name ?? '') . ' ' . ($replacement->replacedUser->middle_name ?? '') . ' ' . ($replacement->replacedUser->last_name ?? ''));
+                } elseif ($replacement->replaced_name) {
+                    $replacedName = $replacement->replaced_name;
+                }
+
+                return [
+                    'no' => $index + 1,
+                    'ad_reference' => $adReference,
+                    'province' => $address ? ($address->province ?? '') : '',
+                    'municipality' => $address ? ($address->municipality ?? '') : '',
+                    'barangay' => $address ? ($address->barangay ?? '') : '',
+                    'contact_email' => $contactEmail,
+                    'batch' => $batch,
+                    'name' => $fullName,
+                    'age' => $age,
+                    'is_female' => $isFemale,
+                    'is_male' => $isMale,
+                    'ethnicity' => $user && $user->ethno ? ($user->ethno->ethnicity ?? '') : '',
+                    'school_type' => $schoolType,
+                    'school_name' => $schoolName,
+                    'school1_name' => $schoolName,
+                    'is_private' => $isPrivate,
+                    'is_public' => $isPublic,
+                    'course' => $course,
+                    'is_1st' => $is1st,
+                    'is_2nd' => $is2nd,
+                    'is_3rd' => $is3rd,
+                    'is_4th' => $is4th,
+                    'is_5th' => $is5th,
+                    'grant_1st_sem' => $grant1stSem,
+                    'grant_2nd_sem' => $grant2ndSem,
+                    'replaced_name' => $replacedName,
+                    'replacement_reason' => $replacement->replacement_reason ?? '',
+                    'school_year' => $replacement->school_year ?? '',
+                ];
+            })
+        ]);
+    }
+
+    /**
+     * Options list for selecting a replaced grantee/awardee in the UI.
+     */
+    public function replacementGrantees(Request $request)
+    {
+        $grantees = User::with(['basicInfo'])
+            ->whereHas('basicInfo', function ($q) {
+                $q->where('application_status', 'validated')
+                  ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
+            })
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'grantees' => $grantees->map(function ($u) {
+                $name = trim(($u->first_name ?? '') . ' ' . ($u->middle_name ?? '') . ' ' . ($u->last_name ?? ''));
+                return [
+                    'user_id' => $u->id,
+                    'name' => $name,
+                ];
+            })->values()
+        ]);
+    }
+
+    /**
+     * Options list for selecting a replacement awardee from the waiting list.
+     */
+    public function replacementWaiting(Request $request)
+    {
+        $waiting = User::with(['basicInfo'])
+            ->whereHas('basicInfo', function ($q) {
+                $q->where('application_status', 'validated')
+                  ->whereRaw("LOWER(TRIM(grant_status)) = 'waiting'");
+            })
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'waiting' => $waiting->map(function ($u) {
+                $name = trim(($u->first_name ?? '') . ' ' . ($u->middle_name ?? '') . ' ' . ($u->last_name ?? ''));
+                return [
+                    'user_id' => $u->id,
+                    'name' => $name,
+                ];
+            })->values()
+        ]);
+    }
+
+    /**
+     * Store a replacement record: waiting list applicant becomes replacement awardee,
+     * and the replaced grantee/awardee + reason are recorded.
+     */
+    public function storeReplacement(Request $request)
+    {
+        $validated = $request->validate([
+            'replacement_user_id' => 'required|exists:users,id',
+            'replaced_user_id' => 'required|exists:users,id',
+            'replacement_reason' => 'required|string|min:3|max:2000',
+            'school_year' => 'nullable|string|max:50',
+        ]);
+
+        $staff = \Auth::guard('staff')->user();
+
+        try {
+            $result = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $staff) {
+                // Enforce: replacement must come from waiting list (validated + waiting)
+                $replacementUser = User::with('basicInfo')->findOrFail($validated['replacement_user_id']);
+                $replacementBasic = $replacementUser->basicInfo;
+                if (
+                    !$replacementBasic ||
+                    strtolower(trim((string) ($replacementBasic->application_status ?? ''))) !== 'validated' ||
+                    strtolower(trim((string) ($replacementBasic->grant_status ?? ''))) !== 'waiting'
+                ) {
+                    return [
+                        'ok' => false,
+                        'status' => 400,
+                        'message' => 'Selected replacement must be a validated waiting list applicant.',
+                    ];
+                }
+
+                // Enforce: replaced must be a validated grantee (so this is a termination)
+                $replacedUser = User::with('basicInfo')->findOrFail($validated['replaced_user_id']);
+                $replacedBasic = $replacedUser->basicInfo;
+                if (
+                    !$replacedBasic ||
+                    strtolower(trim((string) ($replacedBasic->application_status ?? ''))) !== 'validated' ||
+                    strtolower(trim((string) ($replacedBasic->grant_status ?? ''))) !== 'grantee'
+                ) {
+                    return [
+                        'ok' => false,
+                        'status' => 400,
+                        'message' => 'Selected replaced applicant must be a validated grantee.',
+                    ];
+                }
+
+                // 1) Terminate the replaced grantee (application_status -> rejected, keep grant_status=grantee to mark as terminated)
+                $replacedBasic->update([
+                    'application_status' => 'rejected',
+                    'application_rejection_reason' => trim($validated['replacement_reason']),
+                    // keep grant_status = 'grantee' to identify as terminated (per existing logic)
+                ]);
+
+                // 2) Promote the waiting applicant to grantee
+                $promoteData = [
+                    'grant_status' => 'grantee',
+                    'application_rejection_reason' => null,
+                ];
+                // Only reset grant flags if these columns exist in the current DB schema
+                if (Schema::hasColumn('basic_info', 'grant_1st_sem')) {
+                    $promoteData['grant_1st_sem'] = false;
+                }
+                if (Schema::hasColumn('basic_info', 'grant_2nd_sem')) {
+                    $promoteData['grant_2nd_sem'] = false;
+                }
+                $replacementBasic->update($promoteData);
+
+                // 3) Record the replacement event
+                $replacement = \App\Models\Replacement::create([
+                    'replacement_user_id' => $validated['replacement_user_id'],
+                    'replaced_user_id' => $validated['replaced_user_id'],
+                    'replaced_name' => null,
+                    'replacement_reason' => trim($validated['replacement_reason']),
+                    'school_year' => $validated['school_year'] ?? null,
+                    'created_by_staff_id' => $staff ? $staff->id : null,
+                ]);
+
+                return [
+                    'ok' => true,
+                    'replacement_id' => $replacement->id,
+                ];
+            });
+        } catch (\Throwable $e) {
+            // Keep a useful server-side record, but return a user-friendly message.
+            \Log::error('storeReplacement failed', [
+                'exception' => $e,
+                'replacement_user_id' => $validated['replacement_user_id'] ?? null,
+                'replaced_user_id' => $validated['replaced_user_id'] ?? null,
+            ]);
+
+            $msg = 'Failed to save replacement. Please try again.';
+            $raw = $e->getMessage() ?? '';
+
+            // Common local/XAMPP DB issues
+            if (
+                str_contains($raw, 'SQLSTATE[HY000] [2002]') ||
+                str_contains($raw, 'actively refused') ||
+                str_contains($raw, 'MySQL server has gone away') ||
+                str_contains($raw, 'SQLSTATE[HY000]: General error: 2006')
+            ) {
+                $msg = 'Database connection error. Please start/restart MySQL in XAMPP, then refresh the page and try again.';
+            } elseif (str_contains($raw, 'Base table or view not found') || str_contains($raw, 'doesn\'t exist')) {
+                $msg = 'Database table is missing. Please run migrations (php artisan migrate) and try again.';
+            } elseif (str_contains($raw, 'Unknown column') || str_contains($raw, 'Column not found')) {
+                $msg = 'Database columns are missing. Please run migrations (php artisan migrate) and try again.';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+            ], 500);
+        }
+
+        if (isset($result['ok']) && $result['ok'] === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Invalid replacement request.',
+            ], $result['status'] ?? 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Replacement saved and applicant promoted to grantee.',
+            'replacement_id' => $result['replacement_id'] ?? null,
+        ]);
+    }
+
+    /**
      * Update waiting list applicants (grants and RSSC scores)
      */
     public function updateWaitingList(Request $request)
@@ -2221,9 +2519,9 @@ class StaffDashboardController extends Controller
         }
 
         $announcement = Announcement::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'priority' => $request->priority,
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
+            'priority' => $request->input('priority'),
             'image_path' => $imagePath,
             'created_by' => $user->id,
         ]);
