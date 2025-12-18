@@ -1622,6 +1622,184 @@ class StaffDashboardController extends Controller
     }
 
     /**
+     * Get all Pamana applicants for report (without pagination)
+     * Mirrors the Regular Grantees grid view format.
+     */
+    public function pamanaReport(Request $request)
+    {
+        try {
+            $user = \Auth::guard('staff')->user();
+
+            // Get filters from request
+            $selectedProvince = $request->get('province');
+            $selectedMunicipality = $request->get('municipality');
+            $selectedBarangay = $request->get('barangay');
+            $selectedEthno = $request->get('ethno');
+
+            // Build query for Pamana applicants - validated Pamana, excluding grantees
+            $applicantsQuery = User::with([
+                'basicInfo.fullAddress.address',
+                'ethno',
+                'documents',
+                'basicInfo.schoolPref'
+            ])
+            ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                $query->where('type_assist', 'Pamana')
+                      ->where('application_status', 'validated')
+                      ->where(function($q) {
+                          // Exclude those already marked as grantee (case-insensitive)
+                          $q->whereNull('grant_status')
+                            ->orWhereRaw("LOWER(TRIM(grant_status)) != 'grantee'");
+                      });
+
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
+                        $addrQuery->where('province', $selectedProvince);
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
+                        $addrQuery->where('municipality', $selectedMunicipality);
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
+                        $addrQuery->where('barangay', $selectedBarangay);
+                    });
+                }
+            });
+
+            if ($selectedEthno) {
+                $applicantsQuery->where('ethno_id', $selectedEthno);
+            }
+
+            // Get all Pamana applicants without pagination
+            $pamanaApplicants = $applicantsQuery->orderBy('created_at', 'desc')->get();
+
+            \Log::info('Pamana Report Query', [
+                'count' => $pamanaApplicants->count(),
+                'filters' => [
+                    'province' => $selectedProvince,
+                    'municipality' => $selectedMunicipality,
+                    'barangay' => $selectedBarangay,
+                    'ethno' => $selectedEthno,
+                ]
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'pamana' => $pamanaApplicants->map(function($applicant, $index) {
+                    $basicInfo = $applicant->basicInfo;
+                    $address = $basicInfo && $basicInfo->fullAddress ? ($basicInfo->fullAddress->address ?? null) : null;
+                    $documents = $applicant->documents ?? collect();
+                    $approvedDocs = $documents->where('status', 'approved')->count();
+                    $totalDocs = $documents->count();
+
+                    // Calculate age
+                    $age = '';
+                    if ($basicInfo && $basicInfo->birthdate) {
+                        try {
+                            $birthdate = Carbon::parse($basicInfo->birthdate);
+                            $age = $birthdate->age;
+                        } catch (\Exception $e) {
+                            $age = '';
+                        }
+                    }
+
+                    // Determine school type (Private/Public) and school name (first intended school)
+                    $schoolType = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_type ?? '') : '';
+                    $schoolName = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->school_name ?? '') : '';
+                    $isPrivate = stripos($schoolType, 'private') !== false;
+                    $isPublic = stripos($schoolType, 'public') !== false || stripos($schoolType, 'state') !== false;
+
+                    // AD Reference No. (formatted user ID)
+                    $adReference = 'NCIP-' . date('Y') . '-' . str_pad($applicant->id, 4, '0', STR_PAD_LEFT);
+
+                    // BATCH (based on application year or created_at year)
+                    $batch = $applicant->created_at ? $applicant->created_at->format('Y') : date('Y');
+
+                    // Full name
+                    $fullName = trim(($applicant->first_name ?? '') . ' ' . ($applicant->middle_name ?? '') . ' ' . ($applicant->last_name ?? ''));
+
+                    // Contact/Email combined
+                    $contactEmail = trim(($applicant->contact_num ?? '') . ($applicant->email ? ' / ' . $applicant->email : ''));
+
+                    // Course
+                    $course = ($basicInfo && $basicInfo->schoolPref) ? ($basicInfo->schoolPref->degree ?? ($applicant->course ?? '')) : ($applicant->course ?? '');
+
+                    // Gender check (exact match with form values: "Male" or "Female")
+                    $gender = $basicInfo ? ($basicInfo->gender ?? '') : '';
+                    $isFemale = strtolower($gender) === 'female';
+                    $isMale = strtolower($gender) === 'male';
+
+                    // Year level - get from basic_info table
+                    $yearLevel = $basicInfo ? ($basicInfo->current_year_level ?? '') : '';
+
+                    // Determine which year level checkbox should be checked
+                    $is1st = in_array(strtolower($yearLevel), ['1', '1st', 'first', 'first year', '1st year']);
+                    $is2nd = in_array(strtolower($yearLevel), ['2', '2nd', 'second', 'second year', '2nd year']);
+                    $is3rd = in_array(strtolower($yearLevel), ['3', '3rd', 'third', 'third year', '3rd year']);
+                    $is4th = in_array(strtolower($yearLevel), ['4', '4th', 'fourth', 'fourth year', '4th year']);
+                    $is5th = in_array(strtolower($yearLevel), ['5', '5th', 'fifth', 'fifth year', '5th year']);
+
+                    // Grant checkmarks (stored as boolean/checkbox state in database)
+                    $grant1stSem = $basicInfo ? ($basicInfo->grant_1st_sem ?? false) : false;
+                    $grant2ndSem = $basicInfo ? ($basicInfo->grant_2nd_sem ?? false) : false;
+
+                    // Remarks/Status
+                    $remarks = $basicInfo ? ($basicInfo->application_status ?? '') : '';
+                    if ($basicInfo && $basicInfo->grant_status) {
+                        $remarks .= ($remarks ? ' / ' : '') . $basicInfo->grant_status;
+                    }
+
+                    return [
+                        'no' => $index + 1,
+                        'ad_reference' => $adReference,
+                        'province' => $address ? ($address->province ?? '') : '',
+                        'municipality' => $address ? ($address->municipality ?? '') : '',
+                        'barangay' => $address ? ($address->barangay ?? '') : '',
+                        'contact_email' => $contactEmail,
+                        'batch' => $batch,
+                        'name' => $fullName,
+                        'age' => $age,
+                        'gender' => $gender,
+                        'is_female' => $isFemale,
+                        'is_male' => $isMale,
+                        'ethnicity' => $applicant->ethno ? ($applicant->ethno->ethnicity ?? '') : '',
+                        'school_type' => $schoolType,
+                        'school_name' => $schoolName,
+                        'school1_name' => $schoolName,
+                        'is_private' => $isPrivate,
+                        'is_public' => $isPublic,
+                        'course' => $course,
+                        'year_level' => $yearLevel,
+                        'is_1st' => $is1st,
+                        'is_2nd' => $is2nd,
+                        'is_3rd' => $is3rd,
+                        'is_4th' => $is4th,
+                        'is_5th' => $is5th,
+                        'grant_1st_sem' => $grant1stSem,
+                        'grant_2nd_sem' => $grant2ndSem,
+                        'user_id' => $applicant->id,
+                        'remarks' => $remarks,
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in pamanaReport', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading Pamana report: ' . $e->getMessage(),
+                'pamana' => []
+            ], 500);
+        }
+    }
+
+    /**
      * Get all waiting list applicants for report (without pagination)
      */
     public function waitingListReport(Request $request)

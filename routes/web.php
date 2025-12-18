@@ -167,6 +167,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/masterlist/regular/waiting', [StaffDashboardController::class, 'masterlistRegularWaiting'])->name('staff.masterlist.regular.waiting');
     Route::get('/staff/masterlist/pamana', [StaffDashboardController::class, 'masterlistPamana'])->name('staff.masterlist.pamana');
     Route::get('/staff/grantees/report', [StaffDashboardController::class, 'granteesReport'])->name('staff.grantees.report');
+    Route::get('/staff/pamana/report', [StaffDashboardController::class, 'pamanaReport'])->name('staff.pamana.report');
     Route::get('/staff/waiting-list/report', [StaffDashboardController::class, 'waitingListReport'])->name('staff.waiting-list.report');
     Route::post('/staff/waiting-list/update', [StaffDashboardController::class, 'updateWaitingList'])->name('staff.waiting-list.update');
     Route::post('/staff/grantees/update-grants', [StaffDashboardController::class, 'updateGrants'])->name('staff.grantees.update-grants');
