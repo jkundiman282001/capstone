@@ -43,6 +43,22 @@ class BasicInfo extends Model
         'rssc_score' => 'decimal:2', // Cast to decimal with 2 decimal places
     ];
 
+    protected static function booted()
+    {
+        static::saving(function (self $model) {
+            // Business rule: pending applications must not have a grant status.
+            // This prevents "pending + grantee" from being filtered out of the applicants list.
+            if (
+                $model->application_status !== null &&
+                strtolower(trim((string) $model->application_status)) === 'pending'
+            ) {
+                $model->grant_status = null;
+                $model->grant_1st_sem = false;
+                $model->grant_2nd_sem = false;
+            }
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

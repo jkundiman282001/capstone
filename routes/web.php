@@ -135,6 +135,7 @@ Route::post('staff/register', [App\Http\Controllers\StaffAuthController::class, 
 // Staff Protected Routes (Require Authentication)
 Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+    Route::get('/staff/reports', [StaffDashboardController::class, 'reportsIndex'])->name('staff.reports.index');
     Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
     Route::post('/staff/notifications/mark-read', [App\Http\Controllers\StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
     Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');

@@ -225,10 +225,43 @@
                         <h2 class="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Reports & Tools</h2>
                     </div>
                     <div class="space-y-2">
-                        <a href="{{ route('staff.reports.download') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.reports.*') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                        <!-- Reports Dropdown -->
+                        <div>
+                            <button type="button" onclick="toggleReportsDropdown()"
+                                class="group w-full px-5 py-4 rounded-2xl {{ request()->routeIs('staff.reports.index') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Reports</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.reports.index') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                    <svg id="reports-chevron" class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('staff.reports.index') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </button>
+                            <div id="reports-dropdown" class="pl-2 pt-1.5 space-y-1.5 {{ request()->routeIs('staff.reports.index') ? '' : 'hidden' }} overflow-hidden transition-all duration-300">
+                                <a href="{{ route('staff.reports.index', ['tab' => 'grantees']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab', 'grantees') === 'grantees' ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-300 font-semibold text-slate-700 hover:text-blue-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Grantees</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab', 'grantees') === 'grantees' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700' }}">XLS</span>
+                                    </div>
+                                </a>
+                                <a href="{{ route('staff.reports.index', ['tab' => 'pamana']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'pamana' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg shadow-emerald-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 border-2 border-slate-200 hover:border-emerald-300 font-semibold text-slate-700 hover:text-emerald-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Pamana</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'pamana' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700' }}">CSV</span>
+                                    </div>
+                                </a>
+                                <a href="{{ route('staff.reports.index', ['tab' => 'waiting']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 border-2 border-slate-200 hover:border-purple-300 font-semibold text-slate-700 hover:text-purple-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Waiting List</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700' }}">CSV</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <a href="{{ route('staff.reports.download') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.reports.download') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
                             <div class="flex items-center justify-between">
                                 <span class="text-sm tracking-wide">Download Reports</span>
-                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.reports.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.reports.download') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
                             </div>
                         </a>
                         <a href="{{ route('staff.announcements.index') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.announcements.*') ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-xl shadow-blue-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-300 font-semibold text-slate-700 hover:text-blue-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
@@ -262,8 +295,8 @@
         <!-- Overlay for mobile -->
         <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/50 z-30 md:hidden" onclick="toggleSidebar()"></div>
         <!-- Main Content -->
-        <main class="flex-1 min-h-screen">
-            <div class="p-0">
+        <main class="flex-1 min-h-screen min-w-0 overflow-x-hidden">
+            <div class="p-0 min-w-0">
                 @yield('content')
             </div>
         </main>
@@ -312,6 +345,15 @@
             chevron.classList.toggle('rotate-180');
         }
 
+        // Toggle Reports Dropdown
+        function toggleReportsDropdown() {
+            const dropdown = document.getElementById('reports-dropdown');
+            const chevron = document.getElementById('reports-chevron');
+            if (!dropdown || !chevron) return;
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
         // Auto-expand dropdowns if a sub-item is active on page load
         document.addEventListener('DOMContentLoaded', function() {
             const priorityDropdown = document.getElementById('priority-dropdown');
@@ -333,6 +375,12 @@
             
             if (!regularDropdown.classList.contains('hidden')) {
                 regularChevron.classList.add('rotate-180');
+            }
+
+            const reportsDropdown = document.getElementById('reports-dropdown');
+            const reportsChevron = document.getElementById('reports-chevron');
+            if (reportsDropdown && reportsChevron && !reportsDropdown.classList.contains('hidden')) {
+                reportsChevron.classList.add('rotate-180');
             }
         });
     </script>

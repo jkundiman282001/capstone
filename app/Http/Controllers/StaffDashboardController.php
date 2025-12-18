@@ -390,6 +390,14 @@ class StaffDashboardController extends Controller
         return back()->with('success', 'Report download feature coming soon!');
     }
 
+    public function reportsIndex(Request $request)
+    {
+        // Active report tab (grantees|pamana|waiting)
+        $activeTab = $request->get('tab', 'grantees');
+
+        return view('staff.reports.index', compact('activeTab'));
+    }
+
 
     public function markNotificationsRead(Request $request)
     {
@@ -1048,6 +1056,14 @@ class StaffDashboardController extends Controller
         } else {
             // Clear rejection_reason if status is changed to approved or pending
             $updateData['application_rejection_reason'] = null;
+        }
+
+        // IMPORTANT: If admin moves a scholar back to "pending", ensure they reappear in the applicants list.
+        // The applicants list excludes grant_status='grantee', so we must clear grant_status (and grant flags) on pending.
+        if ($validated['status'] === 'pending') {
+            $updateData['grant_status'] = null;
+            $updateData['grant_1st_sem'] = false;
+            $updateData['grant_2nd_sem'] = false;
         }
         
         $basicInfo->update($updateData);
