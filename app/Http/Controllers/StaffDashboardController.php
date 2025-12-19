@@ -1169,13 +1169,29 @@ class StaffDashboardController extends Controller
         $status = $request->input('status');
         
         if ($status === 'rejected') {
-            $validated = $request->validate([
-                'status' => 'required|in:pending,validated,rejected',
-                'rejection_reason' => 'required|string|min:10|max:1000'
-            ], [
-                'rejection_reason.required' => 'Please provide a reason for rejection.',
-                'rejection_reason.min' => 'Rejection reason must be at least 10 characters long.'
-            ]);
+            // For rejection, check if it's termination (grantee) or regular rejection
+            $isTermination = ($basicInfo->application_status === 'validated' && $basicInfo->grant_status === 'grantee');
+            
+            if ($isTermination) {
+                // Termination requires detailed reason
+                $validated = $request->validate([
+                    'status' => 'required|in:pending,validated,rejected',
+                    'rejection_reason' => 'required|string|min:10|max:1000'
+                ], [
+                    'rejection_reason.required' => 'Please provide a reason for termination.',
+                    'rejection_reason.min' => 'Termination reason must be at least 10 characters long.'
+                ]);
+            } else {
+                // Regular rejection - disqualification reasons are required (validated in frontend)
+                $validated = $request->validate([
+                    'status' => 'required|in:pending,validated,rejected',
+                    'rejection_reason' => 'nullable|string|max:1000',
+                    'disqualification_not_ip' => 'nullable|boolean',
+                    'disqualification_exceeded_income' => 'nullable|boolean',
+                    'disqualification_incomplete_docs' => 'nullable|boolean',
+                    'disqualification_remarks' => 'nullable|string|max:1000'
+                ]);
+            }
         } else {
             $validated = $request->validate([
                 'status' => 'required|in:pending,validated,rejected',
@@ -1215,17 +1231,31 @@ class StaffDashboardController extends Controller
         
         // Handle rejection/termination logic
         if ($validated['status'] === 'rejected') {
-            // If status is rejected, save the rejection_reason (trimmed)
-            $updateData['application_rejection_reason'] = trim($validated['rejection_reason']);
-            
             // IMPORTANT: Distinguish between rejection and termination
             if ($isTermination) {
                 // TERMINATION: Applicant was a confirmed grantee who broke a rule
                 // Keep grant_status as 'grantee' to identify them as terminated (not just rejected)
                 // This allows us to filter terminated applicants separately
                 // Do NOT change grant_status - keep it as 'grantee'
+                // Save termination reason
+                $updateData['application_rejection_reason'] = trim($validated['rejection_reason']);
+                // Clear disqualification fields for termination
+                $updateData['disqualification_not_ip'] = false;
+                $updateData['disqualification_exceeded_income'] = false;
+                $updateData['disqualification_incomplete_docs'] = false;
+                $updateData['disqualification_remarks'] = null;
             } else {
                 // REJECTION: Applicant was not yet confirmed/validated
+                // Save disqualification reasons and remarks
+                $updateData['disqualification_not_ip'] = $request->input('disqualification_not_ip', false) ? true : false;
+                $updateData['disqualification_exceeded_income'] = $request->input('disqualification_exceeded_income', false) ? true : false;
+                $updateData['disqualification_incomplete_docs'] = $request->input('disqualification_incomplete_docs', false) ? true : false;
+                $updateData['disqualification_remarks'] = $request->input('disqualification_remarks') ? trim($request->input('disqualification_remarks')) : null;
+                
+                // Use remarks as rejection reason if provided, otherwise use a default message
+                $remarks = $updateData['disqualification_remarks'];
+                $updateData['application_rejection_reason'] = $remarks ?: 'Application rejected based on disqualification criteria.';
+                
                 // Ensure grant_status is NOT 'grantee' (should be null or not set)
                 // This ensures they appear in "Rejected Applicants" not "Terminated Applicants"
                 if ($basicInfo->grant_status === 'grantee') {
@@ -1234,8 +1264,12 @@ class StaffDashboardController extends Controller
                 }
             }
         } else {
-            // Clear rejection_reason if status is changed to approved or pending
+            // Clear rejection_reason and disqualification fields if status is changed to approved or pending
             $updateData['application_rejection_reason'] = null;
+            $updateData['disqualification_not_ip'] = false;
+            $updateData['disqualification_exceeded_income'] = false;
+            $updateData['disqualification_incomplete_docs'] = false;
+            $updateData['disqualification_remarks'] = null;
         }
 
         // IMPORTANT: If admin moves a scholar back to "pending", ensure they reappear in the applicants list.
@@ -2209,8 +2243,8 @@ class StaffDashboardController extends Controller
             $schoolPref = $basicInfo ? $basicInfo->schoolPref : null;
             $ethno = $applicant->ethno;
             
-            // AD Reference Number (user ID or reference number)
-            $adReference = $applicant->id;
+            // AD Reference Number (formatted user ID)
+            $adReference = 'NCIP-' . date('Y') . '-' . str_pad($applicant->id, 4, '0', STR_PAD_LEFT);
             
             // Full address line
             $addressLine = [
@@ -2222,27 +2256,50 @@ class StaffDashboardController extends Controller
             $addressLine = array_filter($addressLine);
             $addressLineStr = implode(', ', $addressLine);
             
-            // Contact Email
-            $contactEmail = $applicant->email ?? '';
+            // Contact/Email combined
+            $contactEmail = trim(($applicant->contact_num ?? '') . ($applicant->email ? ' / ' . $applicant->email : ''));
             
             // Full name
             $fullName = trim(($applicant->first_name ?? '') . ' ' . ($applicant->middle_name ?? '') . ' ' . ($applicant->last_name ?? ''));
             
-            // Age
-            $age = $basicInfo ? ($basicInfo->age ?? '') : '';
+            // Age (calculate from birthdate if age is not available)
+            $age = '';
+            if ($basicInfo) {
+                if (isset($basicInfo->age) && $basicInfo->age !== null && $basicInfo->age !== '') {
+                    $age = $basicInfo->age;
+                } elseif ($basicInfo->birthdate) {
+                    try {
+                        $birthdate = \Carbon\Carbon::parse($basicInfo->birthdate);
+                        $age = $birthdate->age;
+                    } catch (\Exception $e) {
+                        $age = '';
+                    }
+                }
+            }
             
             // Gender
             $gender = $basicInfo ? ($basicInfo->gender ?? '') : '';
             $isFemale = strtolower($gender) === 'female';
             $isMale = strtolower($gender) === 'male';
             
-            // IP Group
-            $isIP = $ethno && $ethno->ethnicity ? true : false;
+            // IP Group (text value, not boolean)
+            $ipGroup = $ethno && $ethno->ethnicity ? $ethno->ethnicity : '';
+            $hasIPGroup = !empty($ipGroup);
             
             // School type (Private/Public)
             $schoolType = $schoolPref ? ($schoolPref->school_type ?? '') : '';
-            $isPrivate = strtolower($schoolType) === 'private';
-            $isPublic = strtolower($schoolType) === 'public';
+            $isPrivate = stripos($schoolType, 'private') !== false;
+            $isPublic = stripos($schoolType, 'public') !== false || stripos($schoolType, 'state') !== false;
+            
+            // If school type is not clearly identified, try to infer from school name
+            if (!$isPrivate && !$isPublic && $schoolPref) {
+                $schoolNameLower = strtolower($schoolPref->school_name ?? '');
+                if (stripos($schoolNameLower, 'state') !== false || stripos($schoolNameLower, 'public') !== false) {
+                    $isPublic = true;
+                } elseif (stripos($schoolNameLower, 'private') !== false) {
+                    $isPrivate = true;
+                }
+            }
             
             // School name
             $schoolName = $schoolPref ? ($schoolPref->school_name ?? '') : '';
@@ -2250,48 +2307,51 @@ class StaffDashboardController extends Controller
             // Course
             $course = $schoolPref ? ($schoolPref->degree ?? ($applicant->course ?? '')) : ($applicant->course ?? '');
             
-            // Parse rejection reason to determine disqualification reasons
-            $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? '') : '';
-            $rejectionLower = strtolower($rejectionReason);
+            // Get disqualification reasons from database fields (if available)
+            $notIP = $basicInfo ? ($basicInfo->disqualification_not_ip ?? false) : false;
+            $exceededIncome = $basicInfo ? ($basicInfo->disqualification_exceeded_income ?? false) : false;
+            $incompleteDocs = $basicInfo ? ($basicInfo->disqualification_incomplete_docs ?? false) : false;
             
-            $notIP = false;
-            $exceededIncome = false;
-            $incompleteDocs = false;
-            
-            // Check for "Not IP" reason
-            if (str_contains($rejectionLower, 'not ip') || 
-                str_contains($rejectionLower, 'not indigenous') ||
-                str_contains($rejectionLower, 'not a member') ||
-                str_contains($rejectionLower, 'no ip group') ||
-                (!$isIP && str_contains($rejectionLower, 'ip'))) {
-                $notIP = true;
-            }
-            
-            // Check for "Exceeded Required Income" reason
-            if (str_contains($rejectionLower, 'income') ||
-                str_contains($rejectionLower, 'exceeded') ||
-                str_contains($rejectionLower, 'too high') ||
-                str_contains($rejectionLower, 'over limit') ||
-                str_contains($rejectionLower, 'financial')) {
-                $exceededIncome = true;
-            }
-            
-            // Check for "Incomplete Documents" reason
-            if (str_contains($rejectionLower, 'incomplete') ||
-                str_contains($rejectionLower, 'missing document') ||
-                str_contains($rejectionLower, 'document') ||
-                str_contains($rejectionLower, 'required document') ||
-                str_contains($rejectionLower, 'not submitted')) {
-                $incompleteDocs = true;
-            }
-            
-            // If no specific reason found, default to incomplete documents
+            // Fallback: Parse rejection reason if database fields are not set (for old records)
             if (!$notIP && !$exceededIncome && !$incompleteDocs) {
-                $incompleteDocs = true;
+                $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? '') : '';
+                $rejectionLower = strtolower($rejectionReason);
+                
+                // Check for "Not IP" reason
+                if (str_contains($rejectionLower, 'not ip') || 
+                    str_contains($rejectionLower, 'not indigenous') ||
+                    str_contains($rejectionLower, 'not a member') ||
+                    str_contains($rejectionLower, 'no ip group') ||
+                    (!$hasIPGroup && str_contains($rejectionLower, 'ip'))) {
+                    $notIP = true;
+                }
+                
+                // Check for "Exceeded Required Income" reason
+                if (str_contains($rejectionLower, 'income') ||
+                    str_contains($rejectionLower, 'exceeded') ||
+                    str_contains($rejectionLower, 'too high') ||
+                    str_contains($rejectionLower, 'over limit') ||
+                    str_contains($rejectionLower, 'financial')) {
+                    $exceededIncome = true;
+                }
+                
+                // Check for "Incomplete Documents" reason
+                if (str_contains($rejectionLower, 'incomplete') ||
+                    str_contains($rejectionLower, 'missing document') ||
+                    str_contains($rejectionLower, 'document') ||
+                    str_contains($rejectionLower, 'required document') ||
+                    str_contains($rejectionLower, 'not submitted')) {
+                    $incompleteDocs = true;
+                }
+                
+                // If no specific reason found, default to incomplete documents
+                if (!$notIP && !$exceededIncome && !$incompleteDocs) {
+                    $incompleteDocs = true;
+                }
             }
             
-            // Remarks
-            $remarks = $rejectionReason ?: 'Disqualified';
+            // Remarks (use disqualification_remarks if available, otherwise use rejection reason)
+            $remarks = $basicInfo ? ($basicInfo->disqualification_remarks ?? ($basicInfo->application_rejection_reason ?? 'Disqualified')) : 'Disqualified';
             
             $disqualified[] = [
                 'no' => $index + 1,
@@ -2303,14 +2363,21 @@ class StaffDashboardController extends Controller
                 'gender' => $gender,
                 'is_female' => $isFemale,
                 'is_male' => $isMale,
-                'is_ip' => $isIP,
+                'ip_group' => $ipGroup,
+                'ethnicity' => $ipGroup, // Alias for compatibility
                 'is_private' => $isPrivate,
+                'is_private_school' => $isPrivate, // Alias for compatibility
                 'is_public' => $isPublic,
+                'is_public_school' => $isPublic, // Alias for compatibility
                 'school' => $schoolName,
+                'school_name' => $schoolName, // Alias for compatibility
                 'course' => $course,
-                'not_ip' => $notIP,
-                'exceeded_income' => $exceededIncome,
-                'incomplete_docs' => $incompleteDocs,
+                'disqualification_not_ip' => $notIP,
+                'not_ip' => $notIP, // Alias for compatibility
+                'disqualification_exceeded_income' => $exceededIncome,
+                'exceeded_income' => $exceededIncome, // Alias for compatibility
+                'disqualification_incomplete_docs' => $incompleteDocs,
+                'incomplete_docs' => $incompleteDocs, // Alias for compatibility
                 'remarks' => $remarks,
             ];
         }

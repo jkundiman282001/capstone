@@ -154,18 +154,47 @@
                         @endif
                     @endif
                     
-                    <!-- Show rejection reason if application is rejected -->
-                    @if($basicInfo->application_status === 'rejected' && $basicInfo->application_rejection_reason)
-                        <div class="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                </svg>
-                                <div class="flex-1">
-                                    <p class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1">Rejection Reason</p>
-                                    <p class="text-sm text-red-900 leading-relaxed">{{ $basicInfo->application_rejection_reason }}</p>
+                    <!-- Show rejection reason and disqualification reasons if application is rejected -->
+                    @if($basicInfo->application_status === 'rejected')
+                        <div class="mt-4 space-y-3">
+                            @if($basicInfo->disqualification_not_ip || $basicInfo->disqualification_exceeded_income || $basicInfo->disqualification_incomplete_docs)
+                                <div class="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                                    <p class="text-xs font-bold text-red-700 uppercase tracking-wider mb-3">Reasons of Disqualification</p>
+                                    <div class="space-y-2">
+                                        @if($basicInfo->disqualification_not_ip)
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                <span class="text-sm font-semibold text-red-900">Not IP</span>
+                                            </div>
+                                        @endif
+                                        @if($basicInfo->disqualification_exceeded_income)
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                <span class="text-sm font-semibold text-red-900">Exceeded Required Income</span>
+                                            </div>
+                                        @endif
+                                        @if($basicInfo->disqualification_incomplete_docs)
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                <span class="text-sm font-semibold text-red-900">Incomplete Documents</span>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
+                            @if($basicInfo->disqualification_remarks)
+                                <div class="p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Remarks</p>
+                                            <p class="text-sm text-amber-900 leading-relaxed">{{ $basicInfo->disqualification_remarks }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -942,8 +971,8 @@
 
 <!-- Application Rejection/Termination Modal -->
 <div id="applicationRejectionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden">
-        <div class="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-red-500 to-rose-500">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between p-5 border-b border-slate-200 bg-gradient-to-r from-red-500 to-rose-500 flex-shrink-0">
             <div>
                 <h3 id="rejectionModalTitle" class="text-xl font-bold text-white">Reject Application</h3>
                 <p id="rejectionModalDescription" class="text-sm text-red-100 mt-1">Provide a reason for rejecting this scholarship application</p>
@@ -952,11 +981,75 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
-        <div class="p-6">
+        <div class="p-5 overflow-y-auto flex-1">
             <form id="applicationRejectionForm" onsubmit="submitApplicationRejection(event)">
-                <div class="mb-6">
+                <!-- Disqualification Reasons Section (only for rejection, not termination) -->
+                <div id="disqualificationReasonsSection" class="mb-5">
+                    <label class="block text-sm font-bold text-slate-700 mb-3">
+                        Reasons of Disqualification <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2.5">
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border-2 border-slate-200 cursor-pointer transition-all">
+                            <input 
+                                type="checkbox" 
+                                id="disqualificationNotIP" 
+                                name="disqualification_not_ip" 
+                                value="1"
+                                class="w-4 h-4 text-red-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-red-500 flex-shrink-0"
+                            >
+                            <div class="flex-1">
+                                <span class="text-sm font-semibold text-slate-900">Not IP</span>
+                                <p class="text-xs text-slate-500 mt-0.5">Applicant does not belong to an Indigenous People group</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border-2 border-slate-200 cursor-pointer transition-all">
+                            <input 
+                                type="checkbox" 
+                                id="disqualificationExceededIncome" 
+                                name="disqualification_exceeded_income" 
+                                value="1"
+                                class="w-4 h-4 text-red-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-red-500 flex-shrink-0"
+                            >
+                            <div class="flex-1">
+                                <span class="text-sm font-semibold text-slate-900">Exceeded Required Income</span>
+                                <p class="text-xs text-slate-500 mt-0.5">Applicant's family income exceeds the required threshold</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border-2 border-slate-200 cursor-pointer transition-all">
+                            <input 
+                                type="checkbox" 
+                                id="disqualificationIncompleteDocs" 
+                                name="disqualification_incomplete_docs" 
+                                value="1"
+                                class="w-4 h-4 text-red-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-red-500 flex-shrink-0"
+                            >
+                            <div class="flex-1">
+                                <span class="text-sm font-semibold text-slate-900">Incomplete Documents</span>
+                                <p class="text-xs text-slate-500 mt-0.5">Required documents are missing or incomplete</p>
+                            </div>
+                        </label>
+                    </div>
+                    <p id="disqualificationReasonsError" class="text-xs text-red-600 mt-2 hidden">Please select at least one reason for disqualification.</p>
+                </div>
+
+                <!-- Remarks Section -->
+                <div id="disqualificationRemarksSection" class="mb-5">
+                    <label for="disqualificationRemarks" class="block text-sm font-bold text-slate-700 mb-2">
+                        Remarks
+                    </label>
+                    <textarea 
+                        id="disqualificationRemarks" 
+                        name="disqualification_remarks" 
+                        rows="3" 
+                        placeholder="Additional notes or comments (optional)..."
+                        class="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all text-sm resize-none"
+                    ></textarea>
+                </div>
+
+                <!-- Detailed Reason Section (only for termination) -->
+                <div id="detailedReasonSection" class="mb-5" style="display: none;">
                     <label for="applicationRejectionReason" class="block text-sm font-bold text-slate-700 mb-2">
-                        <span id="rejectionReasonLabel">Reason for Rejection</span> <span class="text-red-500">*</span>
+                        <span id="rejectionReasonLabel">Reason for Termination</span> <span class="text-red-500">*</span>
                     </label>
                     
                     <!-- Predefined Reasons Dropdown -->
@@ -967,10 +1060,10 @@
                         <select 
                             id="predefinedReasons" 
                             onchange="applyPredefinedReason(this.value)"
-                            class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm bg-white"
+                            class="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm bg-white"
                         >
                             <option value="">-- Choose a reason --</option>
-                            <optgroup id="rejectionReasonsGroup" label="Rejection Reasons (Applicant not yet confirmed)">
+                            <optgroup id="rejectionReasonsGroup" label="Rejection Reasons (Applicant not yet confirmed)" style="display: none;">
                                 <option value="Incomplete documentation">Incomplete documentation</option>
                                 <option value="Does not meet eligibility requirements">Does not meet eligibility requirements</option>
                                 <option value="Insufficient academic performance">Insufficient academic performance</option>
@@ -982,7 +1075,7 @@
                                 <option value="Does not meet income requirements">Does not meet income requirements</option>
                                 <option value="Other (specify below)">Other (specify below)</option>
                             </optgroup>
-                            <optgroup id="terminationReasonsGroup" label="Termination Reasons (Confirmed grantee who broke a rule)" style="display: none;">
+                            <optgroup id="terminationReasonsGroup" label="Termination Reasons (Confirmed grantee who broke a rule)">
                                 <option value="Violation of scholarship terms and conditions">Violation of scholarship terms and conditions</option>
                                 <option value="Academic performance below required standards">Academic performance below required standards</option>
                                 <option value="Failure to maintain minimum GPA requirement">Failure to maintain minimum GPA requirement</option>
@@ -1000,38 +1093,38 @@
                     <textarea 
                         id="applicationRejectionReason" 
                         name="rejection_reason" 
-                        rows="6" 
-                        required
+                        rows="5" 
                         placeholder="Please provide a clear explanation..."
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all text-sm resize-none"
+                        class="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all text-sm resize-none"
                     ></textarea>
-                    <p id="rejectionReasonHelp" class="text-xs text-slate-500 mt-2">This feedback will be visible to the student and help them understand why their application was rejected.</p>
+                    <p id="rejectionReasonHelp" class="text-xs text-slate-500 mt-2">This feedback will be visible to the student and help them understand why their scholarship was terminated.</p>
                 </div>
 
-                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-                    <div class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-5">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div class="text-xs text-red-800">
                             <p class="font-bold mb-1">Important:</p>
                             <ul id="rejectionImportantList" class="list-disc list-inside space-y-1">
-                                <li>Be specific about why the application is being rejected</li>
-                                <li>Suggest what the student needs to do to improve their application</li>
-                                <li>Use clear and respectful language</li>
+                                <li>Select at least one reason for disqualification above</li>
+                                <li>You may add remarks for additional context</li>
                                 <li>This action cannot be easily undone</li>
                             </ul>
                         </div>
                     </div>
                 </div>
+            </form>
+        </div>
 
-                <div class="flex items-center justify-end gap-3">
-                    <button type="button" onclick="closeApplicationRejectionModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
-                        Cancel
-                    </button>
-                    <button type="submit" id="submitApplicationRejectionBtn" class="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        <span id="submitButtonText">Reject Application</span>
-                    </button>
-                </div>
+        <div class="flex items-center justify-end gap-3 p-5 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+            <button type="button" onclick="closeApplicationRejectionModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition-all text-sm">
+                Cancel
+            </button>
+            <button type="submit" id="submitApplicationRejectionBtn" form="applicationRejectionForm" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <span id="submitButtonText">Reject Application</span>
+            </button>
+        </div>
             </form>
         </div>
     </div>
@@ -1624,12 +1717,21 @@ function showApplicationRejectionModal(isGrantee = false) {
     const predefinedReasons = document.getElementById('predefinedReasons');
     const rejectionReasonsGroup = document.getElementById('rejectionReasonsGroup');
     const terminationReasonsGroup = document.getElementById('terminationReasonsGroup');
+    const disqualificationReasonsSection = document.getElementById('disqualificationReasonsSection');
+    const disqualificationRemarksSection = document.getElementById('disqualificationRemarksSection');
+    const detailedReasonSection = document.getElementById('detailedReasonSection');
     
+    // Reset all form fields
     reasonTextarea.value = '';
     predefinedReasons.value = '';
+    document.getElementById('disqualificationNotIP').checked = false;
+    document.getElementById('disqualificationExceededIncome').checked = false;
+    document.getElementById('disqualificationIncompleteDocs').checked = false;
+    document.getElementById('disqualificationRemarks').value = '';
+    document.getElementById('disqualificationReasonsError').classList.add('hidden');
     
     if (isGrantee) {
-        // Terminate mode for grantees
+        // Terminate mode for grantees - hide disqualification reasons, show detailed reason
         modalTitle.textContent = 'Terminate Scholarship';
         modalDescription.textContent = 'Provide a reason for terminating this scholarship grant';
         reasonLabel.textContent = 'Reason for Termination';
@@ -1645,30 +1747,39 @@ function showApplicationRejectionModal(isGrantee = false) {
         // Show termination reasons, hide rejection reasons
         rejectionReasonsGroup.style.display = 'none';
         terminationReasonsGroup.style.display = 'block';
+        // Hide disqualification section for termination
+        disqualificationReasonsSection.style.display = 'none';
+        disqualificationRemarksSection.style.display = 'none';
+        detailedReasonSection.style.display = 'block';
+        // Make textarea required for termination
+        reasonTextarea.setAttribute('required', 'required');
     } else {
-        // Reject mode for applicants
+        // Reject mode for applicants - show disqualification reasons only
         modalTitle.textContent = 'Reject Application';
-        modalDescription.textContent = 'Provide a reason for rejecting this scholarship application';
-        reasonLabel.textContent = 'Reason for Rejection';
-        reasonTextarea.placeholder = 'Please provide a clear explanation for why this application is being rejected...';
-        reasonHelp.textContent = 'This feedback will be visible to the student and help them understand why their application was rejected.';
+        modalDescription.textContent = 'Select reasons for disqualification and provide additional details';
         importantList.innerHTML = `
-            <li>Be specific about why the application is being rejected</li>
-            <li>Suggest what the student needs to do to improve their application</li>
-            <li>Use clear and respectful language</li>
+            <li>Select at least one reason for disqualification above</li>
+            <li>You may add remarks for additional context</li>
             <li>This action cannot be easily undone</li>
         `;
         submitButtonText.textContent = 'Reject Application';
-        // Show rejection reasons, hide termination reasons
-        rejectionReasonsGroup.style.display = 'block';
-        terminationReasonsGroup.style.display = 'none';
+        // Hide detailed reason section for rejection
+        disqualificationReasonsSection.style.display = 'block';
+        disqualificationRemarksSection.style.display = 'block';
+        detailedReasonSection.style.display = 'none';
+        // Remove required attribute when hidden (to prevent validation error)
+        reasonTextarea.removeAttribute('required');
     }
     
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     
-    // Focus on textarea
-    setTimeout(() => reasonTextarea.focus(), 100);
+    // Focus on first checkbox if rejection, otherwise textarea
+    if (!isGrantee) {
+        setTimeout(() => document.getElementById('disqualificationNotIP').focus(), 100);
+    } else {
+        setTimeout(() => reasonTextarea.focus(), 100);
+    }
 }
 
 // Function to apply predefined reason to textarea
@@ -1689,26 +1800,66 @@ function closeApplicationRejectionModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
     document.getElementById('applicationRejectionForm').reset();
+    // Reset checkboxes and error message
+    document.getElementById('disqualificationNotIP').checked = false;
+    document.getElementById('disqualificationExceededIncome').checked = false;
+    document.getElementById('disqualificationIncompleteDocs').checked = false;
+    document.getElementById('disqualificationRemarks').value = '';
+    document.getElementById('disqualificationReasonsError').classList.add('hidden');
 }
 
 function submitApplicationRejection(event) {
     event.preventDefault();
     
-    const rejectionReason = document.getElementById('applicationRejectionReason').value.trim();
-    
-    // Client-side validation
-    if (!rejectionReason || rejectionReason.length < 10) {
-        alert('Please provide a detailed rejection reason (at least 10 characters).');
-        document.getElementById('applicationRejectionReason').focus();
-        return;
-    }
-    
     const submitBtn = document.getElementById('submitApplicationRejectionBtn');
     const submitButtonText = document.getElementById('submitButtonText');
     const isTerminate = submitButtonText.textContent.includes('Terminate');
+    
+    // For rejection (not termination), validate disqualification reasons
+    if (!isTerminate) {
+        const notIP = document.getElementById('disqualificationNotIP').checked;
+        const exceededIncome = document.getElementById('disqualificationExceededIncome').checked;
+        const incompleteDocs = document.getElementById('disqualificationIncompleteDocs').checked;
+        
+        if (!notIP && !exceededIncome && !incompleteDocs) {
+            document.getElementById('disqualificationReasonsError').classList.remove('hidden');
+            document.getElementById('disqualificationNotIP').focus();
+            return;
+        }
+        document.getElementById('disqualificationReasonsError').classList.add('hidden');
+    } else {
+        // For termination, validate detailed reason
+        const rejectionReason = document.getElementById('applicationRejectionReason').value.trim();
+        if (!rejectionReason || rejectionReason.length < 10) {
+            alert('Please provide a detailed termination reason (at least 10 characters).');
+            document.getElementById('applicationRejectionReason').focus();
+            return;
+        }
+    }
+    
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ${isTerminate ? 'Terminating...' : 'Rejecting...'}`;
     submitBtn.disabled = true;
+    
+    // Prepare request body
+    const requestBody = { 
+        status: 'rejected'
+    };
+    
+    // Add disqualification reasons only for rejection (not termination)
+    if (!isTerminate) {
+        requestBody.disqualification_not_ip = document.getElementById('disqualificationNotIP').checked;
+        requestBody.disqualification_exceeded_income = document.getElementById('disqualificationExceededIncome').checked;
+        requestBody.disqualification_incomplete_docs = document.getElementById('disqualificationIncompleteDocs').checked;
+        requestBody.disqualification_remarks = document.getElementById('disqualificationRemarks').value.trim();
+        // For rejection, use remarks as rejection reason if provided, otherwise use a default
+        const remarks = document.getElementById('disqualificationRemarks').value.trim();
+        requestBody.rejection_reason = remarks || 'Application rejected based on disqualification criteria.';
+    } else {
+        // For termination, use the detailed reason
+        const rejectionReason = document.getElementById('applicationRejectionReason').value.trim();
+        requestBody.rejection_reason = rejectionReason;
+    }
     
     fetch('{{ route("staff.applications.update-status", $user->id) }}', {
         method: 'POST',
@@ -1717,10 +1868,7 @@ function submitApplicationRejection(event) {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'Accept': 'application/json'
         },
-        body: JSON.stringify({ 
-            status: 'rejected',
-            rejection_reason: rejectionReason
-        })
+        body: JSON.stringify(requestBody)
     })
     .then(response => response.json())
     .then(data => {

@@ -163,8 +163,8 @@
                                     <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
                                     <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
                                     <th colspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">GENDER</th>
-                                    <th colspan="3" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">GROUP</th>
-                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">SCHOOL</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
+                                    <th colspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">SCHOOL</th>
                                     <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">COURSE</th>
                                     <th colspan="3" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Reasons of Disqualification</th>
                                     <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Remarks</th>
@@ -172,7 +172,6 @@
                                 <tr>
                                     <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">F</th>
                                     <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">M</th>
-                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">IP</th>
                                     <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Private</th>
                                     <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Public</th>
                                     <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Not IP</th>
@@ -577,25 +576,28 @@
 
             const isFemale = applicant.is_female || false;
             const isMale = applicant.is_male || false;
-            const isIP = applicant.is_ip || false;
-            const isPrivate = applicant.is_private || false;
-            const isPublic = applicant.is_public || false;
-            const notIP = applicant.not_ip || false;
-            const exceededIncome = applicant.exceeded_income || false;
-            const incompleteDocs = applicant.incomplete_docs || false;
+            const ipGroup = applicant.ip_group || applicant.ethnicity || '';
+            const isPrivate = applicant.is_private || applicant.is_private_school || false;
+            const isPublic = applicant.is_public || applicant.is_public_school || false;
+            const schoolName = applicant.school || applicant.school_name || '';
+            // Show school name in the appropriate column based on type
+            const privateSchool = isPrivate ? schoolName : '';
+            const publicSchool = isPublic ? schoolName : '';
+            const notIP = applicant.disqualification_not_ip || applicant.not_ip || false;
+            const exceededIncome = applicant.disqualification_exceeded_income || applicant.exceeded_income || false;
+            const incompleteDocs = applicant.disqualification_incomplete_docs || applicant.incomplete_docs || false;
 
             return `
                 <tr class="${rowClass}">
-                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${applicant.address_line || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${applicant.address_line || applicant.ad_reference || ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.contact_email || ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.name || ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${applicant.age || ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isMale ? '✓' : ''}</td>
-                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isIP ? '✓' : ''}</td>
-                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isPrivate ? '✓' : ''}</td>
-                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isPublic ? '✓' : ''}</td>
-                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.school || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${ipGroup}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${privateSchool}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${publicSchool}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.course || ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${notIP ? '✓' : ''}</td>
                     <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${exceededIncome ? '✓' : ''}</td>
