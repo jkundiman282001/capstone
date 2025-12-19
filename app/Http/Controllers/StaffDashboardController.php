@@ -63,9 +63,38 @@ class StaffDashboardController extends Controller
 
         // Calculate real metrics
         $totalScholars = $users->count();
-        $newApplicants = $users->where('created_at', '>=', now()->subDays(30))->count();
-        $activeScholars = $users->where('basicInfo.type_assist', '!=', null)->count();
-        $inactiveScholars = $totalScholars - $activeScholars;
+        $newApplicants = $users->where('created_at', '>=', now()->subDays(30))->count(); // For notification bar
+        
+        // Calculate Total Grantees: Count of validated applicants who are grantees (respecting filters)
+        $userIds = $users->pluck('id')->toArray();
+        $totalGrantees = BasicInfo::whereIn('user_id', $userIds)
+            ->where('application_status', 'validated')
+            ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+            ->count();
+        
+        // Calculate Total Graduates: Count of grantees who have graduated (respecting filters)
+        // Graduates are those who are grantees and have completed their studies
+        // Check for current_year_level containing "graduate" or "completed" or similar indicators
+        $totalGraduates = BasicInfo::whereIn('user_id', $userIds)
+            ->where('application_status', 'validated')
+            ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+            ->where(function($query) {
+                $query->where('current_year_level', 'like', '%graduate%')
+                      ->orWhere('current_year_level', 'like', '%completed%')
+                      ->orWhere('current_year_level', 'like', '%finish%');
+            })
+            ->count();
+        
+        // Calculate Slots Left: MAX_SLOTS - current grantees (system-wide, not filtered)
+        $maxSlots = \App\Models\Setting::get('max_slots', 120);
+        $currentGrantees = BasicInfo::where('application_status', 'validated')
+            ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+            ->count();
+        $slotsLeft = max(0, $maxSlots - $currentGrantees);
+        
+        // Keep old variable names for backward compatibility but assign new values
+        $activeScholars = $totalGraduates; // Total Graduates
+        $inactiveScholars = $slotsLeft; // Slots left
 
         // Get scholars per municipality, barangay, or IP Group for chart
         // Dynamic chart based on selected filter level
@@ -310,7 +339,7 @@ class StaffDashboardController extends Controller
 
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
-            'totalScholars', 'newApplicants', 'activeScholars', 'inactiveScholars',
+            'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars',
             'alerts', 'barChartData', 'pieChartData', 'ipChartData',
             'pendingRequirements', 'notifications',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
@@ -474,7 +503,7 @@ class StaffDashboardController extends Controller
         $coursePrioritization = $coursePriorityService->getApplicantCoursePrioritization($user);
 
         // Calculate slot availability
-        $maxSlots = 120;
+        $maxSlots = \App\Models\Setting::get('max_slots', 120);
         $currentValidated = \App\Models\BasicInfo::where('application_status', 'validated')->count();
         // If this application is already validated, don't count it in available slots
         if ($basicInfo && $basicInfo->application_status === 'validated') {
@@ -663,33 +692,37 @@ class StaffDashboardController extends Controller
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
-        $priorityService = new \App\Services\DocumentPriorityService();
+        // Get all applicants with basic info
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+            ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
+                if ($assignedBarangay !== 'All') {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
+                        $addrQuery->where('barangay', $assignedBarangay);
+                    });
+                }
+            });
 
-        $uninitializedDocs = \App\Models\Document::where('status', 'pending')
-            ->where(function($query) {
-                $query->whereNull('submitted_at')
-                      ->orWhereNull('priority_score');
-            })
-            ->whereNotNull('created_at')
-            ->get();
+        $users = $usersQuery->get();
 
-        foreach ($uninitializedDocs as $doc) {
-            if (!$doc->submitted_at) {
-                $doc->submitted_at = $doc->created_at;
-            }
-            $priorityService->calculateDocumentPriority($doc);
+        // Calculate IP Group scores for all applicants
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $applicantsWithIpScores = [];
+
+        foreach ($users as $user) {
+            $priorityData = $applicantPriorityService->calculateApplicantPriority($user);
+            
+            $applicantsWithIpScores[] = [
+                'user' => $user,
+                'ip_rubric_score' => $priorityData['ip_rubric_score'],
+                'ethnicity' => $priorityData['ethnicity'],
+                'is_priority_ethno' => $priorityData['is_priority_ethno'],
+                'priority_score' => $priorityData['priority_score'],
+            ];
         }
 
-        if ($uninitializedDocs->count() > 0) {
-            $priorityService->recalculateAllPriorities();
-        }
-
-        $prioritizedDocuments = $priorityService->getPrioritizedDocuments('pending', 100);
-
-        $priorityGroupsSet = ["b'laan", 'bagobo', 'kalagan', 'kaulo'];
-        $priorityIpDocs = $prioritizedDocuments->filter(function($doc) use ($priorityGroupsSet) {
-            $eth = optional(optional($doc->user)->ethno)->ethnicity;
-            return $eth && in_array(strtolower(trim($eth)), $priorityGroupsSet, true);
+        // Sort by IP Group score only (highest first)
+        usort($applicantsWithIpScores, function($a, $b) {
+            return $b['ip_rubric_score'] <=> $a['ip_rubric_score'];
         });
 
         $notifications = $user->unreadNotifications()->take(10)->get();
@@ -697,7 +730,7 @@ class StaffDashboardController extends Controller
         return view('staff.priorities.ip', compact(
             'name',
             'assignedBarangay',
-            'priorityIpDocs',
+            'applicantsWithIpScores',
             'notifications'
         ));
     }
@@ -777,44 +810,52 @@ class StaffDashboardController extends Controller
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
-        // Get all users who have approved income tax documents
-        $usersWithApprovedIncomeTax = User::whereHas('documents', function($query) {
-            $query->where('type', 'income_document')
-                  ->where('status', 'approved');
-        })
-        ->with(['documents' => function($query) {
-            $query->where('type', 'income_document')
-                  ->where('status', 'approved')
-                  ->orderBy('created_at', 'desc');
-        }, 'ethno', 'basicInfo'])
-        ->get();
+        // Get all applicants with basic info
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+            ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
+                if ($assignedBarangay !== 'All') {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
+                        $addrQuery->where('barangay', $assignedBarangay);
+                    });
+                }
+            });
 
-        // Sort by when the income tax document was approved (most recently approved first)
-        $prioritizedUsers = $usersWithApprovedIncomeTax->sortByDesc(function($user) {
-            $approvedDoc = $user->documents->where('type', 'income_document')
-                                          ->where('status', 'approved')
-                                          ->first();
-            return $approvedDoc ? $approvedDoc->updated_at : null;
-        })->values();
+        $users = $usersQuery->get();
 
-        // Get statistics
-        $totalApproved = $prioritizedUsers->count();
-        $recentlyApproved = $prioritizedUsers->filter(function($user) {
-            $approvedDoc = $user->documents->where('type', 'income_document')
-                                          ->where('status', 'approved')
-                                          ->first();
-            if (!$approvedDoc) return false;
-            return $approvedDoc->updated_at->isAfter(now()->subDays(7));
-        })->count();
+        // Calculate ITR status for all applicants
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $applicantsWithItrStatus = [];
+
+        foreach ($users as $user) {
+            $priorityData = $applicantPriorityService->calculateApplicantPriority($user);
+            $hasApprovedItr = $priorityData['has_approved_income_tax'] ?? false;
+            
+            // Get ITR document info
+            $itrDocument = $user->documents->where('type', 'income_document')->first();
+            $itrStatus = $itrDocument ? $itrDocument->status : null;
+            $itrApprovedAt = ($itrDocument && $itrDocument->status === 'approved') ? $itrDocument->updated_at : null;
+            
+            $applicantsWithItrStatus[] = [
+                'user' => $user,
+                'has_approved_income_tax' => $hasApprovedItr,
+                'itr_status' => $itrStatus,
+                'itr_approved_at' => $itrApprovedAt,
+                'itr_score' => $hasApprovedItr ? 1.0 : 0.0, // Binary: 1.0 if approved, 0.0 if not
+                'priority_score' => $priorityData['priority_score'],
+            ];
+        }
+
+        // Sort by ITR status only (approved first = 1.0)
+        usort($applicantsWithItrStatus, function($a, $b) {
+            return $b['itr_score'] <=> $a['itr_score'];
+        });
 
         $notifications = $user->unreadNotifications()->take(10)->get();
 
         return view('staff.priorities.income-tax', compact(
             'name',
             'assignedBarangay',
-            'prioritizedUsers',
-            'totalApproved',
-            'recentlyApproved',
+            'applicantsWithItrStatus',
             'notifications'
         ));
     }
@@ -825,44 +866,182 @@ class StaffDashboardController extends Controller
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
-        // Get all users who have approved grades documents
-        $usersWithApprovedGrades = User::whereHas('documents', function($query) {
-            $query->where('type', 'grades')
-                  ->where('status', 'approved');
-        })
-        ->with(['documents' => function($query) {
-            $query->where('type', 'grades')
-                  ->where('status', 'approved')
-                  ->orderBy('created_at', 'desc');
-        }, 'ethno', 'basicInfo'])
-        ->get();
+        // Get all applicants with basic info
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+            ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
+                if ($assignedBarangay !== 'All') {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
+                        $addrQuery->where('barangay', $assignedBarangay);
+                    });
+                }
+            });
 
-        // Sort by when the grades document was approved (most recently approved first)
-        $prioritizedUsers = $usersWithApprovedGrades->sortByDesc(function($user) {
-            $approvedDoc = $user->documents->where('type', 'grades')
-                                          ->where('status', 'approved')
-                                          ->first();
-            return $approvedDoc ? $approvedDoc->updated_at : null;
-        })->values();
+        $users = $usersQuery->get();
 
-        // Get statistics
-        $totalApproved = $prioritizedUsers->count();
-        $recentlyApproved = $prioritizedUsers->filter(function($user) {
-            $approvedDoc = $user->documents->where('type', 'grades')
-                                          ->where('status', 'approved')
-                                          ->first();
-            if (!$approvedDoc) return false;
-            return $approvedDoc->updated_at->isAfter(now()->subDays(7));
-        })->count();
+        // Calculate GWA/Academic scores for all applicants
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $applicantsWithGwaScores = [];
+
+        foreach ($users as $user) {
+            $priorityData = $applicantPriorityService->calculateApplicantPriority($user);
+            $gpa = $user->basicInfo->gpa ?? null;
+            
+            $applicantsWithGwaScores[] = [
+                'user' => $user,
+                'academic_rubric_score' => $priorityData['academic_rubric_score'],
+                'gpa' => $gpa,
+                'priority_score' => $priorityData['priority_score'],
+            ];
+        }
+
+        // Sort by Academic/GWA rubric score only (highest first)
+        usort($applicantsWithGwaScores, function($a, $b) {
+            return $b['academic_rubric_score'] <=> $a['academic_rubric_score'];
+        });
 
         $notifications = $user->unreadNotifications()->take(10)->get();
 
         return view('staff.priorities.academic-performance', compact(
             'name',
             'assignedBarangay',
-            'prioritizedUsers',
-            'totalApproved',
-            'recentlyApproved',
+            'applicantsWithGwaScores',
+            'notifications'
+        ));
+    }
+
+    public function citationAwardsPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Get all applicants with basic info
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+            ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
+                if ($assignedBarangay !== 'All') {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
+                        $addrQuery->where('barangay', $assignedBarangay);
+                    });
+                }
+            });
+
+        $users = $usersQuery->get();
+
+        // Calculate Citation/Awards scores for all applicants
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $applicantsWithAwardsScores = [];
+
+        foreach ($users as $user) {
+            $priorityData = $applicantPriorityService->calculateApplicantPriority($user);
+            
+            // Get education records with ranks/awards
+            $educationRecords = $user->basicInfo->education ?? collect();
+            $awards = [];
+            $bestAward = null;
+            
+            // Award score mapping (same as in ApplicantPriorityService)
+            $awardScores = [
+                'valedictorian' => 10.0,
+                'salutatorian' => 9.5,
+                'with highest honors' => 9.0,
+                'with high honors' => 8.0,
+                'with honors' => 7.0,
+                "dean's lister" => 6.5,
+                'deans lister' => 6.5,
+                'dean\'s lister' => 6.5,
+                'top 10' => 6.0,
+                'academic awardee' => 5.0,
+            ];
+            
+            $bestScore = 0.0;
+            foreach ($educationRecords as $edu) {
+                if ($edu->rank && trim($edu->rank) !== '') {
+                    $awards[] = $edu->rank;
+                    // Find the award with the highest score
+                    $rankLower = strtolower(trim($edu->rank));
+                    $score = $awardScores[$rankLower] ?? 0.0;
+                    if ($score > $bestScore) {
+                        $bestScore = $score;
+                        $bestAward = $edu->rank;
+                    }
+                }
+            }
+            
+            $applicantsWithAwardsScores[] = [
+                'user' => $user,
+                'awards_rubric_score' => $priorityData['awards_rubric_score'],
+                'awards' => $awards,
+                'best_award' => $bestAward,
+            ];
+        }
+
+        // Sort by Awards rubric score only (highest first)
+        usort($applicantsWithAwardsScores, function($a, $b) {
+            return $b['awards_rubric_score'] <=> $a['awards_rubric_score'];
+        });
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.citation-awards', compact(
+            'name',
+            'assignedBarangay',
+            'applicantsWithAwardsScores',
+            'notifications'
+        ));
+    }
+
+    public function socialResponsibilityPriority()
+    {
+        $user = \Auth::guard('staff')->user();
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Get all applicants with basic info
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+            ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
+                if ($assignedBarangay !== 'All') {
+                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
+                        $addrQuery->where('barangay', $assignedBarangay);
+                    });
+                }
+            });
+
+        $users = $usersQuery->get();
+
+        // Calculate Social Responsibility scores for all applicants
+        $applicantPriorityService = new \App\Services\ApplicantPriorityService();
+        $applicantsWithSocialScores = [];
+
+        foreach ($users as $user) {
+            $priorityData = $applicantPriorityService->calculateApplicantPriority($user);
+            
+            // Get essay answers
+            $schoolPref = $user->basicInfo->schoolPref;
+            $essay1 = $schoolPref->ques_answer1 ?? '';
+            $essay2 = $schoolPref->ques_answer2 ?? '';
+            $combinedText = trim($essay1 . ' ' . $essay2);
+            $textLength = mb_strlen($combinedText);
+            
+            $applicantsWithSocialScores[] = [
+                'user' => $user,
+                'social_responsibility_rubric_score' => $priorityData['social_responsibility_rubric_score'],
+                'essay1' => $essay1,
+                'essay2' => $essay2,
+                'text_length' => $textLength,
+            ];
+        }
+
+        // Sort by Social Responsibility rubric score only (highest first)
+        usort($applicantsWithSocialScores, function($a, $b) {
+            return $b['social_responsibility_rubric_score'] <=> $a['social_responsibility_rubric_score'];
+        });
+
+        $notifications = $user->unreadNotifications()->take(10)->get();
+
+        return view('staff.priorities.social-responsibility', compact(
+            'name',
+            'assignedBarangay',
+            'applicantsWithSocialScores',
             'notifications'
         ));
     }
@@ -1006,7 +1185,7 @@ class StaffDashboardController extends Controller
         
         // Check slot availability when validating
         if ($validated['status'] === 'validated') {
-            $maxSlots = 120;
+            $maxSlots = \App\Models\Setting::get('max_slots', 120);
             $currentValidated = \App\Models\BasicInfo::where('application_status', 'validated')->count();
             
             // If this application is already validated, we're just keeping it validated (no change)
@@ -1994,6 +2173,154 @@ class StaffDashboardController extends Controller
      * Replacements Report
      * Master list of replacement awardees and the grantees/awardees they replace.
      */
+    public function disqualifiedApplicantsReport(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Get all rejected applicants (not terminated grantees)
+        $rejectedQuery = User::with([
+            'basicInfo.fullAddress.address',
+            'basicInfo.schoolPref',
+            'ethno',
+            'documents'
+        ])
+        ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
+            $query->where('application_status', 'rejected')
+                  ->where(function($q) {
+                      $q->where('grant_status', '!=', 'grantee')
+                        ->orWhereNull('grant_status');
+                  });
+            
+            if ($assignedBarangay !== 'All') {
+                $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
+                    $addrQuery->where('barangay', $assignedBarangay);
+                });
+            }
+        })
+        ->orderBy('created_at', 'asc');
+
+        $rejectedApplicants = $rejectedQuery->get();
+
+        $disqualified = [];
+        foreach ($rejectedApplicants as $index => $applicant) {
+            $basicInfo = $applicant->basicInfo;
+            $address = $basicInfo && $basicInfo->fullAddress ? $basicInfo->fullAddress->address : null;
+            $schoolPref = $basicInfo ? $basicInfo->schoolPref : null;
+            $ethno = $applicant->ethno;
+            
+            // AD Reference Number (user ID or reference number)
+            $adReference = $applicant->id;
+            
+            // Full address line
+            $addressLine = [
+                $address ? ($address->province ?? '') : '',
+                $address ? ($address->municipality ?? '') : '',
+                $address ? ($address->barangay ?? '') : '',
+                $adReference
+            ];
+            $addressLine = array_filter($addressLine);
+            $addressLineStr = implode(', ', $addressLine);
+            
+            // Contact Email
+            $contactEmail = $applicant->email ?? '';
+            
+            // Full name
+            $fullName = trim(($applicant->first_name ?? '') . ' ' . ($applicant->middle_name ?? '') . ' ' . ($applicant->last_name ?? ''));
+            
+            // Age
+            $age = $basicInfo ? ($basicInfo->age ?? '') : '';
+            
+            // Gender
+            $gender = $basicInfo ? ($basicInfo->gender ?? '') : '';
+            $isFemale = strtolower($gender) === 'female';
+            $isMale = strtolower($gender) === 'male';
+            
+            // IP Group
+            $isIP = $ethno && $ethno->ethnicity ? true : false;
+            
+            // School type (Private/Public)
+            $schoolType = $schoolPref ? ($schoolPref->school_type ?? '') : '';
+            $isPrivate = strtolower($schoolType) === 'private';
+            $isPublic = strtolower($schoolType) === 'public';
+            
+            // School name
+            $schoolName = $schoolPref ? ($schoolPref->school_name ?? '') : '';
+            
+            // Course
+            $course = $schoolPref ? ($schoolPref->degree ?? ($applicant->course ?? '')) : ($applicant->course ?? '');
+            
+            // Parse rejection reason to determine disqualification reasons
+            $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? '') : '';
+            $rejectionLower = strtolower($rejectionReason);
+            
+            $notIP = false;
+            $exceededIncome = false;
+            $incompleteDocs = false;
+            
+            // Check for "Not IP" reason
+            if (str_contains($rejectionLower, 'not ip') || 
+                str_contains($rejectionLower, 'not indigenous') ||
+                str_contains($rejectionLower, 'not a member') ||
+                str_contains($rejectionLower, 'no ip group') ||
+                (!$isIP && str_contains($rejectionLower, 'ip'))) {
+                $notIP = true;
+            }
+            
+            // Check for "Exceeded Required Income" reason
+            if (str_contains($rejectionLower, 'income') ||
+                str_contains($rejectionLower, 'exceeded') ||
+                str_contains($rejectionLower, 'too high') ||
+                str_contains($rejectionLower, 'over limit') ||
+                str_contains($rejectionLower, 'financial')) {
+                $exceededIncome = true;
+            }
+            
+            // Check for "Incomplete Documents" reason
+            if (str_contains($rejectionLower, 'incomplete') ||
+                str_contains($rejectionLower, 'missing document') ||
+                str_contains($rejectionLower, 'document') ||
+                str_contains($rejectionLower, 'required document') ||
+                str_contains($rejectionLower, 'not submitted')) {
+                $incompleteDocs = true;
+            }
+            
+            // If no specific reason found, default to incomplete documents
+            if (!$notIP && !$exceededIncome && !$incompleteDocs) {
+                $incompleteDocs = true;
+            }
+            
+            // Remarks
+            $remarks = $rejectionReason ?: 'Disqualified';
+            
+            $disqualified[] = [
+                'no' => $index + 1,
+                'address_line' => $addressLineStr,
+                'ad_reference' => $adReference,
+                'contact_email' => $contactEmail,
+                'name' => $fullName,
+                'age' => $age,
+                'gender' => $gender,
+                'is_female' => $isFemale,
+                'is_male' => $isMale,
+                'is_ip' => $isIP,
+                'is_private' => $isPrivate,
+                'is_public' => $isPublic,
+                'school' => $schoolName,
+                'course' => $course,
+                'not_ip' => $notIP,
+                'exceeded_income' => $exceededIncome,
+                'incomplete_docs' => $incompleteDocs,
+                'remarks' => $remarks,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'disqualified' => $disqualified,
+        ]);
+    }
+
     public function replacementsReport(Request $request)
     {
         $rows = \App\Models\Replacement::with([

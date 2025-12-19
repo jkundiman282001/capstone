@@ -154,6 +154,35 @@
                             <tbody id="waitingTableBody" class="bg-white"></tbody>
                         </table>
 
+                        <!-- Disqualified Applicants Report Table -->
+                        <table id="disqualifiedTable" class="hidden w-full border-collapse" style="min-width: 2000px;">
+                            <thead class="bg-yellow-300 sticky top-0 z-10">
+                                <tr>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Number/Reference No.</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Contact Email</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
+                                    <th colspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">GENDER</th>
+                                    <th colspan="3" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">GROUP</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">SCHOOL</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">COURSE</th>
+                                    <th colspan="3" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Reasons of Disqualification</th>
+                                    <th rowspan="2" class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap align-middle">Remarks</th>
+                                </tr>
+                                <tr>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">F</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">M</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">IP</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Private</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Public</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Not IP</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Exceeded Required Income</th>
+                                    <th class="border border-black px-2 py-2 text-center text-xs font-bold text-black uppercase tracking-wider whitespace-nowrap">Incomplete Documents</th>
+                                </tr>
+                            </thead>
+                            <tbody id="disqualifiedTableBody" class="bg-white"></tbody>
+                        </table>
+
                         <!-- Replacements Report Table -->
                         <table id="replacementsTable" class="hidden w-full border-collapse" style="min-width: 2600px;">
                             <thead class="bg-yellow-300 sticky top-0 z-10">
@@ -233,6 +262,7 @@
         document.getElementById('granteesTable')?.classList.toggle('hidden', tab !== 'grantees');
         document.getElementById('pamanaTable')?.classList.toggle('hidden', tab !== 'pamana');
         document.getElementById('waitingTable')?.classList.toggle('hidden', tab !== 'waiting');
+        document.getElementById('disqualifiedTable')?.classList.toggle('hidden', tab !== 'disqualified');
         document.getElementById('replacementsTable')?.classList.toggle('hidden', tab !== 'replacements');
 
         // meta
@@ -259,6 +289,10 @@
                 document.getElementById('reportTitle').textContent = 'Master List of Wait Listed Applicants (MLWLA)';
                 document.getElementById('reportSubtitle').textContent = 'Educational Assistance Program / Merit-based Scholarship Program';
                 if (exportBtnText) exportBtnText.textContent = 'Export to CSV';
+            } else if (tab === 'disqualified') {
+                document.getElementById('reportTitle').textContent = 'MASTER LIST OF DISQUALIFIED APPLICANTS SY';
+                document.getElementById('reportSubtitle').textContent = 'Educational Assistance Program/Merit-based Scholarship Program';
+                if (exportBtnText) exportBtnText.textContent = 'Export to Excel';
             } else {
                 document.getElementById('reportTitle').textContent = 'Master List of Replacements';
                 document.getElementById('reportSubtitle').textContent = 'Replacement awardees list';
@@ -521,6 +555,57 @@
         }).join('');
     }
 
+    function renderDisqualifiedTable(rows) {
+        const tableBody = document.getElementById('disqualifiedTableBody');
+        const countEl = document.getElementById('reportCount');
+        if (!tableBody) return;
+        if (countEl) countEl.textContent = `Total Disqualified Applicants: ${rows.length}`;
+
+        if (!rows.length) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="13" class="border border-black px-4 py-8 text-center text-slate-600">
+                        No disqualified applicants found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = rows.map((applicant, index) => {
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+
+            const isFemale = applicant.is_female || false;
+            const isMale = applicant.is_male || false;
+            const isIP = applicant.is_ip || false;
+            const isPrivate = applicant.is_private || false;
+            const isPublic = applicant.is_public || false;
+            const notIP = applicant.not_ip || false;
+            const exceededIncome = applicant.exceeded_income || false;
+            const incompleteDocs = applicant.incomplete_docs || false;
+
+            return `
+                <tr class="${rowClass}">
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${applicant.address_line || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.contact_email || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.name || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${applicant.age || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isFemale ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isMale ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isIP ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isPrivate ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${isPublic ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.school || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.course || ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${notIP ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${exceededIncome ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800 text-center">${incompleteDocs ? '✓' : ''}</td>
+                    <td class="border border-black px-2 py-2 text-xs text-slate-800">${applicant.remarks || ''}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
     function renderReplacementsTable(rows) {
         const tableBody = document.getElementById('replacementsTableBody');
         const countEl = document.getElementById('reportCount');
@@ -625,6 +710,12 @@
                 const indicator = document.getElementById('waitingUnsavedIndicator');
                 if (btn) btn.disabled = true;
                 if (indicator) indicator.classList.add('hidden');
+            } else if (state.active === 'disqualified') {
+                const url = `{{ route('staff.disqualified.report') }}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const rows = (data && data.success && Array.isArray(data.disqualified)) ? data.disqualified : [];
+                renderDisqualifiedTable(rows);
             } else {
                 const url = `{{ route('staff.replacements.report') }}`;
                 const res = await fetch(url);

@@ -155,16 +155,16 @@
                     <div class="space-y-1.5">
                         <!-- Applicant Priority Dropdown -->
                         <div>
-                            <button onclick="togglePriorityDropdown()" class="group w-full px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.applicants') || request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.tribal-certificate') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.other-requirements') || request()->routeIs('staff.priorities.courses') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg shadow-orange-600/20' : 'bg-white border-slate-200 hover:border-orange-300 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} border hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                            <button onclick="togglePriorityDropdown()" class="group w-full px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.applicants') || request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.other-requirements') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg shadow-orange-600/20' : 'bg-white border-slate-200 hover:border-orange-300 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} border hover:shadow-md transition-all duration-200 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs tracking-wide">Applicant Priority</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.applicants') || request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.tribal-certificate') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.other-requirements') || request()->routeIs('staff.priorities.courses') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700 group-hover:bg-orange-200' }}">TOP</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.applicants') || request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.other-requirements') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700 group-hover:bg-orange-200' }}">TOP</span>
                                 </div>
-                                <svg id="priority-chevron" class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.tribal-certificate') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.other-requirements') || request()->routeIs('staff.priorities.courses') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="priority-chevron" class="w-4 h-4 transition-transform duration-200 {{ request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.other-requirements') ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
-                            <div id="priority-dropdown" class="pl-2 pt-1.5 space-y-1 {{ request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.tribal-certificate') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.other-requirements') || request()->routeIs('staff.priorities.courses') ? '' : 'hidden' }} overflow-hidden transition-all duration-300">
+                            <div id="priority-dropdown" class="pl-2 pt-1.5 space-y-1 {{ request()->routeIs('staff.priorities.ip') || request()->routeIs('staff.priorities.academic-performance') || request()->routeIs('staff.priorities.income-tax') || request()->routeIs('staff.priorities.other-requirements') ? '' : 'hidden' }} overflow-hidden transition-all duration-300">
                                 <a href="{{ route('staff.priorities.applicants') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.applicants') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-orange-300 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">View All</span>
@@ -173,49 +173,36 @@
                                 </a>
                                 <a href="{{ route('staff.priorities.ip') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.ip') ? 'bg-amber-500 border-amber-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-amber-400 hover:bg-amber-50 font-medium text-slate-700 hover:text-amber-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs tracking-wide">Indigenous Priority</span>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.ip') ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 group-hover:bg-amber-200' }}">30%</span>
-                                    </div>
-                                </a>
-                                <a href="{{ route('staff.priorities.tribal-certificate') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.tribal-certificate') ? 'bg-orange-500 border-orange-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-orange-400 hover:bg-orange-50 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs tracking-wide">Tribal Certificate</span>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.tribal-certificate') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700 group-hover:bg-orange-200' }}">20%</span>
-                                    </div>
-                                </a>
-                                <a href="{{ route('staff.priorities.income-tax') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.income-tax') ? 'bg-green-500 border-green-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-green-400 hover:bg-green-50 font-medium text-slate-700 hover:text-green-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs tracking-wide">Income Tax</span>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.income-tax') ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700 group-hover:bg-green-200' }}">15%</span>
+                                        <span class="text-xs tracking-wide">IP Group</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.ip') ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 group-hover:bg-amber-200' }}">20%</span>
                                     </div>
                                 </a>
                                 <a href="{{ route('staff.priorities.academic-performance') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.academic-performance') ? 'bg-blue-500 border-blue-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-blue-50 font-medium text-slate-700 hover:text-blue-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs tracking-wide">Academic Performance</span>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.academic-performance') ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700 group-hover:bg-blue-200' }}">5%</span>
+                                        <span class="text-xs tracking-wide">GWA</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.academic-performance') ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700 group-hover:bg-blue-200' }}">30%</span>
                                     </div>
                                 </a>
-                                <a href="{{ route('staff.priorities.other-requirements') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.other-requirements') ? 'bg-slate-500 border-slate-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-slate-400 hover:bg-slate-50 font-medium text-slate-700 hover:text-slate-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
+                                <a href="{{ route('staff.priorities.income-tax') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.income-tax') ? 'bg-green-500 border-green-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-green-400 hover:bg-green-50 font-medium text-slate-700 hover:text-green-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs tracking-wide">Other Requirements</span>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.other-requirements') ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200' }}">5%</span>
+                                        <span class="text-xs tracking-wide">ITR</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.income-tax') ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700 group-hover:bg-green-200' }}">30%</span>
                                     </div>
                                 </a>
-                                <a href="{{ route('staff.priorities.courses') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.courses') ? 'bg-purple-500 border-purple-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-purple-400 hover:bg-purple-50 font-medium text-slate-700 hover:text-purple-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
+                                <a href="{{ route('staff.priorities.citation-awards') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.citation-awards') ? 'bg-fuchsia-500 border-fuchsia-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-fuchsia-400 hover:bg-fuchsia-50 font-medium text-slate-700 hover:text-fuchsia-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs tracking-wide">Course Demand</span>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.courses') ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700 group-hover:bg-purple-200' }}">25%</span>
+                                        <span class="text-xs tracking-wide">Citation/Awards</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.citation-awards') ? 'bg-white/20 text-white' : 'bg-fuchsia-100 text-fuchsia-700 group-hover:bg-fuchsia-200' }}">10%</span>
+                                    </div>
+                                </a>
+                                <a href="{{ route('staff.priorities.social-responsibility') }}" class="group block px-4 py-2.5 rounded-lg {{ request()->routeIs('staff.priorities.social-responsibility') ? 'bg-slate-500 border-slate-600 text-white font-bold shadow-md' : 'bg-white border-slate-200 hover:border-slate-400 hover:bg-slate-50 font-medium text-slate-700 hover:text-slate-700 shadow-sm' }} border hover:shadow-sm transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Social Responsibility</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ request()->routeIs('staff.priorities.social-responsibility') ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200' }}">10%</span>
                                     </div>
                                 </a>
                             </div>
                         </div>
-                        <!-- Document Queue (Separate) -->
-                        <a href="{{ route('staff.priorities.documents') }}" class="group block px-4 py-3 rounded-xl {{ request()->routeIs('staff.priorities.documents') ? 'bg-cyan-500 border-cyan-600 text-white font-bold shadow-lg' : 'bg-white border-slate-200 hover:border-cyan-400 hover:bg-cyan-50 font-medium text-slate-700 hover:text-cyan-700 shadow-sm' }} border hover:shadow-md transition-all duration-200">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs tracking-wide">Document Queue</span>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ request()->routeIs('staff.priorities.documents') ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-700 group-hover:bg-cyan-200' }}">FCFS</span>
-                            </div>
-                        </a>
                     </div>
                 </section>
 
@@ -225,6 +212,12 @@
                         <h2 class="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Reports & Tools</h2>
                     </div>
                     <div class="space-y-2">
+                        <a href="{{ route('staff.settings') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.settings') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Settings</span>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.settings') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
+                        </a>
                         <!-- Reports Dropdown -->
                         <div>
                             <button type="button" onclick="toggleReportsDropdown()"
@@ -254,6 +247,12 @@
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Waiting List</span>
                                         <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700' }}">CSV</span>
+                                    </div>
+                                </a>
+                                <a href="{{ route('staff.reports.index', ['tab' => 'disqualified']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'disqualified' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-lg shadow-red-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 border-2 border-slate-200 hover:border-red-300 font-semibold text-slate-700 hover:text-red-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Disqualified</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'disqualified' ? 'bg-white/20 text-white' : 'bg-red-50 text-red-700' }}">XLS</span>
                                     </div>
                                 </a>
                                 <a href="{{ route('staff.reports.index', ['tab' => 'replacements']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'replacements' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold shadow-lg shadow-yellow-500/20' : 'bg-white hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 border-2 border-slate-200 hover:border-yellow-300 font-semibold text-slate-700 hover:text-yellow-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
@@ -365,7 +364,7 @@
             const priorityDropdown = document.getElementById('priority-dropdown');
             const priorityChevron = document.getElementById('priority-chevron');
             
-            if (!priorityDropdown.classList.contains('hidden')) {
+            if (priorityDropdown && !priorityDropdown.classList.contains('hidden')) {
                 priorityChevron.classList.add('rotate-180');
             }
 

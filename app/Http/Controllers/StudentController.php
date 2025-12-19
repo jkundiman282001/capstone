@@ -32,7 +32,7 @@ class StudentController extends Controller
         }
 
         // Get statistics matching landing page
-        $maxSlots = 120;
+        $maxSlots = \App\Models\Setting::get('max_slots', 120);
         $validatedCount = BasicInfo::where('application_status', 'validated')->count();
         $availableSlots = max(0, $maxSlots - $validatedCount);
         $isFull = $availableSlots === 0;
@@ -651,7 +651,7 @@ class StudentController extends Controller
         $acceptanceChance = 0.0;
         
         // Step 1: Get basic information
-        $maxSlots = 120;
+        $maxSlots = \App\Models\Setting::get('max_slots', 120);
         // Use case-insensitive comparison to count grantees
         $granteesCount = BasicInfo::where('application_status', 'validated')
             ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")

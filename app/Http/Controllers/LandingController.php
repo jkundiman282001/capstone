@@ -7,13 +7,12 @@ use App\Models\BasicInfo;
 
 class LandingController extends Controller
 {
-    const MAX_SLOTS = 120;
-
     public function index()
     {
         // Get statistics for the landing page
+        $maxSlots = \App\Models\Setting::get('max_slots', 120);
         $validatedCount = BasicInfo::where('application_status', 'validated')->count();
-        $availableSlots = max(0, self::MAX_SLOTS - $validatedCount);
+        $availableSlots = max(0, $maxSlots - $validatedCount);
         $isFull = $availableSlots === 0;
         
         // Count applicants who have applied (have type_assist filled)
@@ -64,7 +63,7 @@ class LandingController extends Controller
             'ipGroupsRepresented' => $ipGroupsRepresented,
             'successRate' => $successRate,
             'provincesCovered' => $provincesCovered,
-            'maxSlots' => self::MAX_SLOTS,
+            'maxSlots' => $maxSlots,
             'availableSlots' => $availableSlots, // Keep for backward compatibility
             'isFull' => $isFull,
         ];

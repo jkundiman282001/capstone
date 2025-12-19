@@ -148,6 +148,8 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
     Route::get('/staff/grades/{user}', [StaffDashboardController::class, 'extractGrades'])->name('staff.grades.extract');
     Route::post('/staff/users/{user}/update-gpa', [StaffDashboardController::class, 'updateGPA'])->name('staff.users.update-gpa');
+    Route::get('/staff/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('staff.settings');
+    Route::post('/staff/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('staff.settings.update');
     
     // Document priority routes (First Come, First Serve)
     Route::post('/staff/documents/recalculate-priorities', [StaffDashboardController::class, 'recalculateDocumentPriorities'])->name('staff.documents.recalculate-priorities');
@@ -160,6 +162,8 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/priorities/tribal-certificate', [StaffDashboardController::class, 'tribalCertificatePriority'])->name('staff.priorities.tribal-certificate');
     Route::get('/staff/priorities/income-tax', [StaffDashboardController::class, 'incomeTaxPriority'])->name('staff.priorities.income-tax');
     Route::get('/staff/priorities/academic-performance', [StaffDashboardController::class, 'academicPerformancePriority'])->name('staff.priorities.academic-performance');
+    Route::get('/staff/priorities/citation-awards', [StaffDashboardController::class, 'citationAwardsPriority'])->name('staff.priorities.citation-awards');
+    Route::get('/staff/priorities/social-responsibility', [StaffDashboardController::class, 'socialResponsibilityPriority'])->name('staff.priorities.social-responsibility');
     Route::get('/staff/priorities/other-requirements', [StaffDashboardController::class, 'otherRequirementsPriority'])->name('staff.priorities.other-requirements');
     
     // Masterlist routes
@@ -170,6 +174,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/grantees/report', [StaffDashboardController::class, 'granteesReport'])->name('staff.grantees.report');
     Route::get('/staff/pamana/report', [StaffDashboardController::class, 'pamanaReport'])->name('staff.pamana.report');
     Route::get('/staff/waiting-list/report', [StaffDashboardController::class, 'waitingListReport'])->name('staff.waiting-list.report');
+    Route::get('/staff/disqualified/report', [StaffDashboardController::class, 'disqualifiedApplicantsReport'])->name('staff.disqualified.report');
     Route::get('/staff/replacements/report', [StaffDashboardController::class, 'replacementsReport'])->name('staff.replacements.report');
     Route::get('/staff/replacements/grantees', [StaffDashboardController::class, 'replacementGrantees'])->name('staff.replacements.grantees');
     Route::get('/staff/replacements/waiting', [StaffDashboardController::class, 'replacementWaiting'])->name('staff.replacements.waiting');
