@@ -170,8 +170,7 @@
                         <div class="text-5xl font-black {{ $stats['isFull'] ? 'text-red-400' : 'text-green-400' }} mb-1">
                             {{ number_format($stats['slotsLeft']) }}
                         </div>
-                        <div class="text-sm text-gray-300 font-medium mb-0.5">Slots Left</div>
-                        <div class="text-xs text-gray-400">of {{ number_format($stats['maxSlots']) }} maximum</div>
+                        <div class="text-sm text-gray-300 font-medium">Slots Available</div>
                         @if($stats['isFull'])
                             <div class="mt-2 px-3 py-1 bg-red-500/30 rounded-lg text-red-200 text-xs font-bold">
                                 Scholarship Slots Full
@@ -218,7 +217,7 @@
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-3">Quality Education</h3>
                     <p class="text-gray-600 leading-relaxed">
-                        Access to accredited educational institutions and programs that align with your career goals.
+                        Access to educational institutions and programs that align with your career goals.
                     </p>
                 </div>
                 
@@ -310,46 +309,14 @@
     <!-- Priority Information Section -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-12 items-start">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
                 <div class="fade-in">
                     <h2 class="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
                         Priority <span class="text-orange-600">Considerations</span>
                     </h2>
-                    <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                    <p class="text-lg text-gray-600 leading-relaxed">
                         Our selection process prioritizes applicants based on several key factors to ensure fair and equitable distribution of scholarship opportunities.
                     </p>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
-                            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span class="text-white font-bold">30%</span>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-900 mb-1">IP Group Priority</h3>
-                                <p class="text-sm text-gray-600">Priority groups: B'laan, Bagobo, Kalagan, Kaulo</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
-                            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span class="text-white font-bold">25%</span>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-900 mb-1">Priority Courses</h3>
-                                <p class="text-sm text-gray-600">Agriculture, Education, Medicine, Engineering, and more</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
-                            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span class="text-white font-bold">20%</span>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-900 mb-1">Document Completeness</h3>
-                                <p class="text-sm text-gray-600">Tribal certificates and required documentation</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
                 <div class="fade-in" style="animation-delay: 0.2s">
@@ -366,7 +333,7 @@
                                 <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Enrolled or planning to enroll in an accredited institution</span>
+                                <span>Enrolled or planning to enroll in an educational institution</span>
                             </li>
                             <li class="flex items-start gap-3">
                                 <svg class="w-6 h-6 text-orange-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -521,7 +488,7 @@
             </p>
             @if(!$stats['isFull'])
                 <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold">
-                    ⚠️ Limited slots available: Only {{ number_format($stats['availableSlots']) }} of {{ number_format($stats['maxSlots']) }} slots remaining!
+                    ⚠️ Limited slots available: Only {{ number_format($stats['availableSlots']) }} slots available!
                 </p>
             @else
                 <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold bg-red-500/30 px-6 py-3 rounded-lg inline-block">
@@ -589,6 +556,7 @@
             
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
                 <p>&copy; {{ date('Y') }} NCIP Educational Assistance Program. All rights reserved.</p>
+                <p class="mt-2">Powered by: CodeBreakers</p>
             </div>
         </div>
     </footer>

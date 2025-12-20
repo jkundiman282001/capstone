@@ -297,7 +297,7 @@
         <!-- Login Form -->
         <div id="loginForm" class="space-y-6">
           <div class="text-center">
-            <h2 class="text-3xl font-black text-slate-900 mb-2">Welcome Back</h2>
+            <h2 class="text-3xl font-black text-slate-900 mb-2">Welcome to NCIP-EAP</h2>
             <p class="text-sm text-slate-600">
               Don't have an account? 
               <button onclick="toggleForm()" class="text-orange-600 font-bold hover:text-orange-700 transition-colors">
