@@ -12,9 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('basic_info', function (Blueprint $table) {
-            $table->unsignedInteger('school_pref_id')->change();
+            if (Schema::hasColumn('basic_info', 'school_pref_id')) {
+                $table->unsignedInteger('school_pref_id')->change();
+            }
 
-            $table->foreign('fam_siblings_id')->references('id')->on('fam_siblings')->onDelete('cascade');
+            if (Schema::hasColumn('basic_info', 'fam_siblings_id')) {
+                $table->foreign('fam_siblings_id')->references('id')->on('fam_siblings')->onDelete('cascade');
+            }
         });
     }
 

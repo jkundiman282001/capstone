@@ -92,9 +92,10 @@
                             <div class="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
                                 <img
                                     id="profile-pic-image"
-                                    src="{{ $student->profile_pic ? Storage::url($student->profile_pic) : '' }}"
+                                    src="{{ $student->profile_pic ? asset('storage/' . $student->profile_pic) : '' }}"
                                     alt="Profile"
                                     class="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110 {{ $student->profile_pic ? '' : 'hidden' }}"
+                                    onerror="this.style.display='none'; document.getElementById('profile-pic-placeholder').classList.remove('hidden'); document.getElementById('profile-pic-placeholder').classList.add('flex');"
                                 >
                                 <div id="profile-pic-placeholder" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 text-orange-300 {{ $student->profile_pic ? 'hidden' : 'flex' }}">
                                     <i data-lucide="user" class="w-16 h-16"></i>
@@ -542,6 +543,35 @@
                     dismissYearLevelGuide();
                 }
             });
+        }
+        
+        // Ensure profile picture displays correctly on page load
+        const profilePicImage = document.getElementById('profile-pic-image');
+        const profilePicPlaceholder = document.getElementById('profile-pic-placeholder');
+        
+        if (profilePicImage && profilePicPlaceholder) {
+            // Check if image has a src
+            if (profilePicImage.src && profilePicImage.src !== window.location.href) {
+                // Image has a source, ensure it's visible
+                profilePicImage.classList.remove('hidden');
+                profilePicPlaceholder.classList.add('hidden');
+                profilePicPlaceholder.classList.remove('flex');
+                
+                // Handle image load error
+                profilePicImage.onerror = function() {
+                    this.style.display = 'none';
+                    profilePicPlaceholder.classList.remove('hidden');
+                    profilePicPlaceholder.classList.add('flex');
+                };
+                
+                // Handle successful image load
+                profilePicImage.onload = function() {
+                    this.style.display = '';
+                    this.classList.remove('hidden');
+                    profilePicPlaceholder.classList.add('hidden');
+                    profilePicPlaceholder.classList.remove('flex');
+                };
+            }
         }
     });
 

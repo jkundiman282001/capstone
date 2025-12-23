@@ -106,14 +106,6 @@
     
     // Legacy chance percentage calculation (kept for backward compatibility)
     $chancePercentage = $acceptanceChance;
-    
-    $studentPriorityBreakdown = [
-        ['label' => 'IP group rubric', 'weight' => '20%', 'met' => ($priorityFactors['ip_rubric_score'] ?? 0) > 0],
-        ['label' => 'Academic (GPA 1.0–5.0)', 'weight' => '30%', 'met' => ($priorityFactors['academic_rubric_score'] ?? 0) > 0],
-        ['label' => 'Income Tax Return (ITR)', 'weight' => '30%', 'met' => $priorityFactors['has_approved_income_tax'] ?? false],
-        ['label' => 'Citations / Awards', 'weight' => '10%', 'met' => ($priorityFactors['awards_rubric_score'] ?? 0) > 0],
-        ['label' => 'Social responsibility (essays)', 'weight' => '10%', 'met' => ($priorityFactors['social_responsibility_rubric_score'] ?? 0) > 0],
-    ];
 @endphp
 
 <!-- Performance Dashboard -->
@@ -322,52 +314,6 @@
   </div>
 </div>
 
-<!-- Priority Factors Section -->
-<div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
-  <div class="mb-6">
-    <h3 class="text-xl font-bold text-slate-800 mb-2">Priority Factors</h3>
-    <p class="text-sm text-slate-600">Factors that influence your scholarship priority ranking</p>
-  </div>
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    @foreach($studentPriorityBreakdown as $factor)
-      @php
-        $statusLabel = $factor['met'] ? 'Met' : 'Not met';
-      @endphp
-      <div class="group relative bg-gradient-to-br from-slate-50 to-white rounded-xl border-2 
-        @if($factor['met']) border-green-200 hover:border-green-300
-        @else border-red-200 hover:border-red-300
-        @endif p-5 transition-all hover:shadow-lg">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex-1">
-            <p class="font-bold text-slate-800 mb-1">{{ $factor['label'] }}</p>
-            <p class="text-xs text-slate-500 font-medium">{{ $factor['weight'] }} weight</p>
-          </div>
-          @if($factor['met'])
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-              </svg>
-            </div>
-          @else
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </div>
-          @endif
-        </div>
-        <div class="mt-3 pt-3 border-t border-slate-200">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
-            @if($factor['met']) bg-green-100 text-green-700
-            @else bg-red-100 text-red-700
-            @endif">
-            {{ $statusLabel }}
-          </span>
-        </div>
-      </div>
-    @endforeach
-  </div>
-</div>
 <!-- Show Type of Assistance if application is complete -->
 @if(isset($basicInfo) && $basicInfo)
         <div class="max-w-7xl mx-auto px-6 pt-6">
@@ -379,8 +325,6 @@
             </div>
         </div>
     @endif
-
-
 
 <!-- Event Participation & Attendance -->
 <!-- Compliance Checklist & Upload Documents (Glassmorphism Centered) -->

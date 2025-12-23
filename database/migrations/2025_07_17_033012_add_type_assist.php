@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('basic_info', function (Blueprint $table) {
-            $table->string('type_assist')->nullable()->after('school_pref_id');
+            if (!Schema::hasColumn('basic_info', 'type_assist')) {
+                if (Schema::hasColumn('basic_info', 'school_pref_id')) {
+                    $table->string('type_assist')->nullable()->after('school_pref_id');
+                } else {
+                    $table->string('type_assist')->nullable();
+                }
+            }
         });
     }
 

@@ -11,10 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('basic_info', function (Blueprint $table) {
-            $table->dropForeign(['ethno_id']);
-            $table->dropForeign(['family_id']);
-        });
+        // Drop ethno_id foreign key if it exists
+        try {
+            Schema::table('basic_info', function (Blueprint $table) {
+                if (Schema::hasColumn('basic_info', 'ethno_id')) {
+                    $table->dropForeign(['ethno_id']);
+                }
+            });
+        } catch (\Exception $e) {
+            // Foreign key might not exist, ignore
+        }
+        
+        // Drop family_id foreign key if it exists
+        try {
+            Schema::table('basic_info', function (Blueprint $table) {
+                if (Schema::hasColumn('basic_info', 'family_id')) {
+                    $table->dropForeign(['family_id']);
+                }
+            });
+        } catch (\Exception $e) {
+            // Foreign key might not exist, ignore
+        }
     }
 
     /**

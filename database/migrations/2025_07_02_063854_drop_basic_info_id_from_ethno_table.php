@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ethno', function (Blueprint $table) {
-            $table->id();
-            $table->string('ethnicity');
-            $table->timestamps();
+        Schema::table('ethno', function (Blueprint $table) {
+            if (Schema::hasColumn('ethno', 'basic_info_id')) {
+                $table->dropColumn('basic_info_id');
+            }
         });
     }
 
@@ -23,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ethno');
+        Schema::table('ethno', function (Blueprint $table) {
+            $table->unsignedBigInteger('basic_info_id')->nullable();
+        });
     }
 }; 

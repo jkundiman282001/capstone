@@ -295,15 +295,43 @@ class StudentController extends Controller
         // Optionally, set education_id in BasicInfo to the highest level's ID (if any)
 
         // 4. Save Family (father and mother)
+        // Handle "Other" occupation for father
+        $fatherOccupation = $request->father_occupation;
+        if ($fatherOccupation === 'Other' && $request->has('father_occupation_other')) {
+            $fatherOccupation = $request->father_occupation_other;
+        }
+        
+        // Handle "Other" occupation for mother
+        $motherOccupation = $request->mother_occupation;
+        if ($motherOccupation === 'Other' && $request->has('mother_occupation_other')) {
+            $motherOccupation = $request->mother_occupation_other;
+        }
+        
+        // Clean income values - remove commas and non-numeric characters, convert to integer
+        // If empty or invalid, default to 0 since the column doesn't allow null
+        $fatherIncome = $request->father_income;
+        if ($fatherIncome) {
+            $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
+        } else {
+            $fatherIncome = 0;
+        }
+        
+        $motherIncome = $request->mother_income;
+        if ($motherIncome) {
+            $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
+        } else {
+            $motherIncome = 0;
+        }
+        
         $father = \App\Models\Family::create([
             'basic_info_id' => $basicInfo->id,
             'name' => $request->father_name,
             'address' => $request->father_address,
-            'occupation' => $request->father_occupation,
+            'occupation' => $fatherOccupation,
             'office_address' => $request->father_office_address,
             'educational_attainment' => $request->father_education,
             'ethno_id' => $request->father_ethno,
-            'income' => $request->father_income,
+            'income' => $fatherIncome,
             'status' => $request->father_status,
             'fam_type' => 'father',
         ]);
@@ -311,11 +339,11 @@ class StudentController extends Controller
             'basic_info_id' => $basicInfo->id,
             'name' => $request->mother_name,
             'address' => $request->mother_address,
-            'occupation' => $request->mother_occupation,
+            'occupation' => $motherOccupation,
             'office_address' => $request->mother_office_address,
             'educational_attainment' => $request->mother_education,
             'ethno_id' => $request->mother_ethno,
-            'income' => $request->mother_income,
+            'income' => $motherIncome,
             'status' => $request->mother_status,
             'fam_type' => 'mother',
         ]);
@@ -1038,7 +1066,7 @@ class StudentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile picture updated successfully',
-            'profile_pic_url' => Storage::url($path)
+            'profile_pic_url' => asset('storage/' . $path)
         ]);
     }
 

@@ -11,13 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('origin', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('address_id');
-            $table->timestamps();
+        if (!Schema::hasTable('origin')) {
+            Schema::create('origin', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedInteger('address_id');
+                $table->timestamps();
 
-            $table->foreign('address_id')->references('id')->on('address')->onDelete('cascade');
-        });
+                $table->foreign('address_id')->references('id')->on('address')->onDelete('cascade');
+            });
+        } else {
+            try {
+                Schema::table('origin', function (Blueprint $table) {
+                    if (Schema::hasColumn('origin', 'address_id')) {
+                        $table->foreign('address_id')->references('id')->on('address')->onDelete('cascade');
+                    }
+                });
+            } catch (\Exception $e) {
+                // Foreign key might already exist, ignore
+            }
+        }
     }
 
     /**

@@ -3212,6 +3212,7 @@
         renderDraftsList();
     })();
 
+
 </script>
 @endpush 
 @endsection

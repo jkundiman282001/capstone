@@ -311,11 +311,11 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-200 bg-white">
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">1.00</td><td class="px-4 py-3">10.0</td><td class="px-4 py-3">30%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">2.00</td><td class="px-4 py-3">7.5</td><td class="px-4 py-3">22.5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">3.00</td><td class="px-4 py-3">5.0</td><td class="px-4 py-3">15%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">4.00</td><td class="px-4 py-3">2.5</td><td class="px-4 py-3">7.5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">5.00</td><td class="px-4 py-3">0.0</td><td class="px-4 py-3">0%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">1.00</td><td class="px-4 py-3 text-black">10.0</td><td class="px-4 py-3 text-black">30%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">2.00</td><td class="px-4 py-3 text-black">7.5</td><td class="px-4 py-3 text-black">22.5%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">3.00</td><td class="px-4 py-3 text-black">5.0</td><td class="px-4 py-3 text-black">15%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">4.00</td><td class="px-4 py-3 text-black">2.5</td><td class="px-4 py-3 text-black">7.5%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">5.00</td><td class="px-4 py-3 text-black">0.0</td><td class="px-4 py-3 text-black">0%</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -370,15 +370,15 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-200 bg-white">
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Valedictorian</td><td class="px-4 py-3">10.0</td><td class="px-4 py-3">10%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Salutatorian</td><td class="px-4 py-3">9.5</td><td class="px-4 py-3">9.5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">With Highest Honors</td><td class="px-4 py-3">9.0</td><td class="px-4 py-3">9%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">With High Honors</td><td class="px-4 py-3">8.0</td><td class="px-4 py-3">8%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">With Honors</td><td class="px-4 py-3">7.0</td><td class="px-4 py-3">7%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Dean’s Lister</td><td class="px-4 py-3">6.5</td><td class="px-4 py-3">6.5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Top 10</td><td class="px-4 py-3">6.0</td><td class="px-4 py-3">6%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Academic Awardee</td><td class="px-4 py-3">5.0</td><td class="px-4 py-3">5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">None</td><td class="px-4 py-3">0.0</td><td class="px-4 py-3">0%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Valedictorian</td><td class="px-4 py-3 text-black">10.0</td><td class="px-4 py-3 text-black">10%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Salutatorian</td><td class="px-4 py-3 text-black">9.5</td><td class="px-4 py-3 text-black">9.5%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">With Highest Honors</td><td class="px-4 py-3 text-black">9.0</td><td class="px-4 py-3 text-black">9%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">With High Honors</td><td class="px-4 py-3 text-black">8.0</td><td class="px-4 py-3 text-black">8%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">With Honors</td><td class="px-4 py-3 text-black">7.0</td><td class="px-4 py-3 text-black">7%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Dean’s Lister</td><td class="px-4 py-3 text-black">6.5</td><td class="px-4 py-3 text-black">6.5%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Top 10</td><td class="px-4 py-3 text-black">6.0</td><td class="px-4 py-3 text-black">6%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">Academic Awardee</td><td class="px-4 py-3 text-black">5.0</td><td class="px-4 py-3 text-black">5%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-slate-900">None</td><td class="px-4 py-3 text-black">0.0</td><td class="px-4 py-3 text-black">0%</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -403,17 +403,17 @@
                                     <tbody class="divide-y divide-slate-200 bg-white">
                                         <tr>
                                             <td class="px-4 py-3 font-semibold text-slate-900">Completeness / length</td>
-                                            <td class="px-4 py-3">4.0</td>
+                                            <td class="px-4 py-3 text-black">4.0</td>
                                             <td class="px-4 py-3 text-slate-600">Clear answers with enough detail</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-3 font-semibold text-slate-900">Keyword coverage</td>
-                                            <td class="px-4 py-3">5.0</td>
+                                            <td class="px-4 py-3 text-black">5.0</td>
                                             <td class="px-4 py-3 text-slate-600">Community needs, actions, programs/projects</td>
                                         </tr>
                                         <tr>
                                             <td class="px-4 py-3 font-semibold text-slate-900">Concrete plan bonus</td>
-                                            <td class="px-4 py-3">1.0</td>
+                                            <td class="px-4 py-3 text-black">1.0</td>
                                             <td class="px-4 py-3 text-slate-600">Intent + community + specific initiative</td>
                                         </tr>
                                     </tbody>

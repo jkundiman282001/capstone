@@ -12,14 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('basic_info', function (Blueprint $table) {
-
-            $table->foreign('education_id')->references('id')->on('education')->onDelete('set null');
-            $table->foreign('family_id')->references('id')->on('family')->onDelete('set null');
+            if (Schema::hasColumn('basic_info', 'education_id')) {
+                $table->foreign('education_id')->references('id')->on('education')->onDelete('set null');
+            }
+            if (Schema::hasColumn('basic_info', 'family_id')) {
+                $table->foreign('family_id')->references('id')->on('family')->onDelete('set null');
+            }
         });
 
         // Add foreign key for basic_info_id in education table
         Schema::table('education', function (Blueprint $table) {
-            $table->foreign('basic_info_id')->references('id')->on('basic_info')->onDelete('cascade');
+            if (Schema::hasColumn('education', 'basic_info_id')) {
+                $table->foreign('basic_info_id')->references('id')->on('basic_info')->onDelete('cascade');
+            }
         });
     }
 

@@ -11,13 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('permanent_address', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('address_id');
-            $table->timestamps();
+        if (!Schema::hasTable('permanent_address')) {
+            Schema::create('permanent_address', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedInteger('address_id');
+                $table->timestamps();
 
-            $table->foreign('address_id')->references('id')->on('address')->onDelete('cascade');
-        });
+                $table->foreign('address_id')->references('id')->on('address')->onDelete('cascade');
+            });
+        } else {
+            try {
+                Schema::table('permanent_address', function (Blueprint $table) {
+                    if (Schema::hasColumn('permanent_address', 'address_id')) {
+                        $table->foreign('address_id')->references('id')->on('address')->onDelete('cascade');
+                    }
+                });
+            } catch (\Exception $e) {
+                // Foreign key might already exist, ignore
+            }
+        }
     }
 
     /**
