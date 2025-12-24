@@ -68,6 +68,10 @@ class AuthController extends Controller
             'ethno_id' => ['required', 'exists:ethno,id'],
             'course' => ['nullable', 'string', 'max:150'],
             'course_other' => ['nullable', 'string', 'max:150'],
+            'terms_accepted' => ['required', 'accepted'],
+        ], [
+            'terms_accepted.required' => 'You must accept the Terms and Conditions and Privacy Policy to create an account.',
+            'terms_accepted.accepted' => 'You must accept the Terms and Conditions and Privacy Policy to create an account.',
         ]);
 
         $course = $request->input('course');

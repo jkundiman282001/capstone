@@ -445,13 +445,217 @@
     #successModal button:hover {
         background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
     }
+
+    /* Interactive Guide Styles */
+    .guide-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 9998;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .guide-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .guide-highlight {
+        position: relative;
+        z-index: 9999;
+        box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.3), 0 0 0 8px rgba(234, 88, 12, 0.1), 0 0 30px rgba(234, 88, 12, 0.4);
+        border-radius: 0.75rem;
+        animation: pulse-highlight 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-highlight {
+        0%, 100% {
+            box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.3), 0 0 0 8px rgba(234, 88, 12, 0.1), 0 0 30px rgba(234, 88, 12, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 0 6px rgba(234, 88, 12, 0.4), 0 0 0 12px rgba(234, 88, 12, 0.15), 0 0 40px rgba(234, 88, 12, 0.5);
+        }
+    }
+
+    .guide-tooltip {
+        position: absolute;
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        z-index: 10000;
+        max-width: 400px;
+        min-width: 320px;
+        animation: slideInTooltip 0.3s ease-out;
+    }
+
+    @keyframes slideInTooltip {
+        from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .guide-tooltip::before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border: 12px solid transparent;
+    }
+
+    .guide-tooltip.arrow-top::before {
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-top-color: white;
+        border-bottom: none;
+    }
+
+    .guide-tooltip.arrow-bottom::before {
+        top: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-bottom-color: white;
+        border-top: none;
+    }
+
+    .guide-tooltip.arrow-left::before {
+        right: -24px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-left-color: white;
+        border-right: none;
+    }
+
+    .guide-tooltip.arrow-right::before {
+        left: -24px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-right-color: white;
+        border-left: none;
+    }
+
+    .guide-tooltip-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .guide-tooltip-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .guide-tooltip-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        color: white;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+
+    .guide-tooltip-content {
+        color: #64748b;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    .guide-tooltip-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1.25rem;
+        gap: 0.75rem;
+    }
+
+    .guide-btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+    }
+
+    .guide-btn-primary {
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        color: white;
+    }
+
+    .guide-btn-primary:hover {
+        background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);
+    }
+
+    .guide-btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .guide-btn-secondary:hover {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .guide-btn-skip {
+        background: transparent;
+        color: #94a3b8;
+        text-decoration: underline;
+    }
+
+    .guide-btn-skip:hover {
+        color: #64748b;
+    }
+
+    .guide-close-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        transition: all 0.2s;
+    }
+
+    .guide-close-btn:hover {
+        background: #f1f5f9;
+        color: #64748b;
+    }
     </style>
 @endpush
 
 @section('content')
+<!-- Interactive Guide Overlay -->
+@if($isNewUser)
+<div id="guide-overlay" class="guide-overlay"></div>
+@endif
+
 <div class="min-h-screen pt-24 pb-20">
     <!-- Application Hub (Landing) -->
-    <div id="application-hub" class="max-w-6xl mx-auto px-4">
+    <div id="application-hub" class="max-w-6xl mx-auto px-4 {{ $isNewUser ? 'hidden' : '' }}">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div>
@@ -562,8 +766,8 @@
         </div>
     </div>
 
-    <!-- Form Container (Hidden Initially) -->
-    <div id="application-form-view" class="form-container hidden">
+    <!-- Form Container (Hidden Initially, or shown for new users) -->
+    <div id="application-form-view" class="form-container {{ $isNewUser ? '' : 'hidden' }}">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <!-- Left Sidebar: Navigation -->
             <div class="lg:col-span-3">
@@ -796,7 +1000,7 @@
                     </div>
 
                         <!-- Step 2 -->
-                        <div class="form-step hidden" id="step-2">
+                        <div class="form-step hidden" id="step-2" data-guide-step="2">
                             @foreach(['mailing' => 'Mailing Address', 'permanent' => 'Permanent Address', 'origin' => 'Place of Origin/Place of Birth'] as $prefix => $title)
                             <div class="mb-8 {{ !$loop->last ? 'pb-8 border-b border-slate-100' : '' }}">
                                 <div class="flex items-center justify-between mb-4">
@@ -844,7 +1048,7 @@
                         </div>
 
                         <!-- Step 3 -->
-                        <div class="form-step hidden" id="step-3">
+                        <div class="form-step hidden" id="step-3" data-guide-step="3">
                             @php
                                 $yearOptions = range((int)date('Y'), (int)date('Y') - 60);
                                 $gwaOptions = range(75, 100);
@@ -921,7 +1125,7 @@
                     </div>
 
                         <!-- Step 4 -->
-                        <div class="form-step hidden" id="step-4">
+                        <div class="form-step hidden" id="step-4" data-guide-step="4">
                             <h3 class="section-heading">Parents Information</h3>
                             
                             @foreach(['father' => 'Father', 'mother' => 'Mother'] as $parent => $label)
@@ -1075,7 +1279,7 @@
                             </div>
 
                         <!-- Step 5 -->
-                        <div class="form-step hidden" id="step-5">
+                        <div class="form-step hidden" id="step-5" data-guide-step="5">
                             <h3 class="section-heading">School Preference</h3>
                             
 @php
@@ -1277,7 +1481,7 @@
                                 </div>
                         
                         <!-- Step 6: Document Requirements -->
-                        <div class="form-step hidden" id="step-6">
+                        <div class="form-step hidden" id="step-6" data-guide-step="6">
                             <div class="flex items-center justify-between mb-6">
                                 <h3 class="section-heading mb-0">Document Requirements</h3>
                             </div>
@@ -3147,6 +3351,55 @@
         
         if (!hubView || !formView) return;
 
+        // If user is new, automatically start the application form
+        const isNewUser = {{ $isNewUser ? 'true' : 'false' }};
+        if (isNewUser && !isApplicationLocked) {
+            // Hide hub, show form
+            hubView.classList.add('hidden');
+            formView.classList.remove('hidden');
+            
+            // Reset to step 1 for new application
+            if (typeof currentStep !== 'undefined') {
+                currentStep = 1;
+            }
+            
+            // Reset form
+            const formEl = document.getElementById('applicationForm');
+            if (formEl) {
+                formEl.reset();
+                const siblingList = document.getElementById('siblings-list');
+                if (siblingList) {
+                    siblingList.innerHTML = '<p id="siblings-empty" class="p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl">No siblings added yet.</p>';
+                }
+                if (typeof refreshSiblingState === 'function') {
+                    refreshSiblingState();
+                }
+            }
+            
+            // Set renewal flag to false
+            const renewalInput = document.getElementById('is_renewal_input');
+            if (renewalInput) {
+                renewalInput.value = '0';
+            }
+            
+            // Show regular documents, hide renewal documents
+            const regularDocs = document.getElementById('regular-documents');
+            const renewalDocs = document.getElementById('renewal-documents');
+            if (regularDocs) regularDocs.style.display = 'grid';
+            if (renewalDocs) renewalDocs.style.display = 'none';
+            
+            // Show regular steps, hide renewal steps
+            const regularSteps = document.getElementById('regular-steps');
+            const renewalSteps = document.getElementById('renewal-steps');
+            if (regularSteps) regularSteps.style.display = 'block';
+            if (renewalSteps) renewalSteps.style.display = 'none';
+            
+            // Update UI
+            if (typeof updateUI === 'function') {
+                updateUI();
+            }
+        }
+
         function renderDraftsList() {
             fetch('/student/drafts', {
                 method: 'GET',
@@ -3212,6 +3465,272 @@
         renderDraftsList();
     })();
 
+    // Interactive Guide System for Application Form
+    @if($isNewUser)
+    (function() {
+        const guideOverlay = document.getElementById('guide-overlay');
+        if (!guideOverlay) return;
+        
+        let currentGuideStep = 0;
+        let guideStarted = false;
+        
+        // Guide steps configuration for application form
+        const guideSteps = [
+            {
+                target: 'step-1',
+                title: 'Step 1: Personal Information',
+                content: 'Fill in your personal details including date of birth, place of birth, gender, and civil status. Most fields are pre-filled from your profile. Make sure all required fields marked with * are completed.',
+                arrow: 'bottom',
+                position: 'bottom',
+                waitForStep: 1
+            },
+            {
+                target: 'step-2',
+                title: 'Step 2: Address Details',
+                content: 'Provide your mailing address, permanent address, and place of origin. You can use the "Same as Mailing Address" checkbox to copy your mailing address to other fields. Select your municipality and barangay from the dropdown menus.',
+                arrow: 'bottom',
+                position: 'bottom',
+                waitForStep: 2
+            },
+            {
+                target: 'step-3',
+                title: 'Step 3: Educational Background',
+                content: 'Enter your educational history. Elementary and High School are required. Fill in the school name, type (Public/Private), year graduated, GWA (Grade Weighted Average), and any honors or awards you received.',
+                arrow: 'bottom',
+                position: 'bottom',
+                waitForStep: 3
+            },
+            {
+                target: 'step-4',
+                title: 'Step 4: Family Background',
+                content: 'Provide information about your parents and siblings. For parents, include their name, address, occupation, educational attainment, and annual income. You can add siblings using the "Add Sibling" button.',
+                arrow: 'bottom',
+                position: 'bottom',
+                waitForStep: 4
+            },
+            {
+                target: 'step-5',
+                title: 'Step 5: School Preference',
+                content: 'Select your preferred schools and courses. You can choose a primary course and an alternate course for each school preference. Also write essays about how you\'ll contribute to your IP community and your plans after graduation.',
+                arrow: 'bottom',
+                position: 'bottom',
+                waitForStep: 5
+            },
+            {
+                target: 'step-6',
+                title: 'Step 6: Document Requirements',
+                content: 'Upload all required documents. Click on each document card to upload PDF or image files. Make sure to enter your GPA when uploading grades. All documents will be reviewed by the staff.',
+                arrow: 'top',
+                position: 'top',
+                waitForStep: 6
+            },
+            {
+                target: 'saveDraftBtn',
+                title: 'Save Your Progress',
+                content: 'Click "Save as Draft" anytime to save your progress. Your form also auto-saves as you type, so you can safely leave and come back later. Drafts are saved automatically.',
+                arrow: 'top',
+                position: 'top',
+                waitForStep: null
+            },
+            {
+                target: 'nextBtn',
+                title: 'Navigate Through Steps',
+                content: 'Use the "Next Step" button to move forward through the form. Use "Back" to go to previous steps. On the final step, you\'ll see "Submit Application" to complete your application.',
+                arrow: 'top',
+                position: 'top',
+                waitForStep: null
+            }
+        ];
+
+        function showGuideStep(stepIndex) {
+            if (stepIndex >= guideSteps.length) {
+                endFormGuide();
+                return;
+            }
+
+            const step = guideSteps[stepIndex];
+            
+            // Wait for specific step if needed
+            if (step.waitForStep) {
+                const stepElement = document.getElementById(`step-${step.waitForStep}`);
+                if (!stepElement || stepElement.classList.contains('hidden')) {
+                    // Step not visible yet, wait a bit and try again
+                    setTimeout(() => showGuideStep(stepIndex), 500);
+                    return;
+                }
+            }
+
+            const targetElement = document.getElementById(step.target);
+            if (!targetElement) {
+                // Target not found, skip to next step
+                showGuideStep(stepIndex + 1);
+                return;
+            }
+
+            // Remove previous highlights
+            document.querySelectorAll('.guide-highlight').forEach(el => {
+                el.classList.remove('guide-highlight');
+            });
+
+            // Remove previous tooltips
+            document.querySelectorAll('.guide-tooltip').forEach(el => {
+                el.remove();
+            });
+
+            // Show overlay
+            guideOverlay.classList.add('active');
+
+            // Highlight target element
+            targetElement.classList.add('guide-highlight');
+
+            // Calculate tooltip position
+            const rect = targetElement.getBoundingClientRect();
+            const tooltip = document.createElement('div');
+            tooltip.className = `guide-tooltip arrow-${step.arrow}`;
+            tooltip.innerHTML = `
+                <div class="guide-tooltip-header">
+                    <div class="guide-tooltip-title">
+                        <span class="guide-tooltip-number">${stepIndex + 1}</span>
+                        <span>${step.title}</span>
+                    </div>
+                    <button class="guide-close-btn" onclick="endFormGuide()" title="Close guide">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="guide-tooltip-content">
+                    ${step.content}
+                </div>
+                <div class="guide-tooltip-footer">
+                    <button class="guide-btn guide-btn-skip" onclick="endFormGuide()">Skip Guide</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        ${stepIndex > 0 ? '<button class="guide-btn guide-btn-secondary" onclick="window.formGuidePreviousStep()">Previous</button>' : ''}
+                        <button class="guide-btn guide-btn-primary" onclick="window.formGuideNextStep()">
+                            ${stepIndex === guideSteps.length - 1 ? 'Got it!' : 'Next'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Position tooltip
+            let top, left;
+            const spacing = 20;
+            const tooltipWidth = 400;
+            const tooltipHeight = 200;
+
+            switch (step.position) {
+                case 'bottom':
+                    top = rect.bottom + spacing;
+                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                    break;
+                case 'top':
+                    top = rect.top - tooltipHeight - spacing;
+                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                    break;
+                case 'right':
+                    top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+                    left = rect.right + spacing;
+                    break;
+                case 'left':
+                    top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+                    left = rect.left - tooltipWidth - spacing;
+                    break;
+                default:
+                    top = rect.bottom + spacing;
+                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+            }
+
+            // Keep tooltip within viewport
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            if (left < 20) left = 20;
+            if (left + tooltipWidth > viewportWidth - 20) {
+                left = viewportWidth - tooltipWidth - 20;
+            }
+            if (top < 20) top = 20;
+            if (top + tooltipHeight > viewportHeight - 20) {
+                top = viewportHeight - tooltipHeight - 20;
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+            document.body.appendChild(tooltip);
+
+            // Scroll target into view if needed
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            currentGuideStep = stepIndex;
+        }
+
+        function endFormGuide() {
+            guideOverlay.classList.remove('active');
+            document.querySelectorAll('.guide-highlight').forEach(el => {
+                el.classList.remove('guide-highlight');
+            });
+            document.querySelectorAll('.guide-tooltip').forEach(el => {
+                el.remove();
+            });
+            guideStarted = false;
+        }
+
+        function startFormGuide() {
+            if (guideStarted) return;
+            guideStarted = true;
+            currentGuideStep = 0;
+            showGuideStep(0);
+        }
+
+        // Expose functions globally
+        window.formGuideNextStep = function() {
+            showGuideStep(currentGuideStep + 1);
+        };
+
+        window.formGuidePreviousStep = function() {
+            if (currentGuideStep > 0) {
+                showGuideStep(currentGuideStep - 1);
+            }
+        };
+
+        window.endFormGuide = endFormGuide;
+        window.startFormGuide = startFormGuide;
+
+        // Auto-start guide when form is shown for new users
+        const isNewUser = {{ $isNewUser ? 'true' : 'false' }};
+        if (isNewUser && !isApplicationLocked) {
+            // Wait for form to be visible
+            setTimeout(() => {
+                const formView = document.getElementById('application-form-view');
+                if (formView && !formView.classList.contains('hidden')) {
+                    // Wait a bit more for form to fully render
+                    setTimeout(() => {
+                        startFormGuide();
+                    }, 1500);
+                }
+            }, 500);
+        }
+
+        // Listen for step changes to show relevant guide steps
+        const originalUpdateUI = typeof updateUI !== 'undefined' ? updateUI : null;
+        if (originalUpdateUI) {
+            window.updateUI = function() {
+                originalUpdateUI();
+                // If guide is active and we're on a step, update guide if needed
+                if (guideStarted && typeof currentStep !== 'undefined') {
+                    // Find guide step that matches current form step
+                    const matchingStep = guideSteps.findIndex(s => s.waitForStep === currentStep);
+                    if (matchingStep !== -1 && matchingStep !== currentGuideStep) {
+                        // Show guide for current step
+                        setTimeout(() => {
+                            showGuideStep(matchingStep);
+                        }, 300);
+                    }
+                }
+            };
+        }
+    })();
+    @endif
 
 </script>
 @endpush 

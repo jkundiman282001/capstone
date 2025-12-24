@@ -119,7 +119,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             }
         }
 
-        return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes', 'renewalRequiredTypes', 'hasSubmitted', 'submittedApplication', 'canRenew'));
+        // Check if user is new (hasn't submitted application) - show form directly
+        $isNewUser = !$hasSubmitted;
+
+        return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes', 'renewalRequiredTypes', 'hasSubmitted', 'submittedApplication', 'canRenew', 'isNewUser'));
     })->name('student.apply');
 });
 

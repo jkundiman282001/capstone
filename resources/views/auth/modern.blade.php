@@ -239,6 +239,79 @@
         justify-content: center;
       }
     }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 1.5rem;
+      max-width: 800px;
+      max-height: 90vh;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+    }
+
+    .modal-body {
+      padding: 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -767,6 +840,36 @@
               </div>
             </div>
 
+            <!-- Terms and Conditions -->
+            <div class="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <input 
+                type="checkbox" 
+                name="terms_accepted" 
+                id="terms_accepted" 
+                required
+                class="checkbox-orange mt-1 flex-shrink-0"
+              />
+              <label for="terms_accepted" class="text-sm text-slate-700 cursor-pointer">
+                I agree to the 
+                <button 
+                  type="button" 
+                  onclick="showTermsModal()" 
+                  class="text-orange-600 font-bold hover:text-orange-700 underline transition-colors"
+                >
+                  Terms and Conditions
+                </button>
+                and 
+                <button 
+                  type="button" 
+                  onclick="showPrivacyModal()" 
+                  class="text-orange-600 font-bold hover:text-orange-700 underline transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                <span class="text-red-500">*</span>
+              </label>
+            </div>
+
             <!-- Submit Button -->
             <button type="submit" class="btn-primary w-full text-white py-4 rounded-xl font-bold text-lg shadow-lg relative z-10">
               Create Account
@@ -837,6 +940,256 @@
         });
       }
     });
+
+    // Terms and Conditions Modal
+    function showTermsModal() {
+      const modal = document.getElementById('termsModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function showPrivacyModal() {
+      const modal = document.getElementById('privacyModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Close modal on overlay click
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+    });
   </script>
+
+  <!-- Terms and Conditions Modal -->
+  <div id="termsModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="text-2xl font-black">Terms and Conditions</h2>
+        <button onclick="closeModal('termsModal')" class="modal-close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="prose max-w-none text-slate-700">
+          <h3 class="text-xl font-bold text-slate-900 mb-4">1. Acceptance of Terms</h3>
+          <p class="mb-4">
+            By accessing and using the NCIP Educational Assistance Program (NCIP-EAP) Scholarship Management Portal, 
+            you accept and agree to be bound by the terms and conditions set forth in this agreement. If you do not 
+            agree to these terms, please do not use this portal.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">2. Eligibility</h3>
+          <p class="mb-4">
+            To be eligible for the NCIP-EAP scholarship program, you must:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Be a member of an Indigenous Peoples (IP) community recognized by the National Commission on Indigenous Peoples (NCIP)</li>
+            <li>Be a Filipino citizen</li>
+            <li>Meet the academic requirements as specified by the program</li>
+            <li>Submit all required documents and information accurately</li>
+            <li>Comply with all application deadlines and requirements</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">3. Application Process</h3>
+          <p class="mb-4">
+            Applicants are required to:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Provide accurate and truthful information in their application</li>
+            <li>Submit all required documents in the specified format</li>
+            <li>Maintain eligibility throughout the application and scholarship period</li>
+            <li>Notify NCIP-EAP of any changes to their information or status</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">4. Scholarship Obligations</h3>
+          <p class="mb-4">
+            Scholarship recipients must:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Maintain satisfactory academic performance as defined by the program</li>
+            <li>Comply with all program rules and regulations</li>
+            <li>Submit required reports and documentation on time</li>
+            <li>Participate in program activities and community service as required</li>
+            <li>Use scholarship funds solely for educational purposes</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">5. Data Privacy and Confidentiality</h3>
+          <p class="mb-4">
+            All personal information provided will be handled in accordance with the Data Privacy Act of 2012. 
+            NCIP-EAP is committed to protecting your personal data and will only use it for program administration 
+            and evaluation purposes.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">6. Program Modifications</h3>
+          <p class="mb-4">
+            NCIP-EAP reserves the right to modify, suspend, or terminate the scholarship program at any time. 
+            Changes will be communicated to all participants in a timely manner.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">7. Termination</h3>
+          <p class="mb-4">
+            Scholarship may be terminated if the recipient:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Fails to maintain academic requirements</li>
+            <li>Violates program rules or code of conduct</li>
+            <li>Provides false or misleading information</li>
+            <li>Engages in activities that bring disrepute to NCIP-EAP</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">8. Limitation of Liability</h3>
+          <p class="mb-4">
+            NCIP-EAP shall not be liable for any indirect, incidental, or consequential damages arising from 
+            the use of this portal or participation in the scholarship program.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">9. Contact Information</h3>
+          <p class="mb-4">
+            For questions or concerns regarding these terms and conditions, please contact NCIP-EAP at:
+            <br>Email: support@ncip.gov.ph
+            <br>Phone: (02) 888-1234
+          </p>
+
+          <p class="text-sm text-slate-500 mt-6">
+            Last updated: {{ date('F d, Y') }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div id="privacyModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="text-2xl font-black">Privacy Policy</h2>
+        <button onclick="closeModal('privacyModal')" class="modal-close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="prose max-w-none text-slate-700">
+          <h3 class="text-xl font-bold text-slate-900 mb-4">1. Information We Collect</h3>
+          <p class="mb-4">
+            NCIP-EAP collects the following types of personal information:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Personal identification information (name, date of birth, contact details)</li>
+            <li>Academic records and educational background</li>
+            <li>Family information and financial data</li>
+            <li>Ethnolinguistic group affiliation</li>
+            <li>Documentation required for scholarship application</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">2. How We Use Your Information</h3>
+          <p class="mb-4">
+            Your personal information is used for:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Processing and evaluating scholarship applications</li>
+            <li>Administering the scholarship program</li>
+            <li>Communicating with applicants and recipients</li>
+            <li>Program monitoring and evaluation</li>
+            <li>Compliance with legal and regulatory requirements</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">3. Data Protection</h3>
+          <p class="mb-4">
+            NCIP-EAP implements appropriate technical and organizational measures to protect your personal data 
+            against unauthorized access, alteration, disclosure, or destruction. This includes:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Secure data storage and transmission</li>
+            <li>Access controls and authentication</li>
+            <li>Regular security audits and updates</li>
+            <li>Staff training on data protection</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">4. Data Sharing</h3>
+          <p class="mb-4">
+            We do not sell or rent your personal information. We may share your information with:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Authorized NCIP personnel involved in program administration</li>
+            <li>Educational institutions for verification and coordination</li>
+            <li>Government agencies as required by law</li>
+            <li>Service providers under strict confidentiality agreements</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">5. Your Rights</h3>
+          <p class="mb-4">
+            Under the Data Privacy Act of 2012, you have the right to:
+          </p>
+          <ul class="list-disc pl-6 mb-4 space-y-2">
+            <li>Access your personal data</li>
+            <li>Request correction of inaccurate data</li>
+            <li>Request deletion of your data (subject to legal retention requirements)</li>
+            <li>Object to processing of your data</li>
+            <li>File a complaint with the National Privacy Commission</li>
+          </ul>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">6. Data Retention</h3>
+          <p class="mb-4">
+            We retain your personal data for as long as necessary to fulfill the purposes outlined in this policy, 
+            or as required by applicable laws and regulations. Scholarship records may be retained for archival 
+            and statistical purposes.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">7. Cookies and Tracking</h3>
+          <p class="mb-4">
+            Our portal may use cookies and similar technologies to enhance user experience and analyze portal usage. 
+            You can control cookie preferences through your browser settings.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">8. Changes to This Policy</h3>
+          <p class="mb-4">
+            NCIP-EAP may update this Privacy Policy from time to time. Changes will be posted on this portal, 
+            and significant changes will be communicated to registered users.
+          </p>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">9. Contact Us</h3>
+          <p class="mb-4">
+            For questions or concerns about this Privacy Policy or to exercise your rights, please contact:
+            <br>Email: privacy@ncip.gov.ph
+            <br>Phone: (02) 888-1234
+            <br>Address: NCIP-EAP Office, [Address]
+          </p>
+
+          <p class="text-sm text-slate-500 mt-6">
+            Last updated: {{ date('F d, Y') }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
