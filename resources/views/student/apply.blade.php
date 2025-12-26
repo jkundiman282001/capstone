@@ -1157,90 +1157,90 @@
                                         <label class="input-label">Occupation</label>
                                         <select name="{{ $parent }}_occupation" id="{{ $parent }}_occupation" class="form-control occupation-select">
                                             <option value="">Select Occupation</option>
+                                            <option value="Accountant">Accountant</option>
+                                            <option value="Architect">Architect</option>
+                                            <option value="Baker">Baker</option>
+                                            <option value="Bank Manager">Bank Manager</option>
+                                            <option value="Bank Teller">Bank Teller</option>
+                                            <option value="Barber">Barber</option>
+                                            <option value="Barangay Health Worker">Barangay Health Worker</option>
+                                            <option value="Barangay Official">Barangay Official</option>
+                                            <option value="Business Owner">Business Owner</option>
+                                            <option value="Call Center Agent">Call Center Agent</option>
+                                            <option value="Caregiver">Caregiver</option>
+                                            <option value="Carpenter">Carpenter</option>
+                                            <option value="Cashier">Cashier</option>
+                                            <option value="Chef">Chef</option>
+                                            <option value="Construction Worker">Construction Worker</option>
+                                            <option value="Cook">Cook</option>
+                                            <option value="Delivery Rider">Delivery Rider</option>
+                                            <option value="Dentist">Dentist</option>
+                                            <option value="Doctor">Doctor</option>
+                                            <option value="Domestic Helper">Domestic Helper</option>
+                                            <option value="Dressmaker">Dressmaker</option>
+                                            <option value="Driver">Driver</option>
+                                            <option value="Electrician">Electrician</option>
+                                            <option value="Engineer">Engineer</option>
+                                            <option value="Entrepreneur">Entrepreneur</option>
+                                            <option value="Factory Worker">Factory Worker</option>
                                             <option value="Farmer">Farmer</option>
                                             <option value="Fisherman">Fisherman</option>
-                                            <option value="Teacher">Teacher</option>
-                                            <option value="Nurse">Nurse</option>
-                                            <option value="Doctor">Doctor</option>
-                                            <option value="Engineer">Engineer</option>
-                                            <option value="Accountant">Accountant</option>
-                                            <option value="Business Owner">Business Owner</option>
-                                            <option value="Entrepreneur">Entrepreneur</option>
+                                            <option value="Flight Attendant">Flight Attendant</option>
+                                            <option value="Freelancer">Freelancer</option>
+                                            <option value="Gardener">Gardener</option>
                                             <option value="Government Employee">Government Employee</option>
-                                            <option value="Police Officer">Police Officer</option>
-                                            <option value="Soldier">Soldier</option>
-                                            <option value="Driver">Driver</option>
-                                            <option value="Construction Worker">Construction Worker</option>
-                                            <option value="Carpenter">Carpenter</option>
-                                            <option value="Electrician">Electrician</option>
-                                            <option value="Plumber">Plumber</option>
-                                            <option value="Mechanic">Mechanic</option>
-                                            <option value="Barangay Official">Barangay Official</option>
-                                            <option value="Barangay Health Worker">Barangay Health Worker</option>
-                                            <option value="Social Worker">Social Worker</option>
-                                            <option value="Lawyer">Lawyer</option>
-                                            <option value="Judge">Judge</option>
-                                            <option value="Architect">Architect</option>
-                                            <option value="Veterinarian">Veterinarian</option>
-                                            <option value="Dentist">Dentist</option>
-                                            <option value="Pharmacist">Pharmacist</option>
-                                            <option value="Midwife">Midwife</option>
-                                            <option value="Medical Technologist">Medical Technologist</option>
-                                            <option value="Physical Therapist">Physical Therapist</option>
-                                            <option value="Chef">Chef</option>
-                                            <option value="Cook">Cook</option>
-                                            <option value="Waiter/Waitress">Waiter/Waitress</option>
-                                            <option value="Housekeeper">Housekeeper</option>
-                                            <option value="Security Guard">Security Guard</option>
-                                            <option value="Janitor">Janitor</option>
-                                            <option value="Salesperson">Salesperson</option>
-                                            <option value="Cashier">Cashier</option>
-                                            <option value="Store Manager">Store Manager</option>
-                                            <option value="Bank Teller">Bank Teller</option>
-                                            <option value="Bank Manager">Bank Manager</option>
-                                            <option value="Real Estate Agent">Real Estate Agent</option>
-                                            <option value="Insurance Agent">Insurance Agent</option>
-                                            <option value="Call Center Agent">Call Center Agent</option>
-                                            <option value="IT Professional">IT Professional</option>
-                                            <option value="Programmer">Programmer</option>
-                                            <option value="Web Developer">Web Developer</option>
                                             <option value="Graphic Designer">Graphic Designer</option>
-                                            <option value="Photographer">Photographer</option>
+                                            <option value="Hairdresser">Hairdresser</option>
+                                            <option value="Hotel Staff">Hotel Staff</option>
+                                            <option value="Housekeeper">Housekeeper</option>
+                                            <option value="Insurance Agent">Insurance Agent</option>
+                                            <option value="IT Professional">IT Professional</option>
+                                            <option value="Janitor">Janitor</option>
+                                            <option value="Jeepney Driver">Jeepney Driver</option>
                                             <option value="Journalist">Journalist</option>
-                                            <option value="Writer">Writer</option>
+                                            <option value="Judge">Judge</option>
+                                            <option value="Laborer">Laborer</option>
+                                            <option value="Lawyer">Lawyer</option>
+                                            <option value="Mason">Mason</option>
+                                            <option value="Market Vendor">Market Vendor</option>
+                                            <option value="Mechanic">Mechanic</option>
+                                            <option value="Medical Technologist">Medical Technologist</option>
+                                            <option value="Midwife">Midwife</option>
+                                            <option value="Nurse">Nurse</option>
+                                            <option value="OFW (Overseas Filipino Worker)">OFW (Overseas Filipino Worker)</option>
+                                            <option value="Other">Other</option>
+                                            <option value="Pharmacist">Pharmacist</option>
+                                            <option value="Photographer">Photographer</option>
+                                            <option value="Physical Therapist">Physical Therapist</option>
+                                            <option value="Pilot">Pilot</option>
+                                            <option value="Plumber">Plumber</option>
+                                            <option value="Police Officer">Police Officer</option>
+                                            <option value="Programmer">Programmer</option>
+                                            <option value="Real Estate Agent">Real Estate Agent</option>
+                                            <option value="Retired">Retired</option>
+                                            <option value="Retailer">Retailer</option>
+                                            <option value="Salesperson">Salesperson</option>
+                                            <option value="Sari-Sari Store Owner">Sari-Sari Store Owner</option>
+                                            <option value="Seafarer">Seafarer</option>
+                                            <option value="Security Guard">Security Guard</option>
+                                            <option value="Self-Employed">Self-Employed</option>
+                                            <option value="Social Worker">Social Worker</option>
+                                            <option value="Soldier">Soldier</option>
+                                            <option value="Store Manager">Store Manager</option>
+                                            <option value="Student">Student</option>
+                                            <option value="Tailor">Tailor</option>
+                                            <option value="Taxi Driver">Taxi Driver</option>
+                                            <option value="Teacher">Teacher</option>
                                             <option value="Tour Guide">Tour Guide</option>
                                             <option value="Travel Agent">Travel Agent</option>
-                                            <option value="Hotel Staff">Hotel Staff</option>
-                                            <option value="Flight Attendant">Flight Attendant</option>
-                                            <option value="Pilot">Pilot</option>
-                                            <option value="Seafarer">Seafarer</option>
-                                            <option value="OFW (Overseas Filipino Worker)">OFW (Overseas Filipino Worker)</option>
-                                            <option value="Domestic Helper">Domestic Helper</option>
-                                            <option value="Caregiver">Caregiver</option>
                                             <option value="Tricycle Driver">Tricycle Driver</option>
-                                            <option value="Jeepney Driver">Jeepney Driver</option>
-                                            <option value="Taxi Driver">Taxi Driver</option>
-                                            <option value="Delivery Rider">Delivery Rider</option>
-                                            <option value="Barber">Barber</option>
-                                            <option value="Hairdresser">Hairdresser</option>
-                                            <option value="Tailor">Tailor</option>
-                                            <option value="Dressmaker">Dressmaker</option>
-                                            <option value="Vendor">Vendor</option>
-                                            <option value="Market Vendor">Market Vendor</option>
-                                            <option value="Sari-Sari Store Owner">Sari-Sari Store Owner</option>
-                                            <option value="Retailer">Retailer</option>
-                                            <option value="Factory Worker">Factory Worker</option>
-                                            <option value="Laborer">Laborer</option>
-                                            <option value="Mason">Mason</option>
-                                            <option value="Welder">Welder</option>
-                                            <option value="Baker">Baker</option>
-                                            <option value="Gardener">Gardener</option>
-                                            <option value="Freelancer">Freelancer</option>
-                                            <option value="Self-Employed">Self-Employed</option>
                                             <option value="Unemployed">Unemployed</option>
-                                            <option value="Retired">Retired</option>
-                                            <option value="Student">Student</option>
-                                            <option value="Other">Other</option>
+                                            <option value="Vendor">Vendor</option>
+                                            <option value="Veterinarian">Veterinarian</option>
+                                            <option value="Waiter/Waitress">Waiter/Waitress</option>
+                                            <option value="Web Developer">Web Developer</option>
+                                            <option value="Welder">Welder</option>
+                                            <option value="Writer">Writer</option>
                                         </select>
                                         <input type="text" name="{{ $parent }}_occupation_other" id="{{ $parent }}_occupation_other" class="form-control mt-3 hidden" placeholder="Please specify occupation">
                                 </div>
@@ -1470,11 +1470,17 @@
                                 <div class="space-y-6">
                             <div>
                                         <label class="input-label">How will you contribute to your IP community?</label>
-                                        <textarea name="contribution" class="form-control" rows="4" required></textarea>
+                                        <textarea name="contribution" id="contribution" class="form-control" rows="4" required></textarea>
+                                        <div class="text-xs text-slate-500 mt-1 text-right">
+                                            <span id="contribution-char-count">0</span> characters
+                                        </div>
                             </div>
                             <div>
                                         <label class="input-label">What are your plans after graduation?</label>
-                                        <textarea name="plans_after_grad" class="form-control" rows="4" required></textarea>
+                                        <textarea name="plans_after_grad" id="plans_after_grad" class="form-control" rows="4" required></textarea>
+                                        <div class="text-xs text-slate-500 mt-1 text-right">
+                                            <span id="plans_after_grad-char-count">0</span> characters
+                                        </div>
                             </div>
                                 </div>
                                 </div>
@@ -2477,11 +2483,8 @@
             const mailingMuniValue = mailingFields.municipality.value;
             const mailingBrgyValue = mailingFields.barangay ? mailingFields.barangay.value : '';
             
-            // Set municipality value
-            targetFields.municipality.value = mailingMuniValue;
-            
-            // Set up one-time listener for when barangays are loaded
-            const onBarangaysLoaded = () => {
+            // Function to set barangay value
+            const setBarangayValue = () => {
                 if (mailingBrgyValue && targetFields.barangay) {
                     // Check if the barangay option exists
                     const optionExists = Array.from(targetFields.barangay.options).some(
@@ -2490,31 +2493,37 @@
                     if (optionExists) {
                         targetFields.barangay.value = mailingBrgyValue;
                         targetFields.barangay.dispatchEvent(new Event('change', { bubbles: true }));
+                        return true;
                     }
                 }
-                // Remove the listener after use
-                targetFields.barangay.removeEventListener('barangaysLoaded', onBarangaysLoaded);
+                return false;
             };
             
-            // Add listener before triggering change
-            if (targetFields.barangay) {
-                targetFields.barangay.addEventListener('barangaysLoaded', onBarangaysLoaded, { once: true });
-            }
+            // Set municipality value first
+            targetFields.municipality.value = mailingMuniValue;
             
-            // Trigger change event to load barangays
-            targetFields.municipality.dispatchEvent(new Event('change', { bubbles: true }));
+            // Check if barangays are already loaded (same municipality selected)
+            const currentMuniValue = targetFields.municipality.value;
+            const barangaysAlreadyLoaded = targetFields.barangay && 
+                targetFields.barangay.options.length > 1 && // More than just "Select Barangay"
+                currentMuniValue === mailingMuniValue;
             
-            // Fallback: if barangays are already loaded (same municipality), set immediately
-            if (targetFields.barangay && mailingBrgyValue) {
-                const optionExists = Array.from(targetFields.barangay.options).some(
-                    opt => opt.value === mailingBrgyValue
-                );
-                if (optionExists) {
-                    targetFields.barangay.value = mailingBrgyValue;
-                    targetFields.barangay.dispatchEvent(new Event('change', { bubbles: true }));
-                    // Remove the listener since we already set it
-                    targetFields.barangay.removeEventListener('barangaysLoaded', onBarangaysLoaded);
+            if (barangaysAlreadyLoaded) {
+                // Barangays already loaded, set immediately
+                setBarangayValue();
+            } else {
+                // Barangays need to be loaded, set up listener first
+                const onBarangaysLoaded = () => {
+                    setBarangayValue();
+                };
+                
+                // Add listener before triggering change
+                if (targetFields.barangay) {
+                    targetFields.barangay.addEventListener('barangaysLoaded', onBarangaysLoaded, { once: true });
                 }
+                
+                // Trigger change event to load barangays via AJAX
+                targetFields.municipality.dispatchEvent(new Event('change', { bubbles: true }));
             }
         }
 
@@ -3341,12 +3350,67 @@
         });
     }
 
+    // Essay Character Counter
+    function setupEssayCharacterCounters() {
+        const contributionTextarea = document.getElementById('contribution');
+        const plansTextarea = document.getElementById('plans_after_grad');
+        const contributionCounter = document.getElementById('contribution-char-count');
+        const plansCounter = document.getElementById('plans_after_grad-char-count');
+
+        function updateCounter(textarea, counter) {
+            if (textarea && counter) {
+                const length = textarea.value.length;
+                counter.textContent = length.toLocaleString();
+            }
+        }
+
+        // Initialize counters with current values (for draft restoration)
+        if (contributionTextarea && contributionCounter) {
+            updateCounter(contributionTextarea, contributionCounter);
+            contributionTextarea.addEventListener('input', function() {
+                updateCounter(this, contributionCounter);
+            });
+        }
+
+        if (plansTextarea && plansCounter) {
+            updateCounter(plansTextarea, plansCounter);
+            plansTextarea.addEventListener('input', function() {
+                updateCounter(this, plansCounter);
+            });
+        }
+    }
+
+    // Setup character counters when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupEssayCharacterCounters);
+    } else {
+        setupEssayCharacterCounters();
+    }
+
+    // Update counters when draft is restored
+    const originalRestoreDraft = window.restoreDraftFromData;
+    if (originalRestoreDraft) {
+        window.restoreDraftFromData = function(draft) {
+            originalRestoreDraft(draft);
+            setTimeout(setupEssayCharacterCounters, 100);
+        };
+    }
 
     // Init
     // Check if we should show the form or hub
     ( function initView() {
         const hubView = document.getElementById('application-hub');
         const formView = document.getElementById('application-form-view');
+        
+        // Also setup character counters when form view becomes visible (in case it's hidden initially)
+        if (formView) {
+            const observer = new MutationObserver(function(mutations) {
+                if (!formView.classList.contains('hidden')) {
+                    setTimeout(setupEssayCharacterCounters, 100);
+                }
+            });
+            observer.observe(formView, { attributes: true, attributeFilter: ['class'] });
+        }
         const draftsContainer = document.getElementById('hub-recent-drafts');
         
         if (!hubView || !formView) return;
