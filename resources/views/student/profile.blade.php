@@ -124,7 +124,9 @@
 
                     <div class="flex flex-wrap justify-center gap-2 mb-8">
                         <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm">IP Scholar</span>
+                        @if(optional($student->basicInfo)->grant_status === 'grantee')
                         <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>
+                        @endif
                         @if(optional($student->basicInfo)->current_year_level)
                             <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $student->basicInfo->current_year_level }} Year</span>
                         @endif

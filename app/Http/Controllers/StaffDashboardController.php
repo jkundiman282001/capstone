@@ -537,24 +537,12 @@ class StaffDashboardController extends Controller
         // Exclude grantees from regular list (they appear in grantees list)
         $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus) {
-                // Exclude validated applicants - they should only appear in masterlist
-                // Exclude rejected applicants by default (unless specifically filtering for rejected)
-                // Exclude grantees - they should only appear in grantees list
-                if ($selectedStatus !== 'rejected') {
-                    $query->where(function($q) {
-                        $q->where(function($subQ) {
-                            $subQ->where('application_status', '!=', 'validated')
-                                 ->where('application_status', '!=', 'rejected');
-                        })->orWhereNull('application_status');
-                    })
-                    ->where(function($q) {
-                        // Exclude grantees (handle case variations)
-                        $q->where(function($subQ) {
-                            $subQ->where('grant_status', '!=', 'grantee')
-                                 ->where('grant_status', '!=', 'Grantee');
-                        })->orWhereNull('grant_status');
-                    });
+                // Show all applicants (pending, validated, rejected, grantees)
+                // Filter by specific status if selected
+                if ($selectedStatus && $selectedStatus !== 'rejected' && $selectedStatus !== 'applied' && $selectedStatus !== 'not_applied') {
+                     $query->where('application_status', $selectedStatus);
                 }
+
                 
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {

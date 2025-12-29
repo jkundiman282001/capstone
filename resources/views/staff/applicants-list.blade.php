@@ -662,12 +662,17 @@
                         @if($applicant->basicInfo && $applicant->basicInfo->type_assist)
                             @php
                                 $appStatus = $applicant->basicInfo->application_status ?? 'pending';
+                                $grantStatus = $applicant->basicInfo->grant_status ?? null;
+                                $isGrantee = strtolower($grantStatus) === 'grantee';
                                 $isValidated = $appStatus === 'validated';
                                 $isRejected = $appStatus === 'rejected';
                             @endphp
                             <div class="absolute top-3 left-3">
-                                <span class="{{ $isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500') }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
-                                    @if($isValidated)
+                                <span class="{{ $isGrantee ? 'bg-blue-500' : ($isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500')) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
+                                    @if($isGrantee)
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Grantee
+                                    @elseif($isValidated)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         Validated
                                     @elseif($isRejected)

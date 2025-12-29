@@ -36,9 +36,11 @@
                             <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100">
                                 ✅ Active
                             </span>
+                            @if(isset($basicInfo->grant_status) && $basicInfo->grant_status === 'grantee')
                             <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100">
                                 💻 {{ $schoolPref->degree ?? 'N/A' }}
                             </span>
+                            @endif
                             <span class="px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-bold rounded-lg border border-purple-100">
                                 🏔️ {{ $ethno->ethnicity ?? 'N/A' }}
                             </span>
@@ -62,96 +64,99 @@
                         </div>
                     </div>
 
-                    <!-- Slot Availability -->
-                    <div class="text-right mb-4">
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Scholarship Slots</p>
-                        <div class="px-6 py-3 rounded-2xl {{ $isFull ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($availableSlots <= 10 ? 'bg-gradient-to-r from-orange-500 to-amber-600' : 'bg-gradient-to-r from-blue-500 to-cyan-600') }} shadow-lg">
-                            <p class="text-lg font-black text-white mb-1">{{ number_format($availableSlots) }} / {{ number_format($maxSlots) }}</p>
-                            <p class="text-xs text-white/90 font-medium">{{ $isFull ? 'Full' : 'Available' }}</p>
-                        </div>
-                    </div>
-
                     <!-- Action Buttons -->
                     @if($isRejected)
-                        <div class="flex flex-col gap-3">
-                            <div class="px-6 py-3 bg-gradient-to-r from-red-100 to-rose-100 text-red-700 font-bold rounded-xl text-sm text-center border-2 border-red-200">
+                        <div class="flex flex-wrap justify-end gap-3">
+                            <div class="px-5 py-2.5 bg-red-50 text-red-700 font-bold rounded-xl text-sm text-center border border-red-200 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 Application Rejected
                             </div>
-                            <button onclick="updateApplicationStatus('pending')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                            <button onclick="updateApplicationStatus('pending')" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 Set to Pending
                             </button>
-                            <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                            <button onclick="updateApplicationStatus('validated')" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 Approve Application
                             </button>
                         </div>
                     @elseif($isValidated)
-                        <div class="flex flex-col gap-3">
-                            <button onclick="updateApplicationStatus('pending')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+                        <div class="flex flex-wrap justify-end gap-3">
+                            <button onclick="updateApplicationStatus('pending')" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 Set to Pending
                             </button>
-                            <button onclick="showApplicationRejectionModal(true)" class="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Terminate
-                            </button>
+                            
                             @if($basicInfo->type_assist !== 'Pamana')
-                                <button onclick="moveToPamana()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                    </svg>
-                                    Move to Pamana
-                                </button>
                                 @if($basicInfo->grant_status !== 'grantee')
-                                    <button onclick="addToGrantees()" class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <button onclick="addToGrantees()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         Add to Grantees
                                     </button>
                                 @else
-                                    <div class="px-6 py-3 bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 font-bold rounded-xl text-sm text-center border-2 border-emerald-200">
-                                        Already in Grantees
+                                    <div class="px-5 py-2.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-sm text-center border border-emerald-200 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        In Grantees
                                     </div>
                                 @endif
+
                                 @if($basicInfo->grant_status !== 'waiting')
-                                    <button onclick="addToWaiting()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <button onclick="addToWaiting()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        Add to Waiting List
+                                        Add to Waiting
                                     </button>
                                 @else
-                                    <div class="px-6 py-3 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 font-bold rounded-xl text-sm text-center border-2 border-blue-200">
-                                        Already in Waiting List
+                                    <div class="px-5 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm text-center border border-blue-200 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        In Waiting List
                                     </div>
                                 @endif
+
+                                <button onclick="moveToPamana()" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                    Move to Pamana
+                                </button>
                             @else
-                                <div class="px-6 py-3 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 font-bold rounded-xl text-sm text-center border-2 border-purple-200">
-                                    Already in Pamana
+                                <div class="px-5 py-2.5 bg-purple-50 text-purple-700 font-bold rounded-xl text-sm text-center border border-purple-200 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    In Pamana
                                 </div>
                             @endif
+
+                            <button onclick="showApplicationRejectionModal(true)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Return Application
+                            </button>
                         </div>
                     @else
-                        @if($isFull)
-                            <button disabled class="px-6 py-3 bg-gray-400 text-white font-bold rounded-xl cursor-not-allowed opacity-75 text-sm">
-                                Slots Full ({{ number_format($maxSlots) }}/{{ number_format($maxSlots) }})
-                            </button>
-                            <p class="text-xs text-red-600 font-bold mt-2 text-center">⚠️ Cannot approve: Maximum slots reached</p>
-                        @else
-                            <button onclick="updateApplicationStatus('validated')" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
-                                Approve Application
-                            </button>
-                            <button onclick="showApplicationRejectionModal(false)" class="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                        <div class="flex flex-wrap justify-end gap-3">
+                            @if($isFull)
+                                <div class="px-5 py-2.5 bg-slate-100 text-slate-500 font-bold rounded-xl text-sm border border-slate-200 flex items-center gap-2 cursor-not-allowed">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    Slots Full
+                                </div>
+                            @else
+                                <button onclick="updateApplicationStatus('validated')" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Approve Application
+                                </button>
+                            @endif
+                            
+                            <button onclick="showApplicationRejectionModal(false)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                                 Reject Application
                             </button>
-                            @if($availableSlots <= 10)
-                                <p class="text-xs text-orange-600 font-bold mt-2 text-center">⚠️ Only {{ number_format($availableSlots) }} slot(s) remaining!</p>
-                            @endif
-                        @endif
+                        </div>
                     @endif
                     
                     <!-- Show rejection reason and disqualification reasons if application is rejected -->

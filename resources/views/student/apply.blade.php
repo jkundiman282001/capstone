@@ -453,11 +453,11 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(8px);
         z-index: 9998;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
     }
 
@@ -469,161 +469,139 @@
     .guide-highlight {
         position: relative;
         z-index: 9999;
-        box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.3), 0 0 0 8px rgba(234, 88, 12, 0.1), 0 0 30px rgba(234, 88, 12, 0.4);
+        box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.5), 0 0 0 8px rgba(234, 88, 12, 0.2);
         border-radius: 0.75rem;
-        animation: pulse-highlight 2s ease-in-out infinite;
+        background: white;
+        transition: all 0.3s ease;
     }
 
-    @keyframes pulse-highlight {
-        0%, 100% {
-            box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.3), 0 0 0 8px rgba(234, 88, 12, 0.1), 0 0 30px rgba(234, 88, 12, 0.4);
-        }
-        50% {
-            box-shadow: 0 0 0 6px rgba(234, 88, 12, 0.4), 0 0 0 12px rgba(234, 88, 12, 0.15), 0 0 40px rgba(234, 88, 12, 0.5);
-        }
+    .guide-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.95);
+        background: white;
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        z-index: 10000;
+        width: 90%;
+        max-width: 500px;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+    }
+
+    .guide-modal.active {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
 
     .guide-tooltip {
         position: absolute;
         background: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
+        border-radius: 1.25rem;
+        padding: 0;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         z-index: 10000;
-        max-width: 400px;
-        min-width: 320px;
-        animation: slideInTooltip 0.3s ease-out;
+        width: 380px;
+        max-width: 90vw;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
     }
 
-    @keyframes slideInTooltip {
-        from {
-            opacity: 0;
-            transform: translateY(-10px) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    .guide-tooltip::before {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 0;
-        border: 12px solid transparent;
-    }
-
-    .guide-tooltip.arrow-top::before {
-        bottom: -24px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-top-color: white;
-        border-bottom: none;
-    }
-
-    .guide-tooltip.arrow-bottom::before {
-        top: -24px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-bottom-color: white;
-        border-top: none;
-    }
-
-    .guide-tooltip.arrow-left::before {
-        right: -24px;
-        top: 50%;
-        transform: translateY(-50%);
-        border-left-color: white;
-        border-right: none;
-    }
-
-    .guide-tooltip.arrow-right::before {
-        left: -24px;
-        top: 50%;
-        transform: translateY(-50%);
-        border-right-color: white;
-        border-left: none;
+    .guide-tooltip.active {
+        opacity: 1;
+        transform: translateY(0);
     }
 
     .guide-tooltip-header {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        padding: 1.25rem 1.5rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1rem;
+        border-bottom: 1px solid #fed7aa;
     }
 
     .guide-tooltip-title {
         font-size: 1.125rem;
-        font-weight: 700;
-        color: #0f172a;
+        font-weight: 800;
+        color: #9a3412;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
-    .guide-tooltip-number {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+    .guide-step-badge {
+        background: #ea580c;
         color: white;
-        border-radius: 50%;
+        font-size: 0.75rem;
         font-weight: 700;
-        font-size: 0.875rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        box-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
     }
 
     .guide-tooltip-content {
-        color: #64748b;
-        line-height: 1.6;
+        padding: 1.5rem;
+        color: #475569;
+        line-height: 1.7;
         font-size: 0.95rem;
     }
 
     .guide-tooltip-footer {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 1.25rem;
-        gap: 0.75rem;
     }
 
     .guide-btn {
         padding: 0.625rem 1.25rem;
-        border-radius: 0.5rem;
+        border-radius: 0.75rem;
         font-weight: 600;
         font-size: 0.875rem;
         transition: all 0.2s;
         cursor: pointer;
         border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .guide-btn-primary {
-        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
         color: white;
+        box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.3);
     }
 
     .guide-btn-primary:hover {
-        background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.4);
     }
 
     .guide-btn-secondary {
-        background: #f1f5f9;
-        color: #475569;
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
     }
 
     .guide-btn-secondary:hover {
-        background: #e2e8f0;
+        background: #f8fafc;
         color: #334155;
+        border-color: #cbd5e1;
     }
 
     .guide-btn-skip {
         background: transparent;
         color: #94a3b8;
-        text-decoration: underline;
+        font-weight: 500;
     }
 
     .guide-btn-skip:hover {
@@ -631,18 +609,18 @@
     }
 
     .guide-close-btn {
-        background: transparent;
+        background: rgba(255, 255, 255, 0.5);
         border: none;
-        color: #94a3b8;
+        color: #9a3412;
         cursor: pointer;
-        padding: 0.25rem;
-        border-radius: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
         transition: all 0.2s;
     }
 
     .guide-close-btn:hover {
-        background: #f1f5f9;
-        color: #64748b;
+        background: rgba(255, 255, 255, 0.8);
+        color: #7c2d12;
     }
     </style>
 @endpush
@@ -3542,69 +3520,118 @@
         const guideSteps = [
             {
                 target: 'step-1',
-                title: 'Step 1: Personal Information',
-                content: 'Fill in your personal details including date of birth, place of birth, gender, and civil status. Most fields are pre-filled from your profile. Make sure all required fields marked with * are completed.',
-                arrow: 'bottom',
-                position: 'bottom',
+                title: 'Personal Information',
+                content: 'Start by filling in your personal details. Most fields are pre-filled from your profile, but please verify they are correct.',
                 waitForStep: 1
             },
             {
                 target: 'step-2',
-                title: 'Step 2: Address Details',
-                content: 'Provide your mailing address, permanent address, and place of origin. You can use the "Same as Mailing Address" checkbox to copy your mailing address to other fields. Select your municipality and barangay from the dropdown menus.',
-                arrow: 'bottom',
-                position: 'bottom',
+                title: 'Address Details',
+                content: 'Provide your current mailing address and permanent address. Use the checkbox to quickly copy addresses if they are the same.',
                 waitForStep: 2
             },
             {
                 target: 'step-3',
-                title: 'Step 3: Educational Background',
-                content: 'Enter your educational history. Elementary and High School are required. Fill in the school name, type (Public/Private), year graduated, GWA (Grade Weighted Average), and any honors or awards you received.',
-                arrow: 'bottom',
-                position: 'bottom',
+                title: 'Educational Background',
+                content: 'Enter your educational history carefully. Make sure to include your Grade Weighted Average (GWA) as it is crucial for evaluation.',
                 waitForStep: 3
             },
             {
                 target: 'step-4',
-                title: 'Step 4: Family Background',
-                content: 'Provide information about your parents and siblings. For parents, include their name, address, occupation, educational attainment, and annual income. You can add siblings using the "Add Sibling" button.',
-                arrow: 'bottom',
-                position: 'bottom',
+                title: 'Family Background',
+                content: 'We need to know about your family\'s economic status. Please provide accurate information about your parents and siblings.',
                 waitForStep: 4
             },
             {
                 target: 'step-5',
-                title: 'Step 5: School Preference',
-                content: 'Select your preferred schools and courses. You can choose a primary course and an alternate course for each school preference. Also write essays about how you\'ll contribute to your IP community and your plans after graduation.',
-                arrow: 'bottom',
-                position: 'bottom',
+                title: 'School Preference',
+                content: 'Tell us where you plan to study. You can select your preferred schools and courses here.',
                 waitForStep: 5
             },
             {
                 target: 'step-6',
-                title: 'Step 6: Document Requirements',
-                content: 'Upload all required documents. Click on each document card to upload PDF or image files. Make sure to enter your GPA when uploading grades. All documents will be reviewed by the staff.',
-                arrow: 'top',
-                position: 'top',
+                title: 'Document Requirements',
+                content: 'Upload clear copies of your requirements here. You can simply click on each box to select a file from your device.',
                 waitForStep: 6
             },
             {
                 target: 'saveDraftBtn',
-                title: 'Save Your Progress',
-                content: 'Click "Save as Draft" anytime to save your progress. Your form also auto-saves as you type, so you can safely leave and come back later. Drafts are saved automatically.',
-                arrow: 'top',
-                position: 'top',
+                title: 'Auto-Save Enabled',
+                content: 'Your progress is saved automatically as you type! You can also click "Save as Draft" to manually save and exit.',
                 waitForStep: null
             },
             {
                 target: 'nextBtn',
-                title: 'Navigate Through Steps',
-                content: 'Use the "Next Step" button to move forward through the form. Use "Back" to go to previous steps. On the final step, you\'ll see "Submit Application" to complete your application.',
-                arrow: 'top',
-                position: 'top',
+                title: 'Ready to Submit?',
+                content: 'Use the navigation buttons to move between steps. Review your information before submitting!',
                 waitForStep: null
             }
         ];
+
+        function createWelcomeModal() {
+            const modal = document.createElement('div');
+            modal.className = 'guide-modal';
+            modal.innerHTML = `
+                <div class="mb-6">
+                    <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">Welcome to NCIP! 👋</h3>
+                    <p class="text-slate-500 leading-relaxed">
+                        We've prepared a quick guide to help you complete your scholarship application. 
+                        It will only take a minute!
+                    </p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <button class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all" onclick="window.startTour()">
+                        Start the Tour
+                    </button>
+                    <button class="w-full py-3 text-slate-400 font-medium hover:text-slate-600 transition-colors" onclick="window.dismissGuide()">
+                        No thanks, I'll figure it out
+                    </button>
+                </div>
+            `;
+            return modal;
+        }
+
+        function showWelcomeModal() {
+            if (localStorage.getItem('ncip_guide_dismissed') === 'true') return;
+            
+            guideOverlay.classList.add('active');
+            
+            // Remove existing modals
+            document.querySelectorAll('.guide-modal').forEach(el => el.remove());
+            
+            const modal = createWelcomeModal();
+            document.body.appendChild(modal);
+            
+            // Trigger reflow
+            modal.offsetHeight;
+            
+            modal.classList.add('active');
+        }
+
+        window.dismissGuide = function() {
+             guideOverlay.classList.remove('active');
+             document.querySelectorAll('.guide-modal').forEach(el => {
+                 el.classList.remove('active');
+                 setTimeout(() => el.remove(), 300);
+             });
+             localStorage.setItem('ncip_guide_dismissed', 'true');
+        };
+
+        window.startTour = function() {
+            // Remove modal
+            document.querySelectorAll('.guide-modal').forEach(el => {
+                el.classList.remove('active');
+                setTimeout(() => el.remove(), 300);
+            });
+            
+            // Start steps
+            startFormGuide();
+        };
 
         function showGuideStep(stepIndex) {
             if (stepIndex >= guideSteps.length) {
@@ -3638,7 +3665,8 @@
 
             // Remove previous tooltips
             document.querySelectorAll('.guide-tooltip').forEach(el => {
-                el.remove();
+                el.classList.remove('active');
+                setTimeout(() => el.remove(), 300);
             });
 
             // Show overlay
@@ -3650,12 +3678,13 @@
             // Calculate tooltip position
             const rect = targetElement.getBoundingClientRect();
             const tooltip = document.createElement('div');
-            tooltip.className = `guide-tooltip arrow-${step.arrow}`;
+            tooltip.className = 'guide-tooltip';
+            
             tooltip.innerHTML = `
                 <div class="guide-tooltip-header">
                     <div class="guide-tooltip-title">
-                        <span class="guide-tooltip-number">${stepIndex + 1}</span>
                         <span>${step.title}</span>
+                        <span class="guide-step-badge">${stepIndex + 1}/${guideSteps.length}</span>
                     </div>
                     <button class="guide-close-btn" onclick="endFormGuide()" title="Close guide">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3667,60 +3696,49 @@
                     ${step.content}
                 </div>
                 <div class="guide-tooltip-footer">
-                    <button class="guide-btn guide-btn-skip" onclick="endFormGuide()">Skip Guide</button>
-                    <div style="display: flex; gap: 0.5rem;">
-                        ${stepIndex > 0 ? '<button class="guide-btn guide-btn-secondary" onclick="window.formGuidePreviousStep()">Previous</button>' : ''}
+                    <button class="guide-btn guide-btn-skip" onclick="endFormGuide()">Skip</button>
+                    <div class="flex items-center gap-2">
+                        ${stepIndex > 0 ? '<button class="guide-btn guide-btn-secondary" onclick="window.formGuidePreviousStep()">Back</button>' : ''}
                         <button class="guide-btn guide-btn-primary" onclick="window.formGuideNextStep()">
-                            ${stepIndex === guideSteps.length - 1 ? 'Got it!' : 'Next'}
+                            ${stepIndex === guideSteps.length - 1 ? 'Finish' : 'Next'}
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
                         </button>
                     </div>
                 </div>
             `;
 
-            // Position tooltip
-            let top, left;
-            const spacing = 20;
-            const tooltipWidth = 400;
-            const tooltipHeight = 200;
-
-            switch (step.position) {
-                case 'bottom':
-                    top = rect.bottom + spacing;
-                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-                    break;
-                case 'top':
-                    top = rect.top - tooltipHeight - spacing;
-                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-                    break;
-                case 'right':
-                    top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
-                    left = rect.right + spacing;
-                    break;
-                case 'left':
-                    top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
-                    left = rect.left - tooltipWidth - spacing;
-                    break;
-                default:
-                    top = rect.bottom + spacing;
-                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-            }
-
-            // Keep tooltip within viewport
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
+            // Position tooltip (Center it relative to target, but ensure it's in viewport)
+            // Simplified positioning logic for "Floating Card" style
             
+            // Default: Place below
+            let top = rect.bottom + 20;
+            let left = rect.left + (rect.width / 2) - 190; // 190 is half of 380px width
+
+            // Adjust if too far right
+            if (left + 380 > window.innerWidth - 20) {
+                left = window.innerWidth - 400;
+            }
+            // Adjust if too far left
             if (left < 20) left = 20;
-            if (left + tooltipWidth > viewportWidth - 20) {
-                left = viewportWidth - tooltipWidth - 20;
+
+            // Adjust if too low (place above)
+            if (top + 200 > window.innerHeight) {
+                top = rect.top - 220; // Place above
             }
+            
+            // Adjust if too high
             if (top < 20) top = 20;
-            if (top + tooltipHeight > viewportHeight - 20) {
-                top = viewportHeight - tooltipHeight - 20;
-            }
 
             tooltip.style.top = `${top}px`;
             tooltip.style.left = `${left}px`;
+            
             document.body.appendChild(tooltip);
+            
+            // Trigger reflow
+            tooltip.offsetHeight;
+            tooltip.classList.add('active');
 
             // Scroll target into view if needed
             targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3734,7 +3752,8 @@
                 el.classList.remove('guide-highlight');
             });
             document.querySelectorAll('.guide-tooltip').forEach(el => {
-                el.remove();
+                el.classList.remove('active');
+                setTimeout(() => el.remove(), 300);
             });
             guideStarted = false;
         }
@@ -3760,7 +3779,7 @@
         window.endFormGuide = endFormGuide;
         window.startFormGuide = startFormGuide;
 
-        // Auto-start guide when form is shown for new users
+        // Auto-start guide (Show Welcome Modal)
         const isNewUser = {{ $isNewUser ? 'true' : 'false' }};
         if (isNewUser && !isApplicationLocked) {
             // Wait for form to be visible
@@ -3769,8 +3788,8 @@
                 if (formView && !formView.classList.contains('hidden')) {
                     // Wait a bit more for form to fully render
                     setTimeout(() => {
-                        startFormGuide();
-                    }, 1500);
+                        showWelcomeModal();
+                    }, 1000);
                 }
             }, 500);
         }
