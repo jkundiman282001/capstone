@@ -234,31 +234,31 @@
                                 <a href="{{ route('staff.reports.index', ['tab' => 'grantees']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab', 'grantees') === 'grantees' ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-300 font-semibold text-slate-700 hover:text-blue-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Grantees</span>
-                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab', 'grantees') === 'grantees' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700' }}">XLS</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab', 'grantees') === 'grantees' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700' }}"></span>
                                     </div>
                                 </a>
                                 <a href="{{ route('staff.reports.index', ['tab' => 'pamana']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'pamana' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg shadow-emerald-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 border-2 border-slate-200 hover:border-emerald-300 font-semibold text-slate-700 hover:text-emerald-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Pamana</span>
-                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'pamana' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700' }}">CSV</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'pamana' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700' }}"></span>
                                     </div>
                                 </a>
                                 <a href="{{ route('staff.reports.index', ['tab' => 'waiting']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 border-2 border-slate-200 hover:border-purple-300 font-semibold text-slate-700 hover:text-purple-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Waiting List</span>
-                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700' }}">CSV</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'waiting' ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700' }}"></span>
                                     </div>
                                 </a>
                                 <a href="{{ route('staff.reports.index', ['tab' => 'disqualified']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'disqualified' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-lg shadow-red-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 border-2 border-slate-200 hover:border-red-300 font-semibold text-slate-700 hover:text-red-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Disqualified</span>
-                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'disqualified' ? 'bg-white/20 text-white' : 'bg-red-50 text-red-700' }}">XLS</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'disqualified' ? 'bg-white/20 text-white' : 'bg-red-50 text-red-700' }}"></span>
                                     </div>
                                 </a>
                                 <a href="{{ route('staff.reports.index', ['tab' => 'replacements']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'replacements' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold shadow-lg shadow-yellow-500/20' : 'bg-white hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 border-2 border-slate-200 hover:border-yellow-300 font-semibold text-slate-700 hover:text-yellow-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs tracking-wide">Replacements</span>
-                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'replacements' ? 'bg-white/20 text-white' : 'bg-yellow-50 text-yellow-800' }}">XLS</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'replacements' ? 'bg-white/20 text-white' : 'bg-yellow-50 text-yellow-800' }}"></span>
                                     </div>
                                 </a>
                             </div>

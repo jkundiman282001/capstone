@@ -52,6 +52,12 @@
                         <span id="waitingUnsavedIndicator" class="hidden text-xs font-semibold text-white bg-orange-500 px-3 py-1.5 rounded-lg">Unsaved changes</span>
                     </div>
 
+                    <div id="reportSummary" class="hidden px-6 py-6 bg-white border-b border-slate-200">
+                        <div id="summaryContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Summary items will be injected here -->
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto max-w-full">
                         <!-- Shared header layout; we keep 3 tables and toggle visibility -->
                         <table id="granteesTable" class="hidden w-full border-collapse" style="min-width: 2400px;">
@@ -254,6 +260,25 @@
         el.classList.toggle('hidden', !isLoading);
     }
 
+    function updateReportSummary(stats) {
+        const summaryDiv = document.getElementById('reportSummary');
+        const summaryContent = document.getElementById('summaryContent');
+        if (!summaryDiv || !summaryContent) return;
+
+        if (!stats || Object.keys(stats).length === 0) {
+            summaryDiv.classList.add('hidden');
+            return;
+        }
+
+        summaryDiv.classList.remove('hidden');
+        summaryContent.innerHTML = Object.entries(stats).map(([label, value]) => `
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">${label}</p>
+                <p class="text-2xl font-black text-slate-900">${value}</p>
+            </div>
+        `).join('');
+    }
+
     function setActiveTab(tab) {
         state.active = tab;
 
@@ -312,6 +337,7 @@
         if (countEl) countEl.textContent = `Total Grantees: ${rows.length}`;
 
         if (!rows.length) {
+            updateReportSummary({});
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
@@ -321,6 +347,16 @@
             `;
             return;
         }
+
+        // Calculate stats
+        const stats = {
+            'Total Grantees': rows.length,
+            'Female': rows.filter(r => r.is_female).length,
+            'Male': rows.filter(r => r.is_male).length,
+            'Private School': rows.filter(r => (r.school_type || r.school1_type || '').toLowerCase() === 'private' || r.is_private).length,
+            'Public School': rows.filter(r => (r.school_type || r.school1_type || '').toLowerCase() === 'public' || r.is_public).length
+        };
+        updateReportSummary(stats);
 
         tableBody.innerHTML = rows.map((grantee, index) => {
             const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
@@ -388,6 +424,7 @@
         if (countEl) countEl.textContent = `Total Pamana Applicants: ${rows.length}`;
 
         if (!rows.length) {
+            updateReportSummary({});
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
@@ -397,6 +434,16 @@
             `;
             return;
         }
+
+        // Calculate stats
+        const stats = {
+            'Total Pamana': rows.length,
+            'Female': rows.filter(r => r.is_female).length,
+            'Male': rows.filter(r => r.is_male).length,
+            'Private School': rows.filter(r => (r.school_type || r.school1_type || '').toLowerCase() === 'private' || r.is_private).length,
+            'Public School': rows.filter(r => (r.school_type || r.school1_type || '').toLowerCase() === 'public' || r.is_public).length
+        };
+        updateReportSummary(stats);
 
         tableBody.innerHTML = rows.map((applicant, index) => {
             const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
@@ -473,6 +520,7 @@
         if (countEl) countEl.textContent = `Total Wait Listed Applicants: ${rows.length}`;
 
         if (!rows.length) {
+            updateReportSummary({});
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="19" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
@@ -482,6 +530,16 @@
             `;
             return;
         }
+
+        // Calculate stats
+        const stats = {
+            'Total Waiting': rows.length,
+            'Female': rows.filter(r => r.is_female).length,
+            'Male': rows.filter(r => r.is_male).length,
+            'Private School': rows.filter(r => (r.school_type || r.school1_type || '').toLowerCase() === 'private' || r.is_private).length,
+            'Public School': rows.filter(r => (r.school_type || r.school1_type || '').toLowerCase() === 'public' || r.is_public).length
+        };
+        updateReportSummary(stats);
 
         tableBody.innerHTML = rows.map((applicant, index) => {
             const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
@@ -561,6 +619,7 @@
         if (countEl) countEl.textContent = `Total Disqualified Applicants: ${rows.length}`;
 
         if (!rows.length) {
+            updateReportSummary({});
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="13" class="border border-black px-4 py-8 text-center text-slate-600">
@@ -570,6 +629,15 @@
             `;
             return;
         }
+
+        // Calculate stats
+        const stats = {
+            'Total Disqualified': rows.length,
+            'Not IP': rows.filter(r => r.disqualification_not_ip || r.not_ip).length,
+            'Exceeded Income': rows.filter(r => r.disqualification_exceeded_income || r.exceeded_income).length,
+            'Incomplete Docs': rows.filter(r => r.disqualification_incomplete_docs || r.incomplete_docs).length
+        };
+        updateReportSummary(stats);
 
         tableBody.innerHTML = rows.map((applicant, index) => {
             const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
@@ -615,6 +683,7 @@
         if (countEl) countEl.textContent = `Total Replacements: ${rows.length}`;
 
         if (!rows.length) {
+            updateReportSummary({});
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="19" class="border border-black px-4 py-8 text-center text-slate-600">
@@ -624,6 +693,12 @@
             `;
             return;
         }
+
+        // Calculate stats
+        const stats = {
+            'Total Replacements': rows.length
+        };
+        updateReportSummary(stats);
 
         tableBody.innerHTML = rows.map((row, index) => {
             const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';

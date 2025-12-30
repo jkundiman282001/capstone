@@ -52,6 +52,13 @@
                 <div class="flex flex-col items-end gap-4">
                     @php
                         $appStatus = $basicInfo->application_status ?? 'pending';
+                        $grantStatus = $basicInfo->grant_status ?? null;
+                        $typeAssist = $basicInfo->type_assist ?? null;
+                        
+                        $isGrantee = $grantStatus === 'grantee';
+                        $isWaiting = $grantStatus === 'waiting';
+                        $isPamana = $typeAssist === 'Pamana';
+                        
                         $isValidated = $appStatus === 'validated';
                         $isRejected = $appStatus === 'rejected';
                     @endphp
@@ -59,8 +66,23 @@
                     <!-- Status Badge -->
                     <div class="text-right mb-4">
                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Application Status</p>
-                        <div class="px-6 py-3 rounded-2xl {{ $isRejected ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($isValidated ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gradient-to-r from-amber-500 to-orange-600') }} shadow-lg">
-                            <p class="text-2xl font-black text-white">{{ $isRejected ? 'Rejected' : ($isValidated ? 'Validated' : 'Pending') }}</p>
+                        <div class="px-6 py-3 rounded-2xl 
+                            @if($isRejected) bg-gradient-to-r from-red-500 to-rose-600
+                            @elseif($isGrantee) bg-gradient-to-r from-emerald-500 to-green-600
+                            @elseif($isWaiting) bg-gradient-to-r from-blue-500 to-cyan-600
+                            @elseif($isPamana) bg-gradient-to-r from-purple-500 to-indigo-600
+                            @elseif($isValidated) bg-gradient-to-r from-emerald-500 to-green-600
+                            @else bg-gradient-to-r from-amber-500 to-orange-600
+                            @endif shadow-lg">
+                            <p class="text-2xl font-black text-white">
+                                @if($isRejected) Rejected
+                                @elseif($isGrantee) Grantee
+                                @elseif($isWaiting) Waiting List
+                                @elseif($isPamana) Pamana
+                                @elseif($isValidated) Validated
+                                @else Pending
+                                @endif
+                            </p>
                         </div>
                     </div>
 
@@ -87,13 +109,18 @@
                                 Set to Pending
                             </button>
                             
+                            @php
+                                $isGrantee = ($basicInfo->grant_status === 'grantee' || $basicInfo->grant_status === 'waiting' || $basicInfo->type_assist === 'Pamana');
+                                $actionWord = $isGrantee ? 'Move to' : 'Add to';
+                            @endphp
+
                             @if($basicInfo->type_assist !== 'Pamana')
                                 @if($basicInfo->grant_status !== 'grantee')
                                     <button onclick="addToGrantees()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        Add to Grantees
+                                        {{ $actionWord }} Grantees
                                     </button>
                                 @else
                                     <div class="px-5 py-2.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-sm text-center border border-emerald-200 flex items-center gap-2">
@@ -107,7 +134,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        Add to Waiting
+                                        {{ $actionWord }} Waiting
                                     </button>
                                 @else
                                     <div class="px-5 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm text-center border border-blue-200 flex items-center gap-2">
@@ -120,7 +147,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                     </svg>
-                                    Move to Pamana
+                                    {{ $actionWord }} Pamana
                                 </button>
                             @else
                                 <div class="px-5 py-2.5 bg-purple-50 text-purple-700 font-bold rounded-xl text-sm text-center border border-purple-200 flex items-center gap-2">
@@ -129,11 +156,15 @@
                                 </div>
                             @endif
 
-                            <button onclick="showApplicationRejectionModal(true)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                            @php
+                                $isConfirmedGrantee = ($basicInfo->grant_status === 'grantee' || $basicInfo->type_assist === 'Pamana');
+                            @endphp
+
+                            <button onclick="showApplicationRejectionModal({{ $isConfirmedGrantee ? 'true' : 'false' }})" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                Return Application
+                                {{ $isConfirmedGrantee ? 'Terminate' : 'Return Application' }}
                             </button>
                         </div>
                     @else
@@ -316,7 +347,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        @if($typeKey === 'grades')
+                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA
@@ -339,7 +370,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        @if($typeKey === 'grades')
+                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA
@@ -367,7 +398,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        @if($typeKey === 'grades')
+                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA

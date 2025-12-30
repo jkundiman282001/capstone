@@ -7,20 +7,20 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ApplicationStatusUpdated extends Notification
+class DocumentStatusUpdated extends Notification
 {
     use Queueable;
 
+    protected $document;
     protected $status;
-    protected $rejectionReason;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($status, $rejectionReason = null)
+    public function __construct($document, $status)
     {
+        $this->document = $document;
         $this->status = $status;
-        $this->rejectionReason = $rejectionReason;
     }
 
     /**
@@ -41,25 +41,23 @@ class ApplicationStatusUpdated extends Notification
     public function toArray(object $notifiable): array
     {
         $message = '';
-        if ($this->status === 'validated') {
-            $message = 'Congratulations! Your scholarship application has been validated by the admin.';
+        $documentName = str_replace('_', ' ', ucwords($this->document->type, '_'));
+
+        if ($this->status === 'approved') {
+            $message = 'Your document "' . $documentName . '" has been approved by the admin.';
         } elseif ($this->status === 'rejected') {
-            $message = 'We regret to inform you that your scholarship application has been rejected.';
-            if ($this->rejectionReason) {
-                $message .= ' Reason: ' . $this->rejectionReason;
-            }
+            $message = 'Your document "' . $documentName . '" has been rejected by the admin.';
         } else {
-            $message = 'Your scholarship application status has been updated to pending.';
+            $message = 'The status of your document "' . $documentName . '" has been updated to pending.';
         }
         
         return [
-            'type' => 'application_status',
-            'title' => 'Application Status Updated',
+            'type' => 'document_status',
+            'title' => 'Document Status Updated',
             'message' => $message,
+            'document_id' => $this->document->id,
             'status' => $this->status,
-            'rejection_reason' => $this->rejectionReason,
-            'priority' => $this->status === 'rejected' ? 'urgent' : ($this->status === 'validated' ? 'high' : 'normal'),
+            'priority' => $this->status === 'rejected' ? 'urgent' : 'normal',
         ];
     }
 }
-

@@ -93,6 +93,14 @@ class AuthController extends Controller
         Auth::login($user);
         $user->sendEmailVerificationNotification();
 
+        // Notify the student
+        $user->notify(new \App\Notifications\TransactionNotification(
+            'general',
+            'Welcome to the Scholarship System!',
+            'Welcome to the Scholarship Management System! Thank you for registering. Please proceed to complete your application profile to begin your scholarship journey.',
+            'normal'
+        ));
+
         return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
     }
 

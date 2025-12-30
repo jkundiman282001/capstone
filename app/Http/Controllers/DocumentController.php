@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Document;
+use App\Notifications\TransactionNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -104,6 +105,14 @@ class DocumentController extends Controller
             $staff->notify(new \App\Notifications\StudentUploadedDocument($student, $documentType));
         }
 
+        // Notify the student
+        $student->notify(new TransactionNotification(
+            'transaction',
+            'Document Uploaded',
+            'You have successfully uploaded the ' . str_replace('_', ' ', $documentType) . ' document.',
+            'normal'
+        ));
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -140,6 +149,14 @@ class DocumentController extends Controller
         }
 
         $document->delete();
+
+        // Notify the student
+        Auth::user()->notify(new TransactionNotification(
+            'transaction',
+            'Document Deleted',
+            'You have successfully deleted the ' . str_replace('_', ' ', $document->type) . ' document.',
+            'normal'
+        ));
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

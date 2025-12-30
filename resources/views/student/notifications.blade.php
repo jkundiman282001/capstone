@@ -110,19 +110,7 @@
         }
     }
     
-    .stat-box {
-        background: white;
-        border: 2px solid #e2e8f0;
-        transition: all 0.3s ease;
-    }
-    
-    .stat-box:hover {
-        border-color: #f97316;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
-    }
-    
-    .filter-button {
+    .notification-list-item {
         transition: all 0.2s ease;
     }
     
@@ -190,22 +178,6 @@
                 </div>
             </div>
             
-            <!-- Stats -->
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <div class="stat-box rounded-lg p-4 text-center">
-                    <div class="text-2xl font-black text-slate-900 mb-1">{{ count($notifications) }}</div>
-                    <div class="text-xs font-bold text-slate-500 uppercase">Total</div>
-                </div>
-                <div class="stat-box rounded-lg p-4 text-center">
-                    <div class="text-2xl font-black text-orange-600 mb-1">{{ collect($notifications)->where('is_read', false)->count() }}</div>
-                    <div class="text-xs font-bold text-slate-500 uppercase">Unread</div>
-                </div>
-                <div class="stat-box rounded-lg p-4 text-center">
-                    <div class="text-2xl font-black text-red-600 mb-1">{{ collect($notifications)->where('priority', 'urgent')->count() }}</div>
-                    <div class="text-xs font-bold text-slate-500 uppercase">Urgent</div>
-                </div>
-            </div>
-            
             <!-- Search and Filters -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div class="relative flex-1 max-w-sm w-full">
@@ -228,11 +200,17 @@
                     <button onclick="filterNotifications('unread')" class="filter-button px-4 py-2 rounded-lg font-bold text-sm bg-white text-slate-700 border-2 border-slate-200" data-filter="unread">
                         Unread (<span id="count-unread">{{ collect($notifications)->where('is_read', false)->count() }}</span>)
                     </button>
-                    <button onclick="filterNotifications('urgent')" class="filter-button px-4 py-2 rounded-lg font-bold text-sm bg-white text-slate-700 border-2 border-slate-200" data-filter="urgent">
-                        Urgent (<span id="count-urgent">{{ collect($notifications)->where('priority', 'urgent')->count() }}</span>)
+                    <button onclick="filterNotifications('announcement')" class="filter-button px-4 py-2 rounded-lg font-bold text-sm bg-white text-slate-700 border-2 border-slate-200" data-filter="announcement">
+                        Announcements (<span id="count-announcement">{{ collect($notifications)->where('type', 'announcement')->count() }}</span>)
                     </button>
                     <button onclick="filterNotifications('application')" class="filter-button px-4 py-2 rounded-lg font-bold text-sm bg-white text-slate-700 border-2 border-slate-200" data-filter="application">
-                        Application (<span id="count-application">{{ collect($notifications)->where('type', 'application_status')->count() }}</span>)
+                        Application (<span id="count-application">{{ collect($notifications)->whereIn('type', ['application_status', 'document_status'])->count() }}</span>)
+                    </button>
+                    <button onclick="filterNotifications('transaction')" class="filter-button px-4 py-2 rounded-lg font-bold text-sm bg-white text-slate-700 border-2 border-slate-200" data-filter="transaction">
+                        Transactions (<span id="count-transaction">{{ collect($notifications)->whereIn('type', ['transaction', 'update', 'profile_update', 'general'])->count() }}</span>)
+                    </button>
+                    <button onclick="filterNotifications('urgent')" class="filter-button px-4 py-2 rounded-lg font-bold text-sm bg-white text-slate-700 border-2 border-slate-200" data-filter="urgent">
+                        Urgent (<span id="count-urgent">{{ collect($notifications)->where('priority', 'urgent')->count() }}</span>)
                     </button>
                 </div>
             </div>
@@ -262,9 +240,17 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                @elseif($notification['type'] === 'requirement_reminder')
+                                @elseif($notification['type'] === 'announcement')
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                                    </svg>
+                                @elseif($notification['type'] === 'document_status')
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                @elseif($notification['type'] === 'transaction' || $notification['type'] === 'update' || $notification['type'] === 'profile_update' || $notification['type'] === 'general')
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                     </svg>
                                 @else
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,8 +373,14 @@
                 case 'urgent':
                     show = priority === 'urgent';
                     break;
+                case 'announcement':
+                    show = type === 'announcement';
+                    break;
                 case 'application':
-                    show = type === 'application_status';
+                    show = ['application_status', 'document_status'].includes(type);
+                    break;
+                case 'transaction':
+                    show = ['transaction', 'update', 'profile_update', 'general'].includes(type);
                     break;
             }
             
@@ -589,13 +581,17 @@
         if (unreadEl) unreadEl.textContent = unread;
         if (urgentEl) urgentEl.textContent = urgent;
         if (applicationEl) applicationEl.textContent = application;
+
+        // Update layout notification badges
+        const desktopBadge = document.getElementById('notification-badge-desktop');
+        const mobileBadge = document.getElementById('notification-badge-mobile');
         
-        // Update stat boxes
-        const statBoxes = document.querySelectorAll('.stat-box');
-        if (statBoxes.length >= 3) {
-            statBoxes[0].querySelector('.text-2xl').textContent = total;
-            statBoxes[1].querySelector('.text-2xl').textContent = unread;
-            statBoxes[2].querySelector('.text-2xl').textContent = urgent;
+        if (unread === 0) {
+            if (desktopBadge) desktopBadge.style.display = 'none';
+            if (mobileBadge) mobileBadge.style.display = 'none';
+        } else {
+            if (desktopBadge) desktopBadge.style.display = 'flex';
+            if (mobileBadge) mobileBadge.style.display = 'flex';
         }
     }
     

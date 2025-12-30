@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\BasicInfo;
 use App\Models\Document;
 use App\Models\ApplicationDraft;
+use App\Notifications\TransactionNotification;
 
 class StudentController extends Controller
 {
@@ -18,6 +19,7 @@ class StudentController extends Controller
         $hasApplied = false;
         $applicationStatus = 'pending';
         $rejectionReason = null;
+        $grantStatus = null;
         
         // Check if user is authenticated
         if ($request->user()) {
@@ -28,6 +30,7 @@ class StudentController extends Controller
                 $basicInfo = BasicInfo::where('user_id', $request->user()->id)->first();
                 $applicationStatus = $basicInfo->application_status ?? 'pending';
                 $rejectionReason = $basicInfo->application_rejection_reason ?? null;
+                $grantStatus = $basicInfo->grant_status ? strtolower(trim($basicInfo->grant_status)) : null;
             }
         }
 
@@ -66,7 +69,7 @@ class StudentController extends Controller
             ->take(6) // Show latest 6 announcements
             ->get();
 
-        return view('student.dashboard', compact('application', 'hasApplied', 'applicationStatus', 'rejectionReason', 'announcements', 'stats'));
+        return view('student.dashboard', compact('application', 'hasApplied', 'applicationStatus', 'rejectionReason', 'grantStatus', 'announcements', 'stats'));
     }
 
     public function apply(Request $request)
@@ -167,6 +170,14 @@ class StudentController extends Controller
             foreach (\App\Models\Staff::all() as $staff) {
                 $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
             }
+
+            // Notify the student
+            $user->notify(new TransactionNotification(
+                'transaction',
+                'Renewal Submitted',
+                'Your scholarship renewal application has been successfully submitted and is now pending review.',
+                'normal'
+            ));
 
             $message = 'Your scholarship renewal application has been submitted!';
             $request->session()->flash('status', $message);
@@ -405,6 +416,14 @@ class StudentController extends Controller
             $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
         }
 
+        // Notify the student
+        $user->notify(new TransactionNotification(
+            'transaction',
+            'Application Submitted',
+            'Your scholarship application has been successfully submitted and is now pending review.',
+            'normal'
+        ));
+
         return redirect()->route('student.dashboard');
     }
 
@@ -596,8 +615,9 @@ class StudentController extends Controller
 
         // Get GPA from basic_info table (entered by admin)
         $currentGPA = $basicInfo ? ($basicInfo->gpa ?? null) : null;
+        $grantStatus = $basicInfo ? ($basicInfo->grant_status ?? null) : null;
 
-        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGPA'));
+        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGPA', 'grantStatus'));
     }
 
     public function performance(Request $request)
@@ -1063,6 +1083,14 @@ class StudentController extends Controller
         // Update user profile
         $user->update(['profile_pic' => $path]);
 
+        // Notify the student
+        $user->notify(new \App\Notifications\TransactionNotification(
+            'profile_update',
+            'Profile Picture Updated',
+            'Your profile picture has been successfully updated in your account settings.',
+            'normal'
+        ));
+
         return response()->json([
             'success' => true,
             'message' => 'Profile picture updated successfully',
@@ -1105,6 +1133,14 @@ class StudentController extends Controller
             ]);
         }
 
+        // Notify the student
+        $user->notify(new \App\Notifications\TransactionNotification(
+            'profile_update',
+            'Profile Information Updated',
+            'Your personal information has been successfully updated in your profile.',
+            'normal'
+        ));
+
         return back()->with('success', 'Profile updated successfully!');
     }
 
@@ -1134,6 +1170,14 @@ class StudentController extends Controller
         // Update GPA in basic_info table
         $basicInfo->gpa = $validated['gpa'];
         $basicInfo->save();
+        
+        // Notify the student
+        $user->notify(new \App\Notifications\TransactionNotification(
+            'update',
+            'GPA Updated',
+            'Your academic GPA has been successfully updated to ' . $validated['gpa'] . '.',
+            'normal'
+        ));
         
         return response()->json([
             'success' => true,

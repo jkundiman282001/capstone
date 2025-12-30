@@ -44,7 +44,7 @@
 @endpush
 
 @push('head-scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 @endpush
 
@@ -58,8 +58,14 @@
     $applicationStatus = $applicationStatus ?? 'pending';
     $isRejected = $applicationStatus === 'rejected';
     $isValidated = $applicationStatus === 'validated';
+    $grantStatus = $grantStatus ?? optional($student->basicInfo)->grant_status;
+    $isGrantee = $grantStatus === 'grantee';
+    $isWaitingList = $grantStatus === 'waiting_list';
     
-    if ($isRejected) {
+    if ($isGrantee) {
+        $statusLabel = 'Grantee';
+        $statusClasses = 'text-green-700 bg-green-50 border-green-200';
+    } elseif ($isRejected) {
         $statusLabel = 'Rejected';
         $statusClasses = 'text-red-700 bg-red-50 border-red-200';
     } elseif ($isValidated) {
@@ -123,12 +129,32 @@
                     </div>
 
                     <div class="flex flex-wrap justify-center gap-2 mb-8">
-                        <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm">IP Scholar</span>
-                        @if(optional($student->basicInfo)->grant_status === 'grantee')
-                        <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>
+                        @if($isGrantee)
+                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-600 border border-green-100 shadow-sm flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                                    <circle cx="12" cy="8" r="6"/>
+                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                                </svg>
+                                Official Grantee
+                            </span>
+                        @elseif($isWaitingList)
+                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                Waiting List
+                            </span>
                         @endif
-                        @if(optional($student->basicInfo)->current_year_level)
-                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $student->basicInfo->current_year_level }} Year</span>
+                        
+                        <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm">IP Scholar</span>
+                        @if($isGrantee)
+                            @if($courseName !== 'Course not set')
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>
+                            @endif
+                            @if(optional($student->basicInfo)->current_year_level)
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $student->basicInfo->current_year_level }} Year</span>
+                            @endif
                         @endif
                     </div>
                     
@@ -142,6 +168,54 @@
 
             <!-- Right Content -->
             <div class="lg:col-span-8 space-y-8">
+                
+                @if($isGrantee)
+                <!-- Grantee Success Banner -->
+                <div class="glass-card rounded-[2rem] shadow-xl shadow-green-200/40 overflow-hidden border-2 border-green-200 mb-8">
+                    <div class="px-8 py-6 bg-gradient-to-r from-green-50 to-emerald-50">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                                    <circle cx="12" cy="8" r="6"/>
+                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-black text-green-900 mb-1">Official Scholarship Grantee</h3>
+                                <p class="text-sm text-green-800 mb-3 leading-relaxed">Congratulations! You are officially recognized as a scholarship grantee. Your hard work and dedication have been rewarded.</p>
+                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/60 rounded-lg border border-green-200">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    <span class="text-xs font-bold text-green-700 uppercase tracking-wider">Active Grantee Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                @if($isWaitingList)
+                <!-- Waiting List Information Banner -->
+                <div class="glass-card rounded-[2rem] shadow-xl shadow-blue-200/40 overflow-hidden border-2 border-blue-200 mb-8">
+                    <div class="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-black text-blue-900 mb-1">Scholarship Waiting List</h3>
+                                <p class="text-sm text-blue-800 mb-3 leading-relaxed">Your application has been validated and placed on the official waiting list. You will be notified immediately if a slot becomes available.</p>
+                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/60 rounded-lg border border-blue-200">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">Waiting List Priority Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
                 
                 @if($isRejected && isset($rejectionReason) && $rejectionReason)
                     <!-- Rejection Alert Banner -->
@@ -422,11 +496,6 @@
 
 @push('scripts')
 <script>
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
-    } else {
-        console.warn('Lucide icons library not loaded – skipping icon replacement.');
-    }
     // --- Cropper Logic ---
     let cropper;
     let selectedFile;
@@ -525,6 +594,10 @@
 
     // Show guide on page load if not dismissed and year level is empty
     document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+
         const guide = document.getElementById('year-level-guide');
         const yearLevelSelect = document.getElementById('current-year-level-select');
         

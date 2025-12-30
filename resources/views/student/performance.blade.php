@@ -32,56 +32,53 @@
         $isStudentValidated = (bool)$priorityStatistics['is_student_validated'];
     }
     
-    // ============================================
-    // ACCEPTANCE CHANCE CALCULATION (in view)
-    // ============================================
-    // Improved calculation that handles cases where slots > applicants
-    // Uses applicants waiting for approval (validated but not yet grantees)
-    // Rules:
-    // 1. If student is a grantee → 100%
-    // 2. If slots_left >= total_applicants_waiting:
-    //    - If validated: 95% (high but not 100% due to remaining uncertainty)
-    //    - If not validated: 85% (lower due to validation requirement)
-    // 3. Otherwise → (slots_left / total_applicants_waiting) * 100
-    // ============================================
-    
-    // Initialize acceptance chance
-    $acceptanceChance = null;
-    
     // Check if student is a grantee (handle case variations)
     // Check both from priorityStatistics and directly from basicInfo
     $grantStatusFromBasicInfo = isset($basicInfo) && $basicInfo ? ($basicInfo->grant_status ?? null) : null;
     $isGrantee = ($studentGrantStatus && strtolower(trim((string)$studentGrantStatus)) === 'grantee') 
                  || ($grantStatusFromBasicInfo && strtolower(trim((string)$grantStatusFromBasicInfo)) === 'grantee');
+
+    // Tracker configuration - move up so it can be used in the scholar bar
+    $trackerStatus = strtolower($basicInfo->application_status ?? 'submitted');
+    $trackerSteps = [
+        'submitted' => ['label' => 'Submitted', 'color' => 'bg-emerald-500'],
+        'review' => ['label' => 'Review', 'color' => 'bg-emerald-500'],
+        'validation' => ['label' => 'Validation', 'color' => 'bg-orange-500'],
+        'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600']
+    ];
+    $currentStepIndex = 0;
+    if ($trackerStatus === 'validated') $currentStepIndex = 2;
+    if ($isGrantee) $currentStepIndex = 3;
+
+    // ============================================
+    // ACCEPTANCE CHANCE CALCULATION
+    // ============================================
+    
+    // Initialize acceptance chance
+    $acceptanceChance = null;
     
     // Calculate acceptance chance
     try {
         // CASE 1: Student is a grantee → set to null (will show "Grantee" instead)
         if ($isGrantee) {
-            $acceptanceChance = null; // Don't show percentage, show "Grantee" instead
+            $acceptanceChance = null; 
         }
         // CASE 2: If validated but not yet grantee, calculate based on slots left and total applicants waiting
-        // Use $isStudentValidated (which now includes fallback check from basicInfo)
         elseif ($isStudentValidated && !$isGrantee) {
             if ($slotsLeft <= 0) {
-                // No slots available
                 $acceptanceChance = 0.0;
             } elseif ($totalApplicants > 0) {
-                // Simple ratio calculation: (slots_left / total_applicants_waiting) * 100
                 $acceptanceChance = ($slotsLeft / $totalApplicants) * 100;
                 $acceptanceChance = round($acceptanceChance, 2);
                 $acceptanceChance = min(100.0, max(0.0, $acceptanceChance));
             } else {
-                // No applicants waiting for approval yet
                 $acceptanceChance = 0.0;
             }
         }
-        // CASE 3: Not validated yet
         else {
-            $acceptanceChance = null; // Don't show percentage if not validated
+            $acceptanceChance = null;
         }
         
-        // Final validation: ensure it's always a number between 0 and 100 or null
         if ($acceptanceChance !== null) {
             if (!is_numeric($acceptanceChance) || $acceptanceChance < 0) {
                 $acceptanceChance = 0.0;
@@ -92,19 +89,13 @@
         }
         
     } catch (\Exception $e) {
-        // Log error and default to null (will show "Not available yet")
         \Log::error('Error calculating acceptance chance in view', [
             'student_id' => auth()->id(),
-            'error' => $e->getMessage(),
-            'grant_status' => $studentGrantStatus,
-            'is_grantee' => $isGrantee,
-            'slots_left' => $slotsLeft,
-            'total_applicants_waiting' => $totalApplicants
+            'error' => $e->getMessage()
         ]);
         $acceptanceChance = null;
     }
     
-    // Legacy chance percentage calculation (kept for backward compatibility)
     $chancePercentage = $acceptanceChance;
 @endphp
 
@@ -188,7 +179,13 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-bold text-white">Scholarship Acceptance Chance</h3>
+            <h3 class="text-lg font-bold text-white">
+              @if($isGranteeCheck)
+                Scholarship Grant Status
+              @else
+                Scholarship Acceptance Chance
+              @endif
+            </h3>
             <p class="text-xs text-green-100">
               @if($isGranteeCheck)
                 Your scholarship grant status
@@ -208,9 +205,10 @@
                 <span class="text-2xl font-black text-green-600 block leading-tight">Grantee</span>
               </div>
             </div>
-            <p class="text-sm font-semibold text-slate-700 mb-3">
+            <p class="text-sm font-semibold text-slate-700 mb-6">
               Congratulations! You are a scholarship grantee.
             </p>
+
           @else
             <!-- Show percentage for non-grantees -->
             <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 border-4 border-green-300 mb-4 shadow-lg">
@@ -314,45 +312,78 @@
   </div>
 </div>
 
-<!-- Show Type of Assistance if application is complete -->
-@if(isset($basicInfo) && $basicInfo)
-        <div class="max-w-7xl mx-auto px-6 pt-6">
-            <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 rounded mb-4">
-                <strong>Type of Assistance:</strong>
-                <span class="font-semibold">
-                    {{ $basicInfo->type_assist ? $basicInfo->type_assist : 'Not specified' }}
-                </span>
+<!-- Unified Performance Content -->
+<div class="max-w-7xl mx-auto px-6 space-y-8 pb-12">
+    <!-- Top Bar: Type of Assistance -->
+    @if(isset($basicInfo) && $basicInfo)
+        <div class="bg-orange-100/80 backdrop-blur-sm border-l-4 border-orange-500 text-orange-700 p-4 rounded-2xl shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-200/50 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-sm font-bold uppercase tracking-wider opacity-70">Type of Assistance</span>
+                    <p class="text-lg font-black tracking-tight">{{ $basicInfo->type_assist ? $basicInfo->type_assist : 'Not specified' }}</p>
+                </div>
             </div>
         </div>
     @endif
 
-<!-- Event Participation & Attendance -->
-<!-- Compliance Checklist & Upload Documents (Glassmorphism Centered) -->
-<div class="flex justify-center items-start w-full py-12">
-  <section class="backdrop-blur-lg bg-white/60 shadow-2xl rounded-3xl p-10 border border-white/30 max-w-5xl w-full flex flex-col space-y-10 select-none transition-all">
-    <h3 class="text-3xl font-black text-gray-900 mb-4 flex items-center gap-3 tracking-tight drop-shadow">
-      <svg class="w-9 h-9 text-orange-500" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M16 3v4a1 1 0 0 0 1 1h4"/></svg>
-      Compliance Checklist & Uploads
-    </h3>
-    
-    <!-- File Upload Notice -->
-    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-6">
-      <div class="flex items-start">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div class="ml-3">
-          <h4 class="text-sm font-medium text-blue-800">File Upload Guidelines</h4>
-          <div class="mt-1 text-sm text-blue-700">
-            <p><strong>Accepted Formats:</strong> You can upload documents as <strong>PDF files</strong> or <strong>image files</strong> (JPG, JPEG, PNG, GIF).</p>
-            <p class="mt-1"><strong>Maximum Size:</strong> 10MB per file</p>
-            <p class="mt-1 text-xs text-blue-600"><em>Tip: For best results, ensure images are clear and readable. PDF format is recommended for multi-page documents.</em></p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+        <!-- Main Column: Compliance & Uploads -->
+        <div class="w-full lg:w-2/3 space-y-8">
+            <section class="backdrop-blur-lg bg-white/70 shadow-2xl rounded-[2.5rem] p-8 md:p-10 border border-white/40 flex flex-col space-y-8 select-none transition-all">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <h3 class="text-3xl font-black text-slate-900 flex items-center gap-4 tracking-tight">
+                        <div class="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-200">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <path d="M16 3v4a1 1 0 0 0 1 1h4"/>
+                            </svg>
+                        </div>
+                        Compliance Checklist
+                    </h3>
+
+                    @php
+                        $totalRequired = count($requiredTypes);
+                        $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
+                        $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
+                    @endphp
+
+                    <div class="flex items-center gap-4 bg-white/50 backdrop-blur-sm p-2 pr-6 rounded-2xl border border-white shadow-sm">
+                        <div class="relative w-12 h-12">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle class="text-slate-200" stroke-width="4" stroke="currentColor" fill="transparent" r="20" cx="24" cy="24" />
+                                <circle class="text-orange-500 transition-all duration-1000" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="{{ 125.6 * (1 - $progressPercent / 100) }}" stroke-linecap="round" stroke="currentColor" fill="transparent" r="20" cx="24" cy="24" />
+                            </svg>
+                            <span class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-700">{{ $progressPercent }}%</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Overall Progress</p>
+                            <p class="text-sm font-black text-slate-800">{{ $approvedCount }} of {{ $totalRequired }} Verified</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- File Upload Notice -->
+                <div class="bg-blue-50/50 backdrop-blur-sm border-l-4 border-blue-500 p-6 rounded-2xl shadow-sm">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+                            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-blue-900 mb-1">File Upload Guidelines</h4>
+                            <div class="text-xs text-blue-700 space-y-1">
+                                <p><strong>Accepted Formats:</strong> PDF, JPG, JPEG, PNG, GIF</p>
+                                <p><strong>Maximum Size:</strong> 10MB per file</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
     @if(session('success'))
       <div class="bg-green-200/80 text-green-900 rounded-xl p-3 mb-2 text-center font-bold shadow">{{ session('success') }}</div>
     @endif
@@ -530,6 +561,115 @@
     </ul>
   </section>
 </div>
+
+        <!-- Side Column: Application Tracker -->
+        <aside class="w-full lg:w-1/3 space-y-8 sticky top-24">
+            <!-- Status Card -->
+            <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/40 shadow-2xl overflow-hidden relative group transition-all hover:shadow-orange-200/50">
+                <div class="absolute top-0 right-0 p-6">
+                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest border border-green-200 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        {{ $basicInfo->application_status ?? 'Pending' }}
+                    </span>
+                </div>
+
+                <h4 class="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                    </div>
+                    Application Tracker
+                </h4>
+
+                <!-- Stepper -->
+                <div class="relative flex justify-between mb-12 px-2">
+                    <!-- Progress Line -->
+                    <div class="absolute top-4 left-0 w-full h-0.5 bg-slate-100 -z-0"></div>
+                    
+                    @foreach($trackerSteps as $key => $step)
+                        <div class="relative z-10 flex flex-col items-center gap-2">
+                            <div class="w-8 h-8 rounded-full {{ $loop->index <= $currentStepIndex ? $step['color'] : 'bg-slate-200' }} border-4 border-white shadow-md flex items-center justify-center transition-all duration-500 {{ $loop->index === $currentStepIndex ? 'ring-4 ring-'.explode('-', $step['color'])[1].'-100 scale-110' : '' }}">
+                                @if($loop->index < $currentStepIndex)
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                @endif
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-tighter {{ $loop->index <= $currentStepIndex ? 'text-slate-900' : 'text-slate-400' }}">{{ $step['label'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</h5>
+                    </div>
+                    
+                    @if($isGrantee)
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Scholarship Granted</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Congratulations! You are now an official scholarship grantee."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">Official</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($isStudentValidated)
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Application Validated</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been reviewed and validated."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">Success</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @foreach($documents->where('status', 'approved')->sortByDesc('updated_at')->take(4) as $doc)
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/50 group-hover/item:bg-emerald-500 transition-colors z-10"></div>
+                            @if(!$loop->last) <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div> @endif
+                        </div>
+                        <div class="flex-1 {{ !$loop->last ? 'pb-8' : '' }}">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Document Approved</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $doc->updated_at->format('M d, h:i A') }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-1 italic">"{{ $requiredTypes[$doc->type] ?? $doc->type }} has been verified."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">Success</span>
+                        </div>
+                    </div>
+                    @endforeach
+
+                    @if($documents->where('status', 'approved')->count() == 0 && !$isStudentValidated)
+                        <div class="text-center py-8">
+                            <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                                <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-xs font-bold text-slate-400">No recent activity</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </aside>
+    </div>
 </main>
 </div>
 @endsection 

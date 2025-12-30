@@ -10,6 +10,9 @@ use App\Models\Address;
 use App\Models\Document;
 use App\Models\Ethno;
 use App\Models\Announcement;
+use App\Notifications\AnnouncementNotification;
+use App\Notifications\DocumentStatusUpdated;
+use App\Notifications\TransactionNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -141,7 +144,11 @@ class StaffDashboardController extends Controller
             return $user->basicInfo !== null;
         })->groupBy(function($user) {
             $status = optional($user->basicInfo)->application_status ?? 'pending';
-            if ($status === 'validated') {
+            $grantStatus = optional($user->basicInfo)->grant_status ?? null;
+            
+            if ($grantStatus === 'grantee') {
+                return 'Grantee';
+            } elseif ($status === 'validated') {
                 return 'Validated';
             } elseif ($user->basicInfo->type_assist) {
                 return 'Applied - Pending';
@@ -154,10 +161,10 @@ class StaffDashboardController extends Controller
             'labels' => $statusBreakdown->keys()->toArray(),
             'datasets' => [[
                 'backgroundColor' => [
-                    'rgba(16, 185, 129, 0.9)',  // Green for Validated
+                    'rgba(16, 185, 129, 0.9)',  // Green for Grantee/Validated
+                    'rgba(59, 130, 246, 0.9)',   // Blue for Validated (if separate)
                     'rgba(245, 158, 66, 0.9)',  // Orange for Applied
                     'rgba(239, 68, 68, 0.9)',   // Red for Not Applied
-                    'rgba(59, 130, 246, 0.9)'   // Blue
                 ],
                 'borderColor' => ['#ffffff', '#ffffff', '#ffffff', '#ffffff'],
                 'borderWidth' => 3,
@@ -1141,6 +1148,9 @@ class StaffDashboardController extends Controller
         
         $document->update($updateData);
         
+        // Notify the student
+        $document->user->notify(new DocumentStatusUpdated($document, $validated['status']));
+        
         return response()->json([
             'success' => true,
             'message' => 'Document status updated successfully',
@@ -1157,8 +1167,8 @@ class StaffDashboardController extends Controller
         $status = $request->input('status');
         
         if ($status === 'rejected') {
-            // For rejection, check if it's termination (grantee) or regular rejection
-            $isTermination = ($basicInfo->application_status === 'validated' && $basicInfo->grant_status === 'grantee');
+            // For rejection, check if it's termination (grantee or Pamana) or regular rejection
+            $isTermination = ($basicInfo->application_status === 'validated' && ($basicInfo->grant_status === 'grantee' || $basicInfo->type_assist === 'Pamana'));
             
             if ($isTermination) {
                 // Termination requires detailed reason
@@ -1207,10 +1217,10 @@ class StaffDashboardController extends Controller
         }
         
         // Determine if this is a rejection or termination
-        // Termination: Applicant was validated (confirmed) and is a grantee
+        // Termination: Applicant was validated (confirmed) and is a grantee or Pamana
         // Rejection: Applicant was NOT validated (not confirmed) yet
-        $isTermination = ($basicInfo->application_status === 'validated' && $basicInfo->grant_status === 'grantee');
-        $isRejection = ($basicInfo->application_status !== 'validated' || $basicInfo->grant_status !== 'grantee');
+        $isTermination = ($basicInfo->application_status === 'validated' && ($basicInfo->grant_status === 'grantee' || $basicInfo->type_assist === 'Pamana'));
+        $isRejection = !$isTermination;
         
         // Prepare update data
         $updateData = [
@@ -1303,6 +1313,14 @@ class StaffDashboardController extends Controller
             'type_assist' => 'Pamana'
         ]);
         
+        // Notify the student
+        $user->notify(new TransactionNotification(
+            'update',
+            'Application Moved to Pamana',
+            'Your scholarship application has been successfully updated to the Pamana category.',
+            'normal'
+        ));
+        
         return response()->json([
             'success' => true,
             'message' => 'Application moved to Pamana successfully'
@@ -1335,6 +1353,14 @@ class StaffDashboardController extends Controller
             'grant_status' => 'grantee'
         ]);
         
+        // Notify the student
+        $user->notify(new TransactionNotification(
+            'update',
+            'Scholarship Grant Confirmed',
+            'Congratulations! Your scholarship grant has been officially confirmed, and you are now part of our scholarship grantees.',
+            'high'
+        ));
+        
         return response()->json([
             'success' => true,
             'message' => 'Applicant added to Grantees successfully'
@@ -1366,6 +1392,14 @@ class StaffDashboardController extends Controller
         $basicInfo->update([
             'grant_status' => 'waiting'
         ]);
+        
+        // Notify the student
+        $user->notify(new TransactionNotification(
+            'update',
+            'Added to Waiting List',
+            'Your application has been placed on the waiting list. We will notify you if a slot becomes available.',
+            'normal'
+        ));
         
         return response()->json([
             'success' => true,
@@ -2591,6 +2625,9 @@ class StaffDashboardController extends Controller
                     // keep grant_status = 'grantee' to identify as terminated (per existing logic)
                 ]);
 
+                // Notify terminated student
+                $replacedUser->notify(new \App\Notifications\ApplicationStatusUpdated('rejected', trim($validated['replacement_reason'])));
+
                 // 2) Promote the waiting applicant to grantee
                 $promoteData = [
                     'grant_status' => 'grantee',
@@ -2604,6 +2641,14 @@ class StaffDashboardController extends Controller
                     $promoteData['grant_2nd_sem'] = false;
                 }
                 $replacementBasic->update($promoteData);
+
+                // Notify promoted student
+                $replacementUser->notify(new TransactionNotification(
+                    'update',
+                    'Promoted to Grantee',
+                    'Congratulations! You have been promoted from the waiting list and are now officially a scholarship grantee.',
+                    'high'
+                ));
 
                 // 3) Record the replacement event
                 $replacement = \App\Models\Replacement::create([
@@ -2907,6 +2952,12 @@ class StaffDashboardController extends Controller
             'image_path' => $imagePath,
             'created_by' => $user->id,
         ]);
+
+        // Notify all students
+        $students = User::all();
+        foreach ($students as $student) {
+            $student->notify(new AnnouncementNotification($announcement));
+        }
 
         return response()->json([
             'success' => true,

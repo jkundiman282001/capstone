@@ -375,6 +375,8 @@
 @endif
 
 <!-- Announcements Section -->
+
+<!-- Announcements Section -->
 <section id="announcements-section" class="py-20 px-6 bg-gradient-to-br from-slate-50 via-white to-orange-50/30">
     <div class="max-w-6xl mx-auto">
         <!-- Section Header -->
@@ -472,4 +474,3 @@
 </script>
 @endpush
 @endif
-

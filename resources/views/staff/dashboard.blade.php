@@ -66,11 +66,19 @@
                         </div>
                         <ul class="max-h-80 overflow-y-auto">
                             @forelse($notifications as $notif)
-                                <li class="px-5 py-4 border-b border-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 cursor-pointer transition-all duration-200 group">
+                                @php
+                                    $notifUrl = '#';
+                                    if (isset($notif->data['student_id'])) {
+                                        $notifUrl = route('staff.applications.view', $notif->data['student_id']);
+                                    } elseif (isset($notif->data['type']) && $notif->data['type'] === 'announcement') {
+                                        $notifUrl = route('staff.announcements.index');
+                                    }
+                                @endphp
+                                <li onclick="window.location.href='{{ $notifUrl }}'" class="px-5 py-4 border-b border-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 cursor-pointer transition-all duration-200 group">
                                     <div class="flex items-start gap-3">
                                         <div class="w-2 h-2 bg-orange-500 rounded-full mt-1.5 group-hover:animate-pulse"></div>
                                         <div class="flex-1">
-                                            <div class="text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">{{ $notif->data['message'] ?? '' }}</div>
+                                            <div class="text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">{{ $notif->data['message'] ?? ($notif->data['title'] ?? '') }}</div>
                                             <div class="flex items-center gap-2 mt-1.5">
                                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -132,21 +140,21 @@
         </div>
         <div class="space-y-3">
             @if($newApplicants > 0)
-            <div class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+            <div onclick="window.location.href='{{ route('staff.applicants.list') }}'" class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group">
                 <div class="w-3 h-3 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50 animate-pulse"></div>
-                <span class="text-slate-700 font-semibold">{{ $newApplicants }} new scholarship applications require review</span>
+                <span class="text-slate-700 font-semibold group-hover:text-blue-600">{{ $newApplicants }} new scholarship applications require review</span>
             </div>
             @endif
             @if(collect($pendingRequirements)->where('is_overdue', true)->count() > 0)
-            <div class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+            <div onclick="window.location.href='{{ route('staff.applicants.list') }}'" class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group">
                 <div class="w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-pulse"></div>
-                <span class="text-slate-700 font-semibold">{{ collect($pendingRequirements)->where('is_overdue', true)->count() }} requirements are overdue</span>
+                <span class="text-slate-700 font-semibold group-hover:text-red-600">{{ collect($pendingRequirements)->where('is_overdue', true)->count() }} requirements are overdue</span>
             </div>
             @endif
             @if(collect($pendingRequirements)->where('priority', 1)->count() > 0)
-            <div class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+            <div onclick="window.location.href='{{ route('staff.applicants.list') }}'" class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group">
                 <div class="w-3 h-3 bg-orange-500 rounded-full shadow-lg shadow-orange-500/50"></div>
-                <span class="text-slate-700 font-semibold">{{ collect($pendingRequirements)->where('priority', 1)->count() }} priority documents pending</span>
+                <span class="text-slate-700 font-semibold group-hover:text-orange-600">{{ collect($pendingRequirements)->where('priority', 1)->count() }} priority documents pending</span>
             </div>
             @endif
             <div class="flex items-center space-x-3 text-sm bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
