@@ -1,0 +1,14 @@
+php: 8.2
+
+database: mysql
+
+cache: redis
+
+storage: s3
+
+build:
+  - npm install
+  - npm run build
+
+deploy:
+  - php artisan migrate --force

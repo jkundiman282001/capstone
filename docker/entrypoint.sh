@@ -1,15 +1,10 @@
 #!/bin/bash
 
-# Set proper permissions for storage and cache directories
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Exit immediately if a command exits with a non-zero status
+set -e
 
-# Ensure storage subdirectories exist
-mkdir -p /var/www/html/storage/framework/{sessions,views,cache}
-mkdir -p /var/www/html/storage/logs
-chown -R www-data:www-data /var/www/html/storage
-chmod -R 775 /var/www/html/storage
+# Run migrations if needed (optional for local, but good to have)
+# php artisan migrate --force
 
 # Start PHP-FPM
 exec php-fpm
-
