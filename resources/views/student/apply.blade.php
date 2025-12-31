@@ -2521,19 +2521,23 @@
                 // Copy mailing address values
                 copyMailingAddressTo(targetPrefix);
                 
-                // Disable target fields
+                // Make target fields read-only/non-interactive but still enabled so they are submitted
                 if (addressFields) {
                     addressFields.querySelectorAll('select, input:not([readonly])').forEach(field => {
-                        field.disabled = true;
-                        field.classList.add('bg-slate-50', 'cursor-not-allowed');
+                        field.style.pointerEvents = 'none';
+                        field.style.backgroundColor = '#f8fafc'; // bg-slate-50
+                        field.tabIndex = -1;
+                        field.setAttribute('aria-disabled', 'true');
                     });
                 }
             } else {
                 // Enable target fields
                 if (addressFields) {
                     addressFields.querySelectorAll('select, input:not([readonly])').forEach(field => {
-                        field.disabled = false;
-                        field.classList.remove('bg-slate-50', 'cursor-not-allowed');
+                        field.style.pointerEvents = 'auto';
+                        field.style.backgroundColor = '';
+                        field.tabIndex = 0;
+                        field.removeAttribute('aria-disabled');
                     });
                 }
             }

@@ -300,7 +300,7 @@
         <!-- Overlay for mobile -->
         <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/50 z-30 md:hidden" onclick="toggleSidebar()"></div>
         <!-- Main Content -->
-        <main class="flex-1 min-h-screen min-w-0 overflow-x-hidden">
+        <main class="flex-1 min-h-screen min-w-0">
             <div class="p-0 min-w-0">
                 @yield('content')
             </div>

@@ -1,0 +1,55 @@
+// 1. DEFINE CRITERIA WEIGHTS (Total = 100%)
+WEIGHT_ACADEMIC = 0.30
+WEIGHT_FINANCIAL = 0.30
+WEIGHT_IP_STATUS = 0.20
+WEIGHT_AWARDS = 0.10
+WEIGHT_SOCIAL_RESP = 0.10
+
+FUNCTION calculate_applicant_score(applicant):
+    // --- Step A: Calculate Component Scores ---
+    
+    // 1. Academic Score (0 to 10)
+    // Map GPA (1.0 best, 5.0 worst) to 0-10 scale
+    gpa = applicant.basic_info.gpa
+    academic_rubric = ((5.0 - gpa) / 4.0) * 10
+    
+    // 2. Financial Score (Binary: 0 or 1)
+    // Based on Income Tax Return (ITR) document approval
+    financial_rubric = (applicant.itr_document.status == "approved") ? 1.0 : 0.0
+    
+    // 3. IP Status Score (0 to 12)
+    // Base score (0-10) from documents + 2 point bonus for priority groups
+    base_ip = evaluate_ip_documents(applicant.documents)
+    is_priority = applicant.ethnicity IN ["B'laan", "Bagobo", "Kalagan", "Kaulo"]
+    ip_rubric = base_ip + (is_priority ? 2 : 0)
+    
+    // 4. Awards Score (0 to 10)
+    // Map honors (e.g., Valedictorian=10, With Honors=7) to score
+    awards_rubric = map_rank_to_score(applicant.education.highest_rank)
+    
+    // 5. Social Responsibility Score (0 to 10)
+    // Derived from applicant's essay and community service answers
+    social_rubric = applicant.school_pref.essay_score
+
+    // --- Step B: Normalize Scores (0.0 to 1.0) ---
+    norm_academic = academic_rubric / 10
+    norm_financial = financial_rubric / 1 // Already binary
+    norm_ip = ip_rubric / 12              // Max is 12 due to bonus
+    norm_awards = awards_rubric / 10
+    norm_social = social_rubric / 10
+
+    // --- Step C: Calculate Weighted Final Score ---
+    weighted_sum = (norm_academic * WEIGHT_ACADEMIC) +
+                   (norm_financial * WEIGHT_FINANCIAL) +
+                   (norm_ip * WEIGHT_IP_STATUS) +
+                   (norm_awards * WEIGHT_AWARDS) +
+                   (norm_social * WEIGHT_SOCIAL_RESP)
+
+    final_score = weighted_sum * 100
+    
+    RETURN round(final_score, 2)
+
+// --- Step D: Ranking Policy ---
+SORT applicants BY:
+    1. final_score (DESCENDING)
+    2. submission_date (ASCENDING) // Tie-breaker: First-come, first-served

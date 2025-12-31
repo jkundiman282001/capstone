@@ -106,6 +106,34 @@ class StudentController extends Controller
 
         $request->validate([
             'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
+            // Basic Info
+            'birthdate' => 'required_if:is_renewal,0|date',
+            'birthplace' => 'required_if:is_renewal,0|string|max:255',
+            'gender' => 'required_if:is_renewal,0|string|in:Male,Female',
+            'civil_status' => 'required_if:is_renewal,0|string|max:50',
+            
+            // Addresses
+            'mailing_barangay' => 'required_if:is_renewal,0|string|max:255',
+            'mailing_municipality' => 'required_if:is_renewal,0|string|max:255',
+            'mailing_province' => 'required_if:is_renewal,0|string|max:255',
+            
+            'permanent_barangay' => 'required_if:is_renewal,0|string|max:255',
+            'permanent_municipality' => 'required_if:is_renewal,0|string|max:255',
+            'permanent_province' => 'required_if:is_renewal,0|string|max:255',
+            
+            'origin_barangay' => 'required_if:is_renewal,0|string|max:255',
+            'origin_municipality' => 'required_if:is_renewal,0|string|max:255',
+            'origin_province' => 'required_if:is_renewal,0|string|max:255',
+
+            // School Pref
+            'school1_name' => 'required_if:is_renewal,0|string|max:255',
+            'school1_address' => 'required_if:is_renewal,0|string|max:255',
+            'school1_course1' => 'required_if:is_renewal,0|string|max:255',
+            'school1_type' => 'required_if:is_renewal,0|string|max:50',
+            'school1_years' => 'required_if:is_renewal,0|integer',
+            
+            'contribution' => 'required_if:is_renewal,0|string',
+            'plans_after_grad' => 'required_if:is_renewal,0|string',
         ]);
 
         // For renewals, only process document uploads and skip form data

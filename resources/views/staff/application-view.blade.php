@@ -1,9 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-6">
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+    .nav-link.active {
+        background-color: #fff7ed;
+        color: #ea580c;
+        font-weight: 800;
+        border-right: 4px solid #ea580c;
+    }
+</style>
+<div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-6 overflow-visible">
     
-    <div class="max-w-[1800px] mx-auto">
+    <div class="max-w-[1800px] mx-auto overflow-visible">
         <!-- Back Button -->
         <div class="mb-6">
             <a href="{{ route('staff.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm border border-slate-200 transition-all text-sm font-medium">
@@ -304,9 +315,9 @@
         </div>
 
         <!-- Main Content with Sidebar Navigation -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch overflow-visible">
             <!-- Main Content Area (9 columns) -->
-            <div class="lg:col-span-9 space-y-6">
+            <div class="lg:col-span-9 space-y-6 overflow-visible">
                 
                 <!-- Documents Section -->
                 <div id="documents-section" class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 scroll-mt-6">
@@ -879,9 +890,9 @@
 
             </div>
 
-            <!-- Sticky Navigation Sidebar (3 columns) -->
+            <!-- Quick Navigation Sidebar (3 columns) -->
             <div class="lg:col-span-3">
-                <div class="sticky top-6">
+                <div class="sticky top-20 self-start z-[40]">
                     <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
                         <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-4">Quick Navigation</h3>
                         <nav class="space-y-2">
@@ -1939,6 +1950,29 @@ document.addEventListener('keydown', function(e) {
         closeManualGPAModal();
         closeApplicationRejectionModal();
     }
+});
+
+// Highlight active navigation section on scroll
+document.addEventListener('DOMContentLoaded', function() {
+    const sections = document.querySelectorAll('div[id$="-section"]');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+         let current = '';
+         sections.forEach(section => {
+             const rect = section.getBoundingClientRect();
+             if (rect.top <= 200) {
+                 current = section.getAttribute('id');
+             }
+         });
+ 
+         navLinks.forEach(link => {
+             link.classList.remove('active');
+             if (current && link.getAttribute('href').includes(current)) {
+                 link.classList.add('active');
+             }
+         });
+     });
 });
 </script>
 @endsection
