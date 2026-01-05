@@ -369,7 +369,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             Save Changes
                         </button>
-                        <button onclick="window.exportGranteesExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                        <button id="exportGranteesBtn" onclick="window.exportGranteesExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Export to Excel
                     </button>
@@ -459,7 +459,7 @@
                 <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm text-slate-600">
                     <span id="pamanaReportCount" class="font-medium"></span>
                     <div class="flex flex-wrap items-center gap-3">
-                        <button onclick="window.exportPamanaToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                        <button id="exportPamanaBtn" onclick="window.exportPamanaToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Export to CSV
                     </button>
@@ -568,7 +568,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             Save Changes
                         </button>
-                        <button onclick="window.exportWaitingToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                        <button id="exportWaitingBtn" onclick="window.exportWaitingToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Export to CSV
                         </button>
@@ -833,8 +833,19 @@
     window.renderReportTable = function(grantees) {
         const tableBody = document.getElementById('reportTableBody');
         const reportCount = document.getElementById('reportCount');
+        const exportBtn = document.getElementById('exportGranteesBtn');
         
         if (reportCount) reportCount.textContent = `Total Grantees: ${grantees.length}`;
+
+        if (exportBtn) {
+            if (grantees.length === 0) {
+                exportBtn.disabled = true;
+                exportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                exportBtn.disabled = false;
+                exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
 
         if (!tableBody) return;
 
@@ -892,8 +903,19 @@
     window.renderPamanaReportTable = function(applicants) {
         const tableBody = document.getElementById('pamanaReportTableBody');
         const reportCount = document.getElementById('pamanaReportCount');
+        const exportBtn = document.getElementById('exportPamanaBtn');
         
         if (reportCount) reportCount.textContent = `Total Pamana Applicants: ${applicants.length}`;
+
+        if (exportBtn) {
+            if (applicants.length === 0) {
+                exportBtn.disabled = true;
+                exportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                exportBtn.disabled = false;
+                exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
 
         if (!tableBody) return;
 
@@ -1043,7 +1065,6 @@
 
     window.exportGranteesExcel = function() {
         if (!window.granteesData || window.granteesData.length === 0) {
-            alert('No data to export');
             return;
         }
 
@@ -1189,7 +1210,6 @@
 
     window.exportPamanaToCSV = function() {
         if (!window.pamanaData || window.pamanaData.length === 0) {
-            alert('No data to export');
             return;
         }
 
@@ -1369,8 +1389,19 @@
     window.renderWaitingReportTable = function(waitingList) {
         const tableBody = document.getElementById('waitingReportTableBody');
         const reportCount = document.getElementById('waitingReportCount');
+        const exportBtn = document.getElementById('exportWaitingBtn');
         
-        reportCount.textContent = `Total Wait Listed Applicants: ${waitingList.length}`;
+        if (reportCount) reportCount.textContent = `Total Wait Listed Applicants: ${waitingList.length}`;
+
+        if (exportBtn) {
+            if (waitingList.length === 0) {
+                exportBtn.disabled = true;
+                exportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                exportBtn.disabled = false;
+                exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
 
         if (waitingList.length === 0) {
             tableBody.innerHTML = `
@@ -1595,7 +1626,6 @@
 
     window.exportWaitingToCSV = function() {
         if (window.waitingListData.length === 0) {
-            alert('No data to export');
             return;
         }
 
