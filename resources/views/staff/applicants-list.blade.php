@@ -1,568 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<script>
-    window.openGranteesReport = function() {
-        const modal = document.getElementById('granteesReportModal');
-        const loading = document.getElementById('reportLoading');
-        const content = document.getElementById('reportContent');
-        const tableBody = document.getElementById('reportTableBody');
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        loading.classList.remove('hidden');
-        content.classList.add('hidden');
-        tableBody.innerHTML = '';
-        if (typeof window.hasUnsavedChanges !== 'undefined') {
-            window.hasUnsavedChanges = false;
-        }
-        
-        // Reset save button
-        const saveBtn = document.getElementById('saveGrantsBtn');
-        const unsavedIndicator = document.getElementById('unsavedIndicator');
-        if (saveBtn) {
-            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            saveBtn.disabled = true;
-        }
-        if (unsavedIndicator) {
-            unsavedIndicator.classList.add('hidden');
-        }
-
-        // Get current filter values
-        const params = new URLSearchParams();
-        const province = document.getElementById('province-filter')?.value;
-        const municipality = document.getElementById('municipality-filter')?.value;
-        const barangay = document.getElementById('barangay-filter')?.value;
-        const ethno = document.getElementById('ethno-filter')?.value;
-
-        if (province) params.append('province', province);
-        if (municipality) params.append('municipality', municipality);
-        if (barangay) params.append('barangay', barangay);
-        if (ethno) params.append('ethno', ethno);
-
-        fetch('{{ route("staff.grantees.report") }}?' + params.toString())
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Grantees report data received:', data);
-                
-                if (data.success && Array.isArray(data.grantees)) {
-                    // Store data globally
-                    window.granteesData = data.grantees;
-                    
-                    console.log(`Loaded ${data.grantees.length} grantees`);
-                    
-                    // Try to render immediately, or wait for function to be available
-                    function tryRender() {
-                        if (typeof window.renderReportTable === 'function') {
-                            console.log('Rendering report table...');
-                            window.renderReportTable(data.grantees);
-                            loading.classList.add('hidden');
-                            content.classList.remove('hidden');
-                            return true;
-                        }
-                        return false;
-                    }
-                    
-                    if (!tryRender()) {
-                        // Wait and try again
-                        const checkInterval = setInterval(function() {
-                            if (tryRender()) {
-                                clearInterval(checkInterval);
-                            }
-                        }, 50);
-                        
-                        // Stop trying after 2 seconds
-                        setTimeout(function() {
-                            clearInterval(checkInterval);
-                            if (!tryRender()) {
-                                console.error('renderReportTable function not found after waiting');
-                                loading.classList.add('hidden');
-                                content.classList.remove('hidden');
-                                // Show error message in table
-                                const tableBody = document.getElementById('reportTableBody');
-                                if (tableBody) {
-                                    tableBody.innerHTML = `
-                                        <tr>
-                    <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
-                                                Error: Could not render report. Please refresh the page.
-                                            </td>
-                                        </tr>
-                                    `;
-                                }
-                            }
-                        }, 2000);
-                    }
-                } else {
-                    console.error('Invalid response data:', data);
-                    alert('Error loading report data: ' + (data.message || 'Invalid response format'));
-                    loading.classList.add('hidden');
-                    // Show error in table
-                    const tableBody = document.getElementById('reportTableBody');
-                    if (tableBody) {
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
-                                    ${data.message || 'No data available or invalid response'}
-                                </td>
-                            </tr>
-                        `;
-                    }
-                    content.classList.remove('hidden');
-                }
-            })
-            .catch(error => {
-                console.error('Error loading grantees report:', error);
-                alert('Error loading report data: ' + error.message);
-                loading.classList.add('hidden');
-                // Show error in table
-                const tableBody = document.getElementById('reportTableBody');
-                const content = document.getElementById('reportContent');
-                if (tableBody && content) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
-                                Error loading data: ${error.message}
-                            </td>
-                        </tr>
-                    `;
-                    content.classList.remove('hidden');
-                }
-            });
-    };
-
-    window.openPamanaReport = function() {
-        const modal = document.getElementById('pamanaReportModal');
-        const loading = document.getElementById('pamanaReportLoading');
-        const content = document.getElementById('pamanaReportContent');
-        const tableBody = document.getElementById('pamanaReportTableBody');
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        loading.classList.remove('hidden');
-        content.classList.add('hidden');
-        tableBody.innerHTML = '';
-        
-        // Get current filter values
-        const params = new URLSearchParams();
-        const province = document.getElementById('province-filter')?.value;
-        const municipality = document.getElementById('municipality-filter')?.value;
-        const barangay = document.getElementById('barangay-filter')?.value;
-        const ethno = document.getElementById('ethno-filter')?.value;
-
-        if (province) params.append('province', province);
-        if (municipality) params.append('municipality', municipality);
-        if (barangay) params.append('barangay', barangay);
-        if (ethno) params.append('ethno', ethno);
-
-        fetch('{{ route("staff.pamana.report") }}?' + params.toString())
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && Array.isArray(data.pamana)) {
-                    // Store data globally
-                    window.pamanaData = data.pamana;
-
-                    function tryRender() {
-                        if (typeof window.renderPamanaReportTable === 'function') {
-                            window.renderPamanaReportTable(data.pamana);
-                            loading.classList.add('hidden');
-                            content.classList.remove('hidden');
-                            return true;
-                        }
-                        return false;
-                    }
-
-                    if (!tryRender()) {
-                        const checkInterval = setInterval(function() {
-                            if (tryRender()) {
-                                clearInterval(checkInterval);
-                            }
-                        }, 50);
-
-                        setTimeout(function() {
-                            clearInterval(checkInterval);
-                            if (!tryRender()) {
-                                console.error('renderPamanaReportTable function not found after waiting');
-                                loading.classList.add('hidden');
-                                content.classList.remove('hidden');
-                                if (tableBody) {
-                                    tableBody.innerHTML = `
-                                        <tr>
-                                            <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
-                                                Error: Could not render Pamana report. Please refresh the page.
-                                            </td>
-                                        </tr>
-                                    `;
-                                }
-                            }
-                        }, 2000);
-                    }
-                } else {
-                    console.error('Invalid Pamana response data:', data);
-                    alert('Error loading Pamana report data: ' + (data.message || 'Invalid response format'));
-                    loading.classList.add('hidden');
-                    if (tableBody) {
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
-                                    ${data.message || 'No data available or invalid response'}
-                                </td>
-                            </tr>
-                        `;
-                    }
-                    content.classList.remove('hidden');
-                }
-            })
-            .catch(error => {
-                console.error('Error loading Pamana report:', error);
-                alert('Error loading Pamana report data: ' + error.message);
-                loading.classList.add('hidden');
-                if (tableBody && content) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-red-500">
-                                Error loading data: ${error.message}
-                            </td>
-                        </tr>
-                    `;
-                    content.classList.remove('hidden');
-                }
-            });
-    };
-
-    window.openWaitingListReport = function() {
-        const modal = document.getElementById('waitingListReportModal');
-        const loading = document.getElementById('waitingReportLoading');
-        const content = document.getElementById('waitingReportContent');
-        const tableBody = document.getElementById('waitingReportTableBody');
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        loading.classList.remove('hidden');
-        content.classList.add('hidden');
-        tableBody.innerHTML = '';
-        if (typeof window.hasUnsavedWaitingChanges !== 'undefined') {
-            window.hasUnsavedWaitingChanges = false;
-        }
-        
-        // Reset save button
-        const saveBtn = document.getElementById('saveWaitingGrantsBtn');
-        const unsavedIndicator = document.getElementById('waitingUnsavedIndicator');
-        if (saveBtn) {
-            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            saveBtn.disabled = true;
-        }
-        if (unsavedIndicator) {
-            unsavedIndicator.classList.add('hidden');
-        }
-
-        // Get current filter values
-        const params = new URLSearchParams();
-        const province = document.getElementById('province-filter')?.value;
-        const municipality = document.getElementById('municipality-filter')?.value;
-        const barangay = document.getElementById('barangay-filter')?.value;
-        const ethno = document.getElementById('ethno-filter')?.value;
-
-        if (province) params.append('province', province);
-        if (municipality) params.append('municipality', municipality);
-        if (barangay) params.append('barangay', barangay);
-        if (ethno) params.append('ethno', ethno);
-
-        fetch('{{ route("staff.waiting-list.report") }}?' + params.toString())
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.waitingListData = data.waitingList;
-                    
-                    // Wait for render function to be available
-                    const renderInterval = setInterval(function() {
-                        if (typeof window.renderWaitingReportTable === 'function') {
-                            clearInterval(renderInterval);
-                            window.renderWaitingReportTable(data.waitingList);
-                            loading.classList.add('hidden');
-                            content.classList.remove('hidden');
-                        }
-                    }, 50);
-                    
-                    // Stop trying after 3 seconds
-                    setTimeout(function() {
-                        clearInterval(renderInterval);
-                        if (typeof window.renderWaitingReportTable === 'function') {
-                            window.renderWaitingReportTable(data.waitingList);
-                        } else {
-                            console.error('renderWaitingReportTable function not found');
-                        }
-                        loading.classList.add('hidden');
-                        content.classList.remove('hidden');
-                    }, 3000);
-                } else {
-                    alert('Error loading waiting list data');
-                    loading.classList.add('hidden');
-                    if (typeof window.closeWaitingListReport === 'function') {
-                        window.closeWaitingListReport();
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error loading waiting list data');
-                loading.classList.add('hidden');
-                if (typeof window.closeWaitingListReport === 'function') {
-                    window.closeWaitingListReport();
-                }
-            });
-    };
-
-    window.closeGranteesReport = function() {
-        const modal = document.getElementById('granteesReportModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    };
-
-    window.closePamanaReport = function() {
-        const modal = document.getElementById('pamanaReportModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    };
-
-    window.closeWaitingListReport = function() {
-        const modal = document.getElementById('waitingListReportModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    };
-
-    // Normalize remarks/status display in reports
-    window.normalizeRemarksStatus = function(value) {
-        if (value === null || value === undefined) return '';
-        const raw = String(value).trim();
-        const lower = raw.toLowerCase();
-        if (
-            lower === 'validated' ||
-            lower === 'grantee' ||
-            lower === 'validated/grantee' ||
-            lower === 'validated / grantee'
-        ) {
-            return 'On Going';
-        }
-        return raw;
-    };
-
-    // Define renderReportTable function early so it's available when needed
-    window.renderReportTable = function(grantees) {
-        const tableBody = document.getElementById('reportTableBody');
-        const reportCount = document.getElementById('reportCount');
-        
-        if (!tableBody) {
-            console.error('reportTableBody element not found');
-            return;
-        }
-        
-        if (!reportCount) {
-            console.error('reportCount element not found');
-        } else {
-            reportCount.textContent = `Total Grantees: ${grantees ? grantees.length : 0}`;
-        }
-
-        if (!grantees || !Array.isArray(grantees) || grantees.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
-                        No grantees found
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        
-        console.log(`Rendering ${grantees.length} grantees to table`);
-
-        tableBody.innerHTML = grantees.map((grantee, index) => {
-            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
-            
-            // Format address and AD Reference
-            const addressLine = [
-                grantee.province || '',
-                grantee.municipality || '',
-                grantee.barangay || '',
-                grantee.ad_reference || ''
-            ].filter(Boolean).join(', ');
-            
-            // Gender checkboxes (using exact values from form: "Male" or "Female")
-            const isFemale = grantee.is_female || false;
-            const isMale = grantee.is_male || false;
-            
-            // School info from first intended school; fallback to legacy flags
-            const isPrivate = grantee.is_private || false;
-            const isPublic = grantee.is_public || false;
-            const schoolType = (grantee.school_type || grantee.school1_type || '').toLowerCase();
-            const schoolName = grantee.school_name || grantee.school1_name || grantee.school || '';
-            
-            // Year level checkboxes (using boolean flags from controller)
-            const is1st = grantee.is_1st || false;
-            const is2nd = grantee.is_2nd || false;
-            const is3rd = grantee.is_3rd || false;
-            const is4th = grantee.is_4th || false;
-            const is5th = grantee.is_5th || false;
-
-            const remarksStatus = window.normalizeRemarksStatus(grantee.remarks || '');
-            
-            return `
-                <tr class="${rowClass} hover:bg-blue-50 transition-colors">
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${addressLine}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.contact_email || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.batch || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${grantee.no || ''}</td>
-                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${grantee.name || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.age || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.ethnicity || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
-                        <input type="text"
-                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
-                               value="${(schoolType === 'private' || isPrivate) ? schoolName : ''}"
-                               readonly>
-                    </td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
-                        <input type="text"
-                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
-                               value="${(schoolType === 'public' || isPublic) ? schoolName : ''}"
-                               readonly>
-                    </td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.course || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is1st ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is2nd ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is3rd ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is4th ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is5th ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${remarksStatus}</td>
-                </tr>
-            `;
-        }).join('');
-    };
-
-    window.renderPamanaReportTable = function(applicants) {
-        const tableBody = document.getElementById('pamanaReportTableBody');
-        const reportCount = document.getElementById('pamanaReportCount');
-        
-        if (!tableBody) {
-            console.error('pamanaReportTableBody element not found');
-            return;
-        }
-        
-        if (!reportCount) {
-            console.error('pamanaReportCount element not found');
-        } else {
-            reportCount.textContent = `Total Pamana Applicants: ${applicants ? applicants.length : 0}`;
-        }
-
-        if (!applicants || !Array.isArray(applicants) || applicants.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="20" class="border border-slate-300 px-4 py-8 text-center text-slate-500">
-                        No Pamana applicants found
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        
-        tableBody.innerHTML = applicants.map((applicant, index) => {
-            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
-            
-            const addressLine = [
-                applicant.province || '',
-                applicant.municipality || '',
-                applicant.barangay || '',
-                applicant.ad_reference || ''
-            ].filter(Boolean).join(', ');
-            
-            const isFemale = applicant.is_female || false;
-            const isMale = applicant.is_male || false;
-            
-            const isPrivate = applicant.is_private || false;
-            const isPublic = applicant.is_public || false;
-            const schoolType = (applicant.school_type || applicant.school1_type || '').toLowerCase();
-            const schoolName = applicant.school_name || applicant.school1_name || applicant.school || '';
-            
-            const is1st = applicant.is_1st || false;
-            const is2nd = applicant.is_2nd || false;
-            const is3rd = applicant.is_3rd || false;
-            const is4th = applicant.is_4th || false;
-            const is5th = applicant.is_5th || false;
-            
-            return `
-                <tr class="${rowClass} hover:bg-blue-50 transition-colors">
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${addressLine}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.contact_email || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.batch || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${applicant.no || ''}</td>
-                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${applicant.name || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.age || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.ethnicity || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
-                        <input type="text"
-                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
-                               value="${(schoolType === 'private' || isPrivate) ? schoolName : ''}"
-                               readonly>
-                    </td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">
-                        <input type="text"
-                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded bg-slate-50"
-                               value="${(schoolType === 'public' || isPublic) ? schoolName : ''}"
-                               readonly>
-                    </td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.course || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is1st ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is2nd ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is3rd ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is4th ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${is5th ? '✓' : ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.remarks || ''}</td>
-                </tr>
-            `;
-        }).join('');
-    };
-
-    // Initialize variables for grant management
-    window.granteesData = [];
-    window.pamanaData = [];
-    window.hasUnsavedChanges = false;
-
-    window.markAsChanged = function() {
-        window.hasUnsavedChanges = true;
-        const saveBtn = document.getElementById('saveGrantsBtn');
-        const unsavedIndicator = document.getElementById('unsavedIndicator');
-        if (saveBtn) {
-            saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            saveBtn.disabled = false;
-        }
-        if (unsavedIndicator) {
-            unsavedIndicator.classList.remove('hidden');
-        }
-    };
-</script>
 <div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-6 md:p-8 font-sans">
     
     <div class="max-w-[1600px] mx-auto">
@@ -579,11 +17,28 @@
                     </div>
                 </div>
             </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <button id="openGranteesReportBtn" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-orange-500 hover:text-orange-600 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2 group">
+                    <svg class="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Grantees Report
+                </button>
+                <button id="openWaitingListReportBtn" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2 group">
+                    <svg class="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Waiting List
+                </button>
+                <button id="openPamanaReportBtn" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2 group">
+                    <svg class="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    Pamana Report
+                </button>
+            </div>
         </div>
-        @if(isset($error))
+        @if(isset($error) || session('error'))
             <div class="mb-6">
-                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
-                    {{ $error }}
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>{{ $error ?? session('error') }}</span>
                 </div>
             </div>
         @endif
@@ -900,6 +355,20 @@
                 <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm text-slate-600">
                     <span id="reportCount" class="font-medium"></span>
                     <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.checkAll1stSem()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Check 1st Sem
+                            </button>
+                            <button onclick="window.checkAll2ndSem()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Check 2nd Sem
+                            </button>
+                        </div>
+                        <button onclick="window.saveGrants()" id="saveGrantsBtn" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Save Changes
+                        </button>
                         <button onclick="window.exportGranteesExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Export to Excel
@@ -1166,47 +635,305 @@
 </div>
 
 <!-- Replacement Modal (for Waiting List) -->
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         const provinceFilter = document.getElementById('province-filter');
         const municipalityFilter = document.getElementById('municipality-filter');
         const barangayFilter = document.getElementById('barangay-filter');
 
-        provinceFilter.addEventListener('change', function() {
-            const province = this.value;
-            if (province) {
-                fetch(`/address/municipalities?province=${encodeURIComponent(province)}`)
-                    .then(response => response.json())
-                    .then(municipalities => {
-                        municipalityFilter.innerHTML = '<option value="">All Municipalities</option>';
-                        municipalities.forEach(municipality => {
-                            const option = document.createElement('option');
-                            option.value = municipality;
-                            option.textContent = municipality;
-                            municipalityFilter.appendChild(option);
+        if (provinceFilter) {
+            provinceFilter.addEventListener('change', function() {
+                const province = this.value;
+                if (province) {
+                    fetch(`/address/municipalities?province=${encodeURIComponent(province)}`)
+                        .then(response => response.json())
+                        .then(municipalities => {
+                            if (municipalityFilter) {
+                                municipalityFilter.innerHTML = '<option value="">All Municipalities</option>';
+                                municipalities.forEach(municipality => {
+                                    const option = document.createElement('option');
+                                    option.value = municipality;
+                                    option.textContent = municipality;
+                                    municipalityFilter.appendChild(option);
+                                });
+                            }
+                            if (barangayFilter) {
+                                barangayFilter.innerHTML = '<option value="">All Barangays</option>';
+                            }
                         });
-                        barangayFilter.innerHTML = '<option value="">All Barangays</option>';
-                    });
-            }
-        });
+                }
+            });
+        }
 
-        municipalityFilter.addEventListener('change', function() {
-            const municipality = this.value;
-            if (municipality) {
-                fetch(`/address/barangays?municipality=${encodeURIComponent(municipality)}`)
-                    .then(response => response.json())
-                    .then(barangays => {
-                        barangayFilter.innerHTML = '<option value="">All Barangays</option>';
-                        barangays.forEach(barangay => {
-                            const option = document.createElement('option');
-                            option.value = barangay;
-                            option.textContent = barangay;
-                            barangayFilter.appendChild(option);
+        if (municipalityFilter) {
+            municipalityFilter.addEventListener('change', function() {
+                const municipality = this.value;
+                if (municipality) {
+                    fetch(`/address/barangays?municipality=${encodeURIComponent(municipality)}`)
+                        .then(response => response.json())
+                        .then(barangays => {
+                            if (barangayFilter) {
+                                barangayFilter.innerHTML = '<option value="">All Barangays</option>';
+                                barangays.forEach(barangay => {
+                                    const option = document.createElement('option');
+                                    option.value = barangay;
+                                    option.textContent = barangay;
+                                    barangayFilter.appendChild(option);
+                                });
+                            }
                         });
-                    });
-            }
-        });
+                }
+            });
+        }
     });
 
-    // markAsChanged and related variables are now defined in the initial script block above
+    // State management
+    window.hasUnsavedChanges = false;
+    window.granteesData = [];
+    window.pamanaData = [];
+
+    // Utility functions
+    window.markAsChanged = function() {
+        window.hasUnsavedChanges = true;
+        const saveBtn = document.getElementById('saveGrantsBtn');
+        const unsavedIndicator = document.getElementById('unsavedIndicator');
+        if (saveBtn) {
+            saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            saveBtn.disabled = false;
+        }
+        if (unsavedIndicator) {
+            unsavedIndicator.classList.remove('hidden');
+        }
+    };
+
+    window.normalizeRemarksStatus = function(remarks) {
+        if (!remarks) return 'N/A';
+        const lower = remarks.toLowerCase();
+        if (lower.includes('graduated')) return 'Graduated';
+        if (lower.includes('terminated')) return 'Terminated';
+        if (lower.includes('shifted')) return 'Shifted';
+        if (lower.includes('withdrawn')) return 'Withdrawn';
+        if (lower.includes('active')) return 'Active';
+        return remarks;
+    };
+
+    // Report Modal Functions
+    window.openGranteesReport = function() {
+        const modal = document.getElementById('granteesReportModal');
+        if (!modal) return;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Show loading state
+        const tableBody = document.getElementById('reportTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="20" class="p-8 text-center">Loading grantees data...</td></tr>';
+        }
+
+        fetch('{{ route("staff.grantees.report") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.granteesData = data.grantees;
+                    window.renderReportTable(data.grantees);
+                } else {
+                    alert('Error loading grantees: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load grantees report data.');
+            });
+    };
+
+    window.closeGranteesReport = function() {
+        const modal = document.getElementById('granteesReportModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    window.openPamanaReport = function() {
+        const modal = document.getElementById('pamanaReportModal');
+        if (!modal) return;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Show loading state
+        const tableBody = document.getElementById('pamanaReportTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="20" class="p-8 text-center">Loading Pamana data...</td></tr>';
+        }
+
+        fetch('{{ route("staff.pamana.report") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.pamanaData = data.applicants;
+                    window.renderPamanaReportTable(data.applicants);
+                } else {
+                    alert('Error loading Pamana report: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load Pamana report data.');
+            });
+    };
+
+    window.closePamanaReport = function() {
+        const modal = document.getElementById('pamanaReportModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    window.openWaitingListReport = function() {
+        const modal = document.getElementById('waitingListReportModal');
+        if (!modal) return;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Show loading state
+        const tableBody = document.getElementById('waitingReportTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="20" class="p-8 text-center">Loading waiting list data...</td></tr>';
+        }
+
+        fetch('{{ route("staff.waiting-list.report") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.waitingListData = data.waiting_list;
+                    window.renderWaitingReportTable(data.waiting_list);
+                } else {
+                    alert('Error loading waiting list: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load waiting list report data.');
+            });
+    };
+
+    window.closeWaitingListReport = function() {
+        const modal = document.getElementById('waitingListReportModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    window.renderReportTable = function(grantees) {
+        const tableBody = document.getElementById('reportTableBody');
+        const reportCount = document.getElementById('reportCount');
+        
+        if (reportCount) reportCount.textContent = `Total Grantees: ${grantees.length}`;
+
+        if (!tableBody) return;
+
+        if (grantees.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="20" class="p-8 text-center text-slate-500">No grantees found</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = grantees.map((grantee, index) => {
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+            const addressLine = [grantee.province, grantee.municipality, grantee.barangay, grantee.ad_reference].filter(Boolean).join(', ');
+            const schoolType = (grantee.school_type || '').toLowerCase();
+            const schoolName = grantee.school_name || grantee.school || '';
+            const remarksStatus = window.normalizeRemarksStatus(grantee.remarks || '');
+
+            return `
+                <tr class="${rowClass} hover:bg-orange-50 transition-colors">
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${addressLine}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.contact_email || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.batch || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${grantee.no || ''}</td>
+                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${grantee.name || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.age || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_female ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_male ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.ethnicity || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${schoolType === 'private' ? schoolName : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${schoolType === 'public' ? schoolName : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.course || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_1st ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_2nd ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_3rd ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_4th ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.is_5th ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
+                        <label class="flex items-center justify-center cursor-pointer">
+                            <input type="checkbox" class="grant-checkbox w-5 h-5 text-orange-600 border-slate-300 rounded focus:ring-orange-500" 
+                                   data-user-id="${grantee.user_id}" data-sem="1st" ${grantee.grant_1st_sem ? 'checked' : ''} 
+                                   onchange="window.markAsChanged()">
+                        </label>
+                    </td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
+                        <label class="flex items-center justify-center cursor-pointer">
+                            <input type="checkbox" class="grant-checkbox w-5 h-5 text-orange-600 border-slate-300 rounded focus:ring-orange-500" 
+                                   data-user-id="${grantee.user_id}" data-sem="2nd" ${grantee.grant_2nd_sem ? 'checked' : ''} 
+                                   onchange="window.markAsChanged()">
+                        </label>
+                    </td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${remarksStatus}</td>
+                </tr>
+            `;
+        }).join('');
+    };
+
+    window.renderPamanaReportTable = function(applicants) {
+        const tableBody = document.getElementById('pamanaReportTableBody');
+        const reportCount = document.getElementById('pamanaReportCount');
+        
+        if (reportCount) reportCount.textContent = `Total Pamana Applicants: ${applicants.length}`;
+
+        if (!tableBody) return;
+
+        if (applicants.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="20" class="p-8 text-center text-slate-500">No Pamana applicants found</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = applicants.map((applicant, index) => {
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+            const addressLine = [applicant.province, applicant.municipality, applicant.barangay, applicant.ad_reference].filter(Boolean).join(', ');
+            const schoolType = (applicant.school_type || '').toLowerCase();
+            const schoolName = applicant.school_name || applicant.school || '';
+
+            return `
+                <tr class="${rowClass} hover:bg-red-50 transition-colors">
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${addressLine}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.contact_email || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.batch || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${applicant.no || ''}</td>
+                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${applicant.name || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.age || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_female ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_male ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.ethnicity || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${schoolType === 'private' ? schoolName : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${schoolType === 'public' ? schoolName : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.course || ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_1st ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_2nd ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_3rd ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_4th ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.is_5th ? '✓' : ''}</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">10,000</td>
+                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.remarks || 'Active'}</td>
+                </tr>
+            `;
+        }).join('');
+    };
 
     window.checkAll1stSem = function() {
         const checkboxes = document.querySelectorAll('.grant-checkbox[data-sem="1st"]');
@@ -1313,7 +1040,6 @@
             });
     }
 
-    // renderReportTable is now defined in the initial script block above
 
     window.exportGranteesExcel = function() {
         if (!window.granteesData || window.granteesData.length === 0) {
@@ -2249,6 +1975,18 @@
                 }
             });
             openGranteesBtn.dataset.listenerAttached = 'true';
+        }
+
+        // Pamana report button
+        const openPamanaBtn = document.getElementById('openPamanaReportBtn');
+        if (openPamanaBtn && !openPamanaBtn.dataset.listenerAttached) {
+            openPamanaBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (window.openPamanaReport) {
+                    window.openPamanaReport();
+                }
+            });
+            openPamanaBtn.dataset.listenerAttached = 'true';
         }
     }
 
