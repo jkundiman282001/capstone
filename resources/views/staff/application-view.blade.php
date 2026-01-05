@@ -106,15 +106,17 @@
                 <!-- Profile Section -->
                 <div class="flex flex-col sm:flex-row items-center sm:items-start lg:items-center text-center sm:text-left gap-5">
                     <div class="relative">
-                        @if($user->profile_pic)
-                            <img src="{{ asset('storage/' . $user->profile_pic) }}" alt="{{ $user->first_name }}" class="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-xl">
+                        @if($user->profile_pic_url)
+                            <img src="{{ $user->profile_pic_url }}" alt="{{ $user->first_name }}" class="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-xl">
                         @else
-                            <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-black text-3xl border-4 border-white shadow-xl">
-                                {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                            <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-400 border-4 border-white shadow-xl">
+                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
                             </div>
                         @endif
-                        <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                        <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         </div>
                     </div>
                     <div>
@@ -278,15 +280,7 @@
                         </div>
                     @endif
                     
-                    <!-- Danger Zone: Delete Account -->
-                    <div class="mt-4 flex flex-wrap justify-center lg:justify-end gap-3 pt-4 border-t border-slate-100 w-full">
-                        <button type="button"
-                                onclick="window.confirmDeleteApplicant({{ $user->id }}, '{{ addslashes($user->first_name . ' ' . $user->last_name) }}')"
-                                class="px-5 py-2.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            Delete Account
-                        </button>
-                    </div>
+
                     
                     <!-- Show rejection reason and disqualification reasons if application is rejected -->
                     @if($basicInfo->application_status === 'rejected')
@@ -1323,92 +1317,7 @@
     </div>
 </div>
 
-<!-- Delete Applicant Confirmation Modal -->
-<div id="deleteApplicantModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
-        <div class="p-8 text-center">
-            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-            </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2">Delete Account?</h3>
-            <p class="text-slate-500 mb-6">Are you sure you want to delete the account of <span id="deleteApplicantName" class="font-bold text-slate-900"></span>? This action is permanent and will remove all associated data and documents.</p>
-            
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button type="button" 
-                        onclick="window.closeDeleteModal()"
-                        class="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all">
-                    Cancel
-                </button>
-                <button type="button" 
-                        id="confirmDeleteBtn"
-                        class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2">
-                    <span id="deleteBtnText">Delete Permanently</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-    // Delete Applicant Functionality
-    let applicantIdToDelete = null;
-
-    window.confirmDeleteApplicant = function(id, name) {
-        applicantIdToDelete = id;
-        document.getElementById('deleteApplicantName').textContent = name;
-        const modal = document.getElementById('deleteApplicantModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    };
-
-    window.closeDeleteModal = function() {
-        const modal = document.getElementById('deleteApplicantModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = 'auto';
-        applicantIdToDelete = null;
-    };
-
-    document.getElementById('confirmDeleteBtn')?.addEventListener('click', function() {
-        if (!applicantIdToDelete) return;
-
-        const btn = this;
-        const btnText = document.getElementById('deleteBtnText');
-        const originalText = btnText.textContent;
-        
-        btn.disabled = true;
-        btnText.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Deleting...`;
-
-        fetch(`/staff/applications/${applicantIdToDelete}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                window.location.href = '{{ route("staff.dashboard") }}';
-            } else {
-                alert('Error: ' + data.message);
-                btn.disabled = false;
-                btnText.textContent = originalText;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while deleting the account.');
-            btn.disabled = false;
-            btnText.textContent = originalText;
-        });
-    });
-
     let currentDocumentUrl = '';
 let currentDocumentName = '';
 let currentDocumentType = '';
@@ -2121,7 +2030,6 @@ document.addEventListener('keydown', function(e) {
         closeFeedbackModal();
         closeManualGPAModal();
         closeApplicationRejectionModal();
-        window.closeDeleteModal();
     }
 });
 

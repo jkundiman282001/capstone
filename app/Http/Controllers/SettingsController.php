@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Setting;
+use App\Models\User;
 
 class SettingsController extends Controller
 {
@@ -11,7 +12,12 @@ class SettingsController extends Controller
     {
         $maxSlots = Setting::get('max_slots', 120);
         
-        return view('staff.settings', compact('maxSlots'));
+        // Get all student users for the deletion management
+        $applicants = User::where('role', 'student')
+            ->orderBy('last_name')
+            ->get();
+        
+        return view('staff.settings', compact('maxSlots', 'applicants'));
     }
     
     public function update(Request $request)
