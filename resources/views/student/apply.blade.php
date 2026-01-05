@@ -1487,9 +1487,15 @@
                                         <select name="{{ $key }}_course1" class="form-control" required>
                                             <option value="">Select Course</option>
                                             @foreach($courseOptions as $course)
-                                                <option value="{{ $course }}" {{ old($key.'_course1') == $course ? 'selected' : '' }}>{{ $course }}</option>
+                                                @php
+                                                    $userCourse = auth()->user()->course;
+                                                    $isExcluded = in_array(strtolower($userCourse), ['undecided', 'none']);
+                                                    $isSelected = old($key.'_course1') == $course || 
+                                                                (empty(old($key.'_course1')) && !$isExcluded && $userCourse == $course);
+                                                @endphp
+                                                <option value="{{ $course }}" {{ $isSelected ? 'selected' : '' }}>{{ $course }}</option>
                                             @endforeach
-                                </select>
+                                        </select>
                             </div>
                             <div>
                                         <label class="input-label">Course/Degree (Alternate)</label>
