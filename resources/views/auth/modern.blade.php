@@ -734,8 +734,8 @@
                   <option value="Transportation Engineering">Transportation Engineering</option>
                   <option value="Urban Planning">Urban Planning</option>
                   <option value="Undecided">Undecided / Grade 12 exploring options</option>
-                  <option value="Other">Other</option>
                   <option value="None">None</option>
+                  <option value="Other">Other</option>
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                   <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
