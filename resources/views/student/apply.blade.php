@@ -1217,9 +1217,9 @@
                                             <option value="Baker">Baker</option>
                                             <option value="Bank Manager">Bank Manager</option>
                                             <option value="Bank Teller">Bank Teller</option>
-                                            <option value="Barber">Barber</option>
                                             <option value="Barangay Health Worker">Barangay Health Worker</option>
                                             <option value="Barangay Official">Barangay Official</option>
+                                            <option value="Barber">Barber</option>
                                             <option value="Business Owner">Business Owner</option>
                                             <option value="Call Center Agent">Call Center Agent</option>
                                             <option value="Caregiver">Caregiver</option>
@@ -1256,14 +1256,13 @@
                                             <option value="Judge">Judge</option>
                                             <option value="Laborer">Laborer</option>
                                             <option value="Lawyer">Lawyer</option>
-                                            <option value="Mason">Mason</option>
                                             <option value="Market Vendor">Market Vendor</option>
+                                            <option value="Mason">Mason</option>
                                             <option value="Mechanic">Mechanic</option>
                                             <option value="Medical Technologist">Medical Technologist</option>
                                             <option value="Midwife">Midwife</option>
                                             <option value="Nurse">Nurse</option>
                                             <option value="OFW (Overseas Filipino Worker)">OFW (Overseas Filipino Worker)</option>
-                                            <option value="Other">Other</option>
                                             <option value="Pharmacist">Pharmacist</option>
                                             <option value="Photographer">Photographer</option>
                                             <option value="Physical Therapist">Physical Therapist</option>
@@ -1272,8 +1271,8 @@
                                             <option value="Police Officer">Police Officer</option>
                                             <option value="Programmer">Programmer</option>
                                             <option value="Real Estate Agent">Real Estate Agent</option>
-                                            <option value="Retired">Retired</option>
                                             <option value="Retailer">Retailer</option>
+                                            <option value="Retired">Retired</option>
                                             <option value="Salesperson">Salesperson</option>
                                             <option value="Sari-Sari Store Owner">Sari-Sari Store Owner</option>
                                             <option value="Seafarer">Seafarer</option>
@@ -1289,13 +1288,15 @@
                                             <option value="Tour Guide">Tour Guide</option>
                                             <option value="Travel Agent">Travel Agent</option>
                                             <option value="Tricycle Driver">Tricycle Driver</option>
-                                            <option value="Unemployed">Unemployed</option>
                                             <option value="Vendor">Vendor</option>
                                             <option value="Veterinarian">Veterinarian</option>
                                             <option value="Waiter/Waitress">Waiter/Waitress</option>
                                             <option value="Web Developer">Web Developer</option>
                                             <option value="Welder">Welder</option>
                                             <option value="Writer">Writer</option>
+                                            <option value="Unemployed">Unemployed</option>
+                                            <option value="Other">Other</option>
+                                            <option value="None">None</option>
                                         </select>
                                         <input type="text" name="{{ $parent }}_occupation_other" id="{{ $parent }}_occupation_other" class="form-control mt-3 hidden" placeholder="Please specify occupation">
                                 </div>
@@ -1339,139 +1340,135 @@
                             
 @php
     $courseOptions = [
-        // Priority Courses
-        'Agriculture',
-        'Aqua-Culture and Fisheries',
-        'Anthropology',
-        'Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)',
-        'Civil Engineering',
-        'Community Development',
-        'Criminology',
-        'Education',
-        'Foreign Service',
-        'Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)',
-        'Geodetic Engineering',
-        'Geology',
-        'Law',
-        'Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)',
-        'Mechanical Engineering',
-        'Mining Engineering',
-        'Social Sciences (AB courses)',
-        'Social Work',
-        // Related/Relevant Courses (Mid-scale)
-        'Agricultural Engineering',
+        'Aerospace Engineering',
         'Agribusiness',
         'Agricultural Economics',
-        'Animal Science',
-        'Crop Science',
+        'Agricultural Engineering',
         'Agricultural Technology',
-        'Marine Biology',
-        'Fisheries',
+        'Agriculture',
+        'Animal Science',
+        'Anthropology',
+        'Aqua-Culture and Fisheries',
         'Aquaculture',
-        'Marine Science',
-        'Oceanography',
-        'Sociology',
-        'Cultural Studies',
-        'Ethnic Studies',
         'Archaeology',
-        'Business Management',
-        'Marketing',
-        'Economics',
-        'Entrepreneurship',
-        'Finance',
-        'Human Resource Management',
-        'Operations Management',
-        'Structural Engineering',
-        'Environmental Engineering',
-        'Construction Engineering',
-        'Transportation Engineering',
-        'Rural Development',
-        'Urban Planning',
-        'Public Administration',
-        'Development Studies',
-        'Criminal Justice',
-        'Forensic Science',
-        'Law Enforcement',
-        'Security Management',
-        'Elementary Education',
-        'Secondary Education',
-        'Special Education',
-        'Educational Administration',
-        'Curriculum Development',
-        'International Relations',
-        'Diplomatic Studies',
-        'International Studies',
-        'Environmental Science',
-        'Ecology',
-        'Conservation',
-        'Natural Resource Management',
-        'Environmental Management',
-        'Surveying',
-        'Geomatics',
-        'Land Surveying',
-        'Geographic Information Systems',
-        'Geological Engineering',
-        'Geophysics',
-        'Earth Science',
-        'Legal Studies',
-        'Jurisprudence',
-        'Constitutional Law',
-        'Public Health',
-        'Health Sciences',
-        'Medical Laboratory Science',
-        'Radiologic Technology',
-        'Physical Therapy',
-        'Occupational Therapy',
-        'Pharmacy',
-        'Industrial Engineering',
-        'Manufacturing Engineering',
-        'Automotive Engineering',
-        'Aerospace Engineering',
-        'Mineral Processing',
-        'Mining Technology',
-        'Psychology',
-        'History',
-        'Philosophy',
-        'Literature',
-        'Communication Arts',
-        'Journalism',
-        'Human Services',
-        'Community Services',
-        'Social Welfare',
-        'Counseling',
-        // Excluded Courses (Low-scale)
-        'BS Information Technology',
-        'BS Computer Science',
-        'BS Accountancy',
-        'BS Nursing',
-        'BS Education',
-        'BA Political Science',
-        // Other Common Courses
         'Architecture',
+        'Automotive Engineering',
+        'BA Political Science',
+        'Biochemistry',
+        'Biology',
+        'Biotechnology',
+        'BS Accountancy',
+        'BS Computer Science',
+        'BS Education',
+        'BS Information Technology',
+        'BS Nursing',
+        'Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)',
+        'Business Management',
         'Chemical Engineering',
+        'Chemistry',
+        'Civil Engineering',
+        'Communication Arts',
+        'Community Development',
+        'Community Services',
+        'Computer Engineering',
+        'Conservation',
+        'Constitutional Law',
+        'Construction Engineering',
+        'Counseling',
+        'Criminal Justice',
+        'Criminology',
+        'Crop Science',
+        'Cultural Studies',
+        'Curriculum Development',
+        'Dance',
+        'Data Science',
+        'Development Studies',
+        'Diplomatic Studies',
+        'Earth Science',
+        'Ecology',
+        'Economics',
+        'Education',
+        'Educational Administration',
         'Electrical Engineering',
         'Electronics Engineering',
-        'Computer Engineering',
-        'Information Systems',
-        'Data Science',
-        'Statistics',
-        'Mathematics',
-        'Physics',
-        'Chemistry',
-        'Biology',
-        'Biochemistry',
-        'Biotechnology',
-        'Food Technology',
-        'Nutrition',
-        'Hotel and Restaurant Management',
-        'Tourism',
-        'Hospitality Management',
+        'Elementary Education',
+        'Entrepreneurship',
+        'Environmental Engineering',
+        'Environmental Management',
+        'Environmental Science',
+        'Ethnic Studies',
+        'Finance',
         'Fine Arts',
+        'Fisheries',
+        'Food Technology',
+        'Foreign Service',
+        'Forensic Science',
+        'Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)',
+        'Geodetic Engineering',
+        'Geographic Information Systems',
+        'Geological Engineering',
+        'Geology',
+        'Geomatics',
+        'Geophysics',
+        'Health Sciences',
+        'History',
+        'Hospitality Management',
+        'Hotel and Restaurant Management',
+        'Human Resource Management',
+        'Human Services',
+        'Industrial Engineering',
+        'Information Systems',
+        'International Relations',
+        'International Studies',
+        'Journalism',
+        'Jurisprudence',
+        'Land Surveying',
+        'Law',
+        'Law Enforcement',
+        'Legal Studies',
+        'Literature',
+        'Manufacturing Engineering',
+        'Marine Biology',
+        'Marine Science',
+        'Marketing',
+        'Mathematics',
+        'Mechanical Engineering',
+        'Medical Laboratory Science',
+        'Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)',
+        'Mineral Processing',
+        'Mining Engineering',
+        'Mining Technology',
         'Music',
-        'Theater Arts',
-        'Dance',
-        'Sports Science',
+        'Natural Resource Management',
+        'Nutrition',
+        'Occupational Therapy',
+        'Oceanography',
+        'Operations Management',
+        'Pharmacy',
+        'Philosophy',
         'Physical Education',
+        'Physical Therapy',
+        'Physics',
+        'Psychology',
+        'Public Administration',
+        'Public Health',
+        'Radiologic Technology',
+        'Rural Development',
+        'Secondary Education',
+        'Security Management',
+        'Social Sciences (AB courses)',
+        'Social Welfare',
+        'Social Work',
+        'Sociology',
+        'Special Education',
+        'Sports Science',
+        'Statistics',
+        'Structural Engineering',
+        'Surveying',
+        'Theater Arts',
+        'Tourism',
+        'Transportation Engineering',
+        'Urban Planning',
         'Other',
     ];
 @endphp
@@ -1813,11 +1810,11 @@
                 <label class="input-label">Present Status</label>
                 <select id="modal_sibling_status" class="form-control">
                     <option value="">Select Status</option>
-                    <option value="None">None</option>
                     <option value="Stopped/Undergraduate">Stopped/Undergraduate</option>
                     <option value="Undergraduate/Married">Undergraduate/Married</option>
                     <option value="Graduated/Married">Graduated/Married</option>
                     <option value="Graduate/Working (Single)">Graduate/Working (Single)</option>
+                    <option value="None">None</option>
                 </select>
                                     </div>
                                 </div>

@@ -380,7 +380,7 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-3">Review</h3>
                     <p class="text-gray-600">
-                        Our team reviews your application and documents
+                        The NCIP Focal Person reviews your application and documents
                     </p>
                 </div>
                 
