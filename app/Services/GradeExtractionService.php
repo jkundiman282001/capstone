@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Log;
 class GradeExtractionService
 {
     /**
-     * Extract GPA from file (PDF or Image) without AI
+     * Extract GWA from file (PDF or Image) without AI
      * Uses OCR for images and text extraction for PDFs
      */
-    public function extractGPA($filePath)
+    public function extractGWA($filePath)
     {
         if (! file_exists($filePath)) {
             Log::error('Grades file not found', ['path' => $filePath]);
@@ -19,7 +19,7 @@ class GradeExtractionService
         }
 
         $mimeType = mime_content_type($filePath);
-        Log::info('Starting GPA extraction', ['path' => $filePath, 'mime_type' => $mimeType]);
+        Log::info('Starting GWA extraction', ['path' => $filePath, 'mime_type' => $mimeType]);
 
         // Extract text based on file type
         $text = '';
@@ -30,7 +30,7 @@ class GradeExtractionService
             $text = $this->extractTextFromImage($filePath);
             Log::info('Image OCR extraction result', ['text_length' => strlen($text), 'preview' => substr($text, 0, 200)]);
         } else {
-            Log::error('Unsupported file type for GPA extraction', [
+            Log::error('Unsupported file type for GWA extraction', [
                 'mime' => $mimeType,
                 'path' => $filePath,
             ]);
@@ -44,18 +44,18 @@ class GradeExtractionService
             return null;
         }
 
-        // Parse GPA from extracted text
-        $gpa = $this->parseGPA($text);
-        if ($gpa === null) {
-            Log::warning('GPA parsing failed', [
+        // Parse GWA from extracted text
+        $gwa = $this->parseGWA($text);
+        if ($gwa === null) {
+            Log::warning('GWA parsing failed', [
                 'text_preview' => substr($text, 0, 500),
                 'text_length' => strlen($text),
             ]);
         } else {
-            Log::info('GPA extracted successfully', ['gpa' => $gpa]);
+            Log::info('GWA extracted successfully', ['gwa' => $gwa]);
         }
 
-        return $gpa;
+        return $gwa;
     }
 
     /**
@@ -222,108 +222,78 @@ class GradeExtractionService
     }
 
     /**
-     * Parse GPA value from extracted text using regex patterns
+     * Parse GWA value from extracted text using regex patterns
      */
-    private function parseGPA($text)
+    private function parseGWA($text)
     {
         if (empty($text)) {
             return null;
         }
 
         // Keep original text for better matching (case-insensitive matching instead of lowercasing)
-        $originalText = $text;
         $text = preg_replace('/\s+/', ' ', trim($text));
 
-        // Pattern 1: Look for "GPA: 1.93" or "GPA 1.93" or "GPA=1.93" (most specific)
-        // Match decimal numbers with 1-2 decimal places after GPA
+        // Pattern 1: Look for "GWA: 95" or "GWA 95" or "GWA=95" (most specific for 75-100 scale)
+        if (preg_match('/\bgwa\s*[:\s=]+\s*(\d+\.?\d*)\b/i', $text, $matches)) {
+            $value = (float) $matches[1];
+            return $this->normalizeGWA($value);
+        }
+
+        // Pattern 2: Look for "General Weighted Average: 95"
+        if (preg_match('/\bgeneral\s+weighted\s+average\s*[:\s=]+\s*(\d+\.?\d*)\b/i', $text, $matches)) {
+            $value = (float) $matches[1];
+            return $this->normalizeGWA($value);
+        }
+
+        // Pattern 3: Look for "GPA: 1.93" or "GPA 1.93" or "GPA=1.93" (legacy GPA format)
         if (preg_match('/\bgpa\s*[:\s=]+\s*(\d+\.\d{1,2})\b/i', $text, $matches)) {
             $value = (float) $matches[1];
-            if ($value >= 1.0 && $value <= 5.0) {
-                return round($value, 2);
-            }
+            return $this->normalizeGWA($value);
         }
 
-        // Pattern 1b: Look for "GPA: 1.93" with optional spaces and case variations
-        if (preg_match('/\bg\.?p\.?\s*a\.?\s*[:\s=]+\s*(\d+\.\d{1,2})\b/i', $text, $matches)) {
-            $value = (float) $matches[1];
-            if ($value >= 1.0 && $value <= 5.0) {
-                return round($value, 2);
-            }
-        }
-
-        // Pattern 2: Look for "Grade Point Average: 1.93"
+        // Pattern 4: Look for "Grade Point Average: 1.93"
         if (preg_match('/\bgrade\s+point\s+average\s*[:\s=]+\s*(\d+\.\d{1,2})\b/i', $text, $matches)) {
             $value = (float) $matches[1];
-            if ($value >= 1.0 && $value <= 5.0) {
-                return round($value, 2);
-            }
+            return $this->normalizeGWA($value);
         }
 
-        // Pattern 3: Look for "GWA: 95" or "General Weighted Average: 95" (percentage format)
-        if (preg_match('/\b(?:gwa|general\s+weighted\s+average)\s*[:\s=]+\s*(\d+\.?\d*)\b/i', $text, $matches)) {
-            $value = (float) $matches[1];
-
-            return $this->normalizeGPA($value);
-        }
-
-        // Pattern 4: Look for GPA in table format (e.g., "GPA" followed by number in next column)
-        // Match "GPA" followed by whitespace and then a decimal number
-        if (preg_match('/\bgpa\b[^\d]*(\d+\.\d{1,2})\b/i', $text, $matches)) {
-            $value = (float) $matches[1];
-            if ($value >= 1.0 && $value <= 5.0) {
-                return round($value, 2);
-            }
-        }
-
-        // Pattern 5: Look for GPA values in common formats (1.0-5.0 scale) that appear near GPA keyword
-        // Only match if "GPA" appears within 50 characters before the number
-        if (preg_match('/\bgpa\b.{0,50}?(\d+\.\d{1,2})\b/i', $text, $matches)) {
-            $value = (float) $matches[1];
-            if ($value >= 1.0 && $value <= 5.0) {
-                return round($value, 2);
-            }
-        }
-
-        // Pattern 6: Look for percentage values (75-100) near GPA/GWA keywords
-        if (preg_match('/\b(?:gpa|gwa)\b.{0,50}?\b(9[0-9]|100|8[5-9]|7[5-9])(?:\.\d+)?\b/i', $text, $matches)) {
+        // Pattern 5: Look for GWA/GPA values near keywords (75-100 scale preferred)
+        if (preg_match('/\b(?:gwa|gpa)\b.{0,50}?\b(100|[7-9]\d(?:\.\d+)?)\b/i', $text, $matches)) {
             $value = (float) $matches[1];
             if ($value >= 75 && $value <= 100) {
-                return $this->normalizeGPA($value);
+                return round($value, 2);
             }
         }
 
-        // Pattern 7: Last resort - look for decimal numbers in GPA range (1.0-5.0) but only if very specific
-        // This is the least reliable, so we make it very strict
-        if (preg_match('/\b([1-4]\.\d{1,2}|5\.0{1,2})\b/', $text, $matches)) {
+        // Pattern 6: Look for GPA values (1.0-5.0) near keywords
+        if (preg_match('/\b(?:gwa|gpa)\b.{0,50}?\b([1-4]\.\d{1,2}|5\.0{1,2})\b/i', $text, $matches)) {
             $value = (float) $matches[1];
-            if ($value >= 1.0 && $value <= 5.0) {
-                // Only return if we found "gpa" somewhere in the text (case insensitive)
-                if (stripos($text, 'gpa') !== false || stripos($text, 'grade point') !== false) {
-                    return round($value, 2);
-                }
-            }
+            return $this->normalizeGWA($value);
         }
 
-        Log::warning('Could not parse GPA from text', ['text_sample' => substr($text, 0, 500)]);
+        Log::warning('Could not parse GWA from text', ['text_sample' => substr($text, 0, 500)]);
 
         return null;
     }
 
     /**
-     * Normalize GPA value (handles percentage to GPA conversion)
+     * Normalize grade value to GWA scale (75-100)
      */
-    private function normalizeGPA($value)
+    private function normalizeGWA($value)
     {
-        // If it's a percentage format (75-100), convert to GPA (1.0-5.0)
+        // If it's already in GWA format (75-100), just round it
         if ($value >= 75 && $value <= 100) {
-            // Convert percentage to GPA: (percentage - 75) / 25 * 4 + 1
-            // Example: 95% = (95-75)/25*4+1 = 4.2
-            $value = (($value - 75) / 25) * 4 + 1;
+            return round($value, 2);
         }
 
-        // Validate and round GPA (typically 1.0 to 5.0 or 0.0 to 4.0)
-        if ($value >= 0 && $value <= 5.0) {
-            return round($value, 2);
+        // If it's in GPA format (1.0-5.0 or 1.0-4.0)
+        // In Philippine system, 1.0 is the BEST, 3.0 is PASSING (75%), 5.0 is FAILING.
+        // We map 1.0 -> 100% and 3.0 -> 75%
+        // Formula: GWA = 100 - (GPA - 1) * 12.5
+        if ($value >= 1.0 && $value <= 5.0) {
+            $gwa = 100 - ($value - 1) * 12.5;
+            // Clamp to 0-100 range
+            return round(max(0, min(100, $gwa)), 2);
         }
 
         return null;

@@ -9,9 +9,10 @@ FUNCTION calculate_applicant_score(applicant):
     // --- Step A: Calculate Component Scores ---
     
     // 1. Academic Score (0 to 10)
-    // Map GPA (1.0 best, 5.0 worst) to 0-10 scale
-    gpa = applicant.basic_info.gpa
-    academic_rubric = ((5.0 - gpa) / 4.0) * 10
+    // Map GWA (75-100 scale, 100 is best) to 0-10 scale
+    gwa = applicant.basic_info.gpa
+    academic_rubric = ((gwa - 75) / 25) * 10
+    if (academic_rubric < 0) academic_rubric = 0
     
     // 2. Financial Score (Binary: 0 or 1)
     // Based on Income Tax Return (ITR) document approval

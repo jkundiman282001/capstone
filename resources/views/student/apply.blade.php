@@ -1636,9 +1636,9 @@
                                                 <div class="mt-auto">
                                                     @if($typeKey === 'grades')
                                                     <div class="mb-3">
-                                                        <label class="input-label text-xs">GPA (Grade Point Average) <span class="text-red-500">*</span></label>
-                                                        <input type="number" name="gpa" id="gpa-input-grades" step="0.01" min="1.0" max="5.0" class="form-control text-sm" placeholder="Enter GPA (1.0 - 5.0)">
-                                                        <p class="text-xs text-slate-500 mt-1">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                                        <label class="input-label text-xs">GWA (General Weighted Average) <span class="text-red-500">*</span></label>
+                                                        <input type="number" name="gpa" id="gpa-input-grades" step="0.01" min="75" max="100" class="form-control text-sm" placeholder="Enter GWA (75 - 100)">
+                                                        <p class="text-xs text-slate-500 mt-1">Scale: 75 - 100 (Philippine Grading System)</p>
                                                     </div>
                                                     @endif
                                                     <div class="doc-upload-container">
@@ -1709,9 +1709,9 @@
                                                 <div class="mt-auto">
                                                     @if($typeKey === 'gwa_previous_sem')
                                                     <div class="mb-3">
-                                                        <label class="input-label text-xs">GPA (Grade Point Average) <span class="text-red-500">*</span></label>
-                                                        <input type="number" name="gpa" id="gpa-input-renewal" step="0.01" min="1.0" max="5.0" class="form-control text-sm" placeholder="Enter GPA (1.0 - 5.0)">
-                                                        <p class="text-xs text-slate-500 mt-1">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                                        <label class="input-label text-xs">GWA (General Weighted Average) <span class="text-red-500">*</span></label>
+                                                        <input type="number" name="gpa" id="gpa-input-renewal" step="0.01" min="75" max="100" class="form-control text-sm" placeholder="Enter GWA (75 - 100)">
+                                                        <p class="text-xs text-slate-500 mt-1">Scale: 75 - 100 (Philippine Grading System)</p>
                                                     </div>
                                                     @endif
                                                     <div class="doc-upload-container">
@@ -3083,7 +3083,7 @@
                 return false;
             }
             
-            // Validate GPA if grades document is being uploaded
+            // Validate GWA if grades document is being uploaded
             const gradesFileInput = formEl.querySelector('input[name="documents[grades]"]');
             const gwaFileInput = formEl.querySelector('input[name="documents[gwa_previous_sem]"]');
             const gpaInputGrades = document.getElementById('gpa-input-grades');
@@ -3093,7 +3093,7 @@
                 if (!gpaInputGrades || !gpaInputGrades.value || gpaInputGrades.value.trim() === '') {
                     e.preventDefault();
                     isSubmitting = false; // Reset flag if validation fails
-                    alert('Please enter your GPA when uploading grades document.');
+                    alert('Please enter your GWA when uploading grades document.');
                     if (gpaInputGrades) {
                         gpaInputGrades.focus();
                         gpaInputGrades.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3106,7 +3106,7 @@
                 if (!gpaInputRenewal || !gpaInputRenewal.value || gpaInputRenewal.value.trim() === '') {
                     e.preventDefault();
                     isSubmitting = false; // Reset flag if validation fails
-                    alert('Please enter your GPA when uploading GWA document.');
+                    alert('Please enter your GWA when uploading GWA document.');
                     if (gpaInputRenewal) {
                         gpaInputRenewal.focus();
                         gpaInputRenewal.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3115,7 +3115,7 @@
                 }
             }
             
-            // Remove required attribute from hidden GPA inputs to prevent validation errors
+            // Remove required attribute from hidden GWA inputs to prevent validation errors
             const allGpaInputs = formEl.querySelectorAll('input[name="gpa"]');
             allGpaInputs.forEach(input => {
                 // Check if input is in a hidden step or not visible
@@ -3338,12 +3338,12 @@
                         fileNameDisplay.classList.remove('hidden');
                     }
                     
-                    // If this is a grades or gwa_previous_sem file input, make GPA required
+                    // If this is a grades or gwa_previous_sem file input, make GWA required
                     const fileInputName = this.name;
                     if (fileInputName.includes('grades') || fileInputName.includes('gwa_previous_sem')) {
-                        const gpaInput = document.getElementById('gpa-input-grades') || document.getElementById('gpa-input-renewal');
-                        if (gpaInput) {
-                            gpaInput.setAttribute('required', 'required');
+                        const gwaInput = document.getElementById('gpa-input-grades') || document.getElementById('gpa-input-renewal');
+                        if (gwaInput) {
+                            gwaInput.setAttribute('required', 'required');
                         }
                     }
                 } else {
@@ -3361,12 +3361,12 @@
                         fileNameDisplay.classList.add('hidden');
                     }
                     
-                    // If this is a grades or gwa_previous_sem file input, remove GPA required
+                    // If this is a grades or gwa_previous_sem file input, remove GWA required
                     const fileInputName = this.name;
                     if (fileInputName.includes('grades') || fileInputName.includes('gwa_previous_sem')) {
-                        const gpaInput = document.getElementById('gpa-input-grades') || document.getElementById('gpa-input-renewal');
-                        if (gpaInput) {
-                            gpaInput.removeAttribute('required');
+                        const gwaInput = document.getElementById('gpa-input-grades') || document.getElementById('gpa-input-renewal');
+                        if (gwaInput) {
+                            gwaInput.removeAttribute('required');
                         }
                     }
                 }

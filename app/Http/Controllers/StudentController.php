@@ -656,11 +656,11 @@ class StudentController extends Controller
         $applicationStatus = $basicInfo ? ($basicInfo->application_status ?? 'pending') : 'pending';
         $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? null) : null;
 
-        // Get GPA from basic_info table (entered by admin)
-        $currentGPA = $basicInfo ? ($basicInfo->gpa ?? null) : null;
+        // Get GWA from basic_info table (entered by admin)
+        $currentGWA = $basicInfo ? ($basicInfo->gpa ?? null) : null;
         $grantStatus = $basicInfo ? ($basicInfo->grant_status ?? null) : null;
 
-        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGPA', 'grantStatus'));
+        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGWA', 'grantStatus'));
     }
 
     public function performance(Request $request)
@@ -1214,17 +1214,17 @@ class StudentController extends Controller
         return back()->with('success', 'Profile updated successfully!');
     }
 
-    public function updateGPA(Request $request)
+    public function updateGWA(Request $request)
     {
         $user = Auth::user();
 
         $validated = $request->validate([
-            'gpa' => 'required|numeric|min:1.0|max:5.0',
+            'gwa' => 'required|numeric|min:75|max:100',
         ], [
-            'gpa.required' => 'GPA value is required.',
-            'gpa.numeric' => 'GPA must be a number.',
-            'gpa.min' => 'GPA must be at least 1.0.',
-            'gpa.max' => 'GPA cannot exceed 5.0.',
+            'gwa.required' => 'GWA value is required.',
+            'gwa.numeric' => 'GWA must be a number.',
+            'gwa.min' => 'GWA must be at least 75.',
+            'gwa.max' => 'GWA cannot exceed 100.',
         ]);
 
         // Get or create basic_info record
@@ -1237,22 +1237,22 @@ class StudentController extends Controller
             ]);
         }
 
-        // Update GPA in basic_info table
-        $basicInfo->gpa = $validated['gpa'];
+        // Update GWA in basic_info table
+        $basicInfo->gpa = $validated['gwa'];
         $basicInfo->save();
 
         // Notify the student
         $user->notify(new \App\Notifications\TransactionNotification(
             'update',
-            'GPA Updated',
-            'Your academic GPA has been successfully updated to '.$validated['gpa'].'.',
+            'GWA Updated',
+            'Your academic GWA has been successfully updated to '.$validated['gwa'].'.',
             'normal'
         ));
 
         return response()->json([
             'success' => true,
-            'message' => 'GPA updated successfully.',
-            'gpa' => $validated['gpa'],
+            'message' => 'GWA updated successfully.',
+            'gwa' => $validated['gwa'],
         ]);
     }
 

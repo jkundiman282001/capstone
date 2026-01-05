@@ -324,7 +324,7 @@
                     </form>
                     </div>
 
-                <!-- Current Academic Performance - GPA Only -->
+                <!-- Current Academic Performance - GWA Only -->
                 <div class="glass-card rounded-[2rem] shadow-xl shadow-slate-200/40 overflow-hidden">
                     <div class="px-8 py-6 border-b border-slate-100 bg-white/50">
                         <div class="flex items-center gap-3">
@@ -335,122 +335,122 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-xl text-slate-800">Current Academic Performance</h3>
-                                <p class="text-slate-500 text-sm mt-0.5">Grade Point Average (GPA)</p>
+                                <p class="text-slate-500 text-sm mt-0.5">General Weighted Average (GWA)</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="p-8">
-                        @if($currentGPA !== null)
-                            <!-- GPA Display Card -->
+                        @if($currentGWA !== null)
+                            <!-- GWA Display Card -->
                             <div class="text-center mb-6">
                                 <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-4 
-                                    @if($currentGPA >= 3.5) border-green-300
-                                    @elseif($currentGPA >= 2.5) border-amber-300
+                                    @if($currentGWA >= 90) border-green-300
+                                    @elseif($currentGWA >= 85) border-amber-300
                                     @else border-red-300
                                     @endif shadow-lg mb-4">
                                     <div class="text-center">
                                         <p class="text-5xl font-black 
-                                            @if($currentGPA >= 3.5) text-green-600
-                                            @elseif($currentGPA >= 2.5) text-amber-600
+                                            @if($currentGWA >= 90) text-green-600
+                                            @elseif($currentGWA >= 85) text-amber-600
                                             @else text-red-600
-                                            @endif leading-none" id="gpa-display-value">{{ number_format($currentGPA, 2) }}</p>
-                                        <p class="text-lg font-bold text-slate-600 mt-1">GPA</p>
+                                            @endif leading-none" id="gwa-display-value">{{ number_format($currentGWA, 2) }}</p>
+                                        <p class="text-lg font-bold text-slate-600 mt-1">GWA</p>
                                     </div>
                                 </div>
-                                <p class="text-sm font-semibold text-slate-700 mb-1">Current Grade Point Average</p>
-                                <p class="text-xs text-slate-500">Scale: 1.0 - 5.0 (Philippine Grading System)</p>
+                                <p class="text-sm font-semibold text-slate-700 mb-1">Current General Weighted Average</p>
+                                <p class="text-xs text-slate-500">Scale: 75 - 100 (Philippine Grading System)</p>
                             </div>
 
-                            <!-- GPA Progress Bar -->
+                            <!-- GWA Progress Bar -->
                             <div class="mb-6">
                                 <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-semibold text-slate-600">GPA Progress</span>
+                                    <span class="text-xs font-semibold text-slate-600">GWA Progress</span>
                                     <span class="text-xs font-bold 
-                                        @if($currentGPA >= 3.5) text-green-600
-                                        @elseif($currentGPA >= 2.5) text-amber-600
+                                        @if($currentGWA >= 90) text-green-600
+                                        @elseif($currentGWA >= 85) text-amber-600
                                         @else text-red-600
                                         @endif">
-                                        Target: 3.5
+                                        Target: 90
                                     </span>
                                 </div>
                                 <div class="w-full h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
                                     <div class="h-full rounded-full transition-all duration-500
-                                        @if($currentGPA >= 3.5) bg-gradient-to-r from-green-400 to-green-600
-                                        @elseif($currentGPA >= 2.5) bg-gradient-to-r from-amber-400 to-amber-600
+                                        @if($currentGWA >= 90) bg-gradient-to-r from-green-400 to-green-600
+                                        @elseif($currentGWA >= 85) bg-gradient-to-r from-amber-400 to-amber-600
                                         @else bg-gradient-to-r from-red-400 to-red-600
                                         @endif" 
-                                        style="width: {{ ($currentGPA / 5.0) * 100 }}%">
+                                        style="width: {{ (($currentGWA - 75) / 25) * 100 }}%">
                                     </div>
                                 </div>
                                 <div class="flex justify-between text-xs text-slate-500 mt-1">
-                                    <span>1.0</span>
-                                    <span>3.5 (Target)</span>
-                                    <span>5.0</span>
+                                    <span>75</span>
+                                    <span>90 (Target)</span>
+                                    <span>100</span>
                                 </div>
                             </div>
 
                             <!-- Academic Standing -->
                             @php
-                                $gpaStatus = 'good';
-                                $gpaStatusClasses = 'bg-green-50 border-green-200 text-green-700';
-                                $gpaStatusTextColor = 'text-green-800';
-                                $gpaStatusIconColor = 'text-green-600';
-                                if ($currentGPA < 2.5) {
-                                    $gpaStatus = 'poor';
-                                    $gpaStatusClasses = 'bg-red-50 border-red-200 text-red-700';
-                                    $gpaStatusTextColor = 'text-red-800';
-                                    $gpaStatusIconColor = 'text-red-600';
-                                } elseif ($currentGPA < 3.5) {
-                                    $gpaStatus = 'fair';
-                                    $gpaStatusClasses = 'bg-amber-50 border-amber-200 text-amber-700';
-                                    $gpaStatusTextColor = 'text-amber-800';
-                                    $gpaStatusIconColor = 'text-amber-600';
+                                $gwaStatus = 'good';
+                                $gwaStatusClasses = 'bg-green-50 border-green-200 text-green-700';
+                                $gwaStatusTextColor = 'text-green-800';
+                                $gwaStatusIconColor = 'text-green-600';
+                                if ($currentGWA < 85) {
+                                    $gwaStatus = 'poor';
+                                    $gwaStatusClasses = 'bg-red-50 border-red-200 text-red-700';
+                                    $gwaStatusTextColor = 'text-red-800';
+                                    $gwaStatusIconColor = 'text-red-600';
+                                } elseif ($currentGWA < 90) {
+                                    $gwaStatus = 'fair';
+                                    $gwaStatusClasses = 'bg-amber-50 border-amber-200 text-amber-700';
+                                    $gwaStatusTextColor = 'text-amber-800';
+                                    $gwaStatusIconColor = 'text-amber-600';
                                 }
                             @endphp
-                            <div class="{{ $gpaStatusClasses }} rounded-xl p-5 border-2">
+                            <div class="{{ $gwaStatusClasses }} rounded-xl p-5 border-2">
                                 <div class="flex items-center gap-3 mb-3">
-                                    @if($currentGPA >= 3.5)
-                                        <svg class="w-6 h-6 flex-shrink-0 {{ $gpaStatusIconColor }}" fill="none" stroke="currentColor" stroke-width="2"
+                                    @if($currentGWA >= 90)
+                                        <svg class="w-6 h-6 flex-shrink-0 {{ $gwaStatusIconColor }}" fill="none" stroke="currentColor" stroke-width="2"
                                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                     @else
-                                        <svg class="w-6 h-6 flex-shrink-0 {{ $gpaStatusIconColor }}" fill="none" stroke="currentColor" stroke-width="2"
+                                        <svg class="w-6 h-6 flex-shrink-0 {{ $gwaStatusIconColor }}" fill="none" stroke="currentColor" stroke-width="2"
                                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                             <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                         </svg>
                                     @endif
-                                    <h4 class="font-bold text-lg {{ $gpaStatusTextColor }}">
-                                        @if($currentGPA >= 3.5)
+                                    <h4 class="font-bold text-lg {{ $gwaStatusTextColor }}">
+                                        @if($currentGWA >= 90)
                                             Excellent Academic Standing
-                                        @elseif($currentGPA >= 2.5)
+                                        @elseif($currentGWA >= 85)
                                             Good Academic Standing
                                         @else
                                             Needs Improvement
                                         @endif
                                     </h4>
                                 </div>
-                                <p class="{{ $gpaStatusTextColor }} text-sm leading-relaxed">
-                                    @if($currentGPA >= 3.5)
-                                        Your GPA of <strong>{{ number_format($currentGPA, 2) }}</strong> exceeds the minimum requirement of 3.5. You are currently eligible for all scholarship opportunities and maintaining good academic progress.
-                                    @elseif($currentGPA >= 2.5)
-                                        Your GPA of <strong>{{ number_format($currentGPA, 2) }}</strong> is below the recommended 3.5. Consider improving your academic performance to maximize scholarship opportunities.
+                                <p class="{{ $gwaStatusTextColor }} text-sm leading-relaxed">
+                                    @if($currentGWA >= 90)
+                                        Your GWA of <strong>{{ number_format($currentGWA, 2) }}</strong> exceeds the target of 90. You are currently eligible for all scholarship opportunities and maintaining excellent academic progress.
+                                    @elseif($currentGWA >= 85)
+                                        Your GWA of <strong>{{ number_format($currentGWA, 2) }}</strong> is in good standing. Maintaining or improving this will maximize your scholarship opportunities.
                                     @else
-                                        Your GPA of <strong>{{ number_format($currentGPA, 2) }}</strong> is below the minimum requirement of 2.5. Please focus on improving your academic performance to maintain scholarship eligibility.
+                                        Your GWA of <strong>{{ number_format($currentGWA, 2) }}</strong> is below the recommended 85. Please focus on improving your academic performance to maintain scholarship eligibility.
                                     @endif
                                 </p>
                             </div>
                         @else
-                            <!-- No GPA Recorded -->
+                            <!-- No GWA Recorded -->
                             <div class="text-center py-12">
                                 <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-100 mb-4">
                                     <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
                                 </div>
-                                <h4 class="text-lg font-bold text-slate-700 mb-2">GPA Not Yet Recorded</h4>
-                                <p class="text-sm text-slate-600 max-w-md mx-auto">Your GPA will be recorded when you upload your grades document in the application form.</p>
+                                <h4 class="text-lg font-bold text-slate-700 mb-2">GWA Not Yet Recorded</h4>
+                                <p class="text-sm text-slate-600 max-w-md mx-auto">Your GWA will be recorded when you upload your grades document in the application form.</p>
                             </div>
                         @endif
                     </div>

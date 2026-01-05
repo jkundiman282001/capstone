@@ -82,7 +82,7 @@ This document outlines where prioritization is implemented in the codebase. Ther
 - **Main Class:** `ApplicantPriorityService`
 - **Scoring Weights (current):**
   - IP Group rubric: 20%
-  - GPA (1.0–5.0): 30%
+  - GWA (75–100): 30%
   - Income Tax Return (ITR): 30%
   - Citations/Awards: 10%
   - Social Responsibility (essays): 10%
@@ -115,7 +115,7 @@ This document outlines where prioritization is implemented in the codebase. Ther
 
 ### Data Sources
 - **IP rubric inputs**: document statuses for `tribal_certificate`, `endorsement`, `birth_certificate` (+priority ethno bonus)
-- **Academic input (GPA)**: `basic_info.gpa` (1.0–5.0 scale)
+- **Academic input (GWA)**: `basic_info.gpa` (75–100 scale)
 - **ITR**: approved `income_document`
 - **Awards**: `education.rank`
 - **Social responsibility**: `school_pref.ques_answer1` + `school_pref.ques_answer2`

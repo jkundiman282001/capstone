@@ -184,7 +184,7 @@
                             </span>
                             <div>
                                 <h2 class="text-lg font-semibold text-slate-900">Priority Scoring Rubrics</h2>
-                                <p class="text-xs text-slate-500">Current scoring: IP 20%, GPA 30%, ITR 30%, Awards 10%, Social 10%</p>
+                                <p class="text-xs text-slate-500">Current scoring: IP 20%, GWA 30%, ITR 30%, Awards 10%, Social 10%</p>
                             </div>
                         </div>
                     </div>
@@ -210,7 +210,7 @@
                                         <path d="M8 7h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         <path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
                                     </svg>
-                                    GPA (30%)
+                                    GWA (30%)
                                 </span>
                             </button>
                             <button onclick="showPriorityTab('itr', this)"
@@ -286,17 +286,17 @@
                             </div>
                         </div>
 
-                        <!-- GPA -->
+                        <!-- GWA -->
                         <div id="priority-gpa" class="priority-content space-y-4">
                             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                                <p class="font-semibold text-slate-900">GPA (30%)</p>
-                                <p class="mt-1">GPA (1.0 best → 5.0 worst) is converted into a 0–10 rubric, then weighted at 30%.</p>
+                                <p class="font-semibold text-slate-900">GWA (30%)</p>
+                                <p class="mt-1">GWA (100 best → 75 worst) is converted into a 0–10 rubric, then weighted at 30%.</p>
                             </div>
 
                             <div class="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
                                 <p class="font-semibold text-slate-900">Formula</p>
                                 <p class="mt-1">
-                                    Rubric: <strong>((5 − GPA) / 4) × 10</strong><br>
+                                    Rubric: <strong>((GWA − 75) / 25) × 10</strong><br>
                                     Contribution: <strong>(Rubric / 10) × 30</strong>
                                 </p>
                             </div>
@@ -305,17 +305,18 @@
                                 <table class="w-full text-sm">
                                     <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         <tr>
-                                            <th class="px-4 py-3 text-left">GPA</th>
+                                            <th class="px-4 py-3 text-left">GWA</th>
                                             <th class="px-4 py-3 text-left">Rubric (0–10)</th>
                                             <th class="px-4 py-3 text-left">Contribution (0–30%)</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-200 bg-white">
-                                        <tr><td class="px-4 py-3 font-semibold text-black">1.00</td><td class="px-4 py-3 text-black">10.0</td><td class="px-4 py-3 text-black">30%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-black">2.00</td><td class="px-4 py-3 text-black">7.5</td><td class="px-4 py-3 text-black">22.5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-black">3.00</td><td class="px-4 py-3 text-black">5.0</td><td class="px-4 py-3 text-black">15%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-black">4.00</td><td class="px-4 py-3 text-black">2.5</td><td class="px-4 py-3 text-black">7.5%</td></tr>
-                                        <tr><td class="px-4 py-3 font-semibold text-black">5.00</td><td class="px-4 py-3 text-black">0.0</td><td class="px-4 py-3 text-black">0%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">100</td><td class="px-4 py-3 text-black">10.0</td><td class="px-4 py-3 text-black">30%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">95</td><td class="px-4 py-3 text-black">8.0</td><td class="px-4 py-3 text-black">24%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">90</td><td class="px-4 py-3 text-black">6.0</td><td class="px-4 py-3 text-black">18%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">85</td><td class="px-4 py-3 text-black">4.0</td><td class="px-4 py-3 text-black">12%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">80</td><td class="px-4 py-3 text-black">2.0</td><td class="px-4 py-3 text-black">6%</td></tr>
+                                        <tr><td class="px-4 py-3 font-semibold text-black">75</td><td class="px-4 py-3 text-black">0.0</td><td class="px-4 py-3 text-black">0%</td></tr>
                                     </tbody>
                                 </table>
                             </div>

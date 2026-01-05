@@ -21,7 +21,7 @@
                         <p class="mt-3 max-w-3xl text-sm text-slate-600">
                             Consolidated priority ladder for applicants under <span class="font-semibold text-slate-900">{{ $assignedBarangay }}</span>. Weighted scoring:
                             <strong class="text-slate-900">IP group rubric 20%</strong>,
-                            <strong class="text-slate-900">GPA (1.0–5.0) 30%</strong>,
+                            <strong class="text-slate-900">GWA (75–100) 30%</strong>,
                             <strong class="text-slate-900">Income Tax Return (ITR) 30%</strong>,
                             <strong class="text-slate-900">Citations/Awards 10%</strong>,
                             <strong class="text-slate-900">Social responsibility (essays) 10%</strong>,
@@ -73,9 +73,9 @@
                     'chip' => 'border-emerald-100 bg-emerald-50 text-emerald-700',
                 ],
                 [
-                    'label' => 'Academic (GPA 1.0–5.0)',
+                    'label' => 'Academic (GWA 75–100)',
                     'value' => $academicCount,
-                    'description' => 'Has GPA data to score',
+                    'description' => 'Has GWA data to score',
                     'badge' => '30% weight',
                     'accent' => 'text-blue-600',
                     'chip' => 'border-blue-100 bg-blue-50 text-blue-700',
@@ -105,7 +105,7 @@
                     'gradient' => 'from-emerald-200 via-emerald-300 to-teal-400',
                 ],
                 [
-                    'label' => 'Academic (GPA 1.0–5.0)',
+                    'label' => 'Academic (GWA 75–100)',
                     'value' => $academicCount,
                     'gradient' => 'from-sky-200 via-blue-300 to-indigo-400',
                 ],
@@ -123,7 +123,7 @@
 
             $priorityWeights = [
                 ['label' => 'IP group rubric', 'value' => '20%', 'accent' => 'text-orange-500'],
-                ['label' => 'GPA (1.0–5.0)', 'value' => '30%', 'accent' => 'text-blue-500'],
+                ['label' => 'GWA (75–100)', 'value' => '30%', 'accent' => 'text-blue-500'],
                 ['label' => 'Income tax return (ITR)', 'value' => '30%', 'accent' => 'text-green-500'],
                 ['label' => 'Citations / awards', 'value' => '10%', 'accent' => 'text-fuchsia-500'],
                 ['label' => 'Social responsibility (essays)', 'value' => '10%', 'accent' => 'text-slate-500'],

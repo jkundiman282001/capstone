@@ -13,7 +13,7 @@ class ApplicantPriorityService
      */
     private array $priorityWeights = [
         'ip' => 0.20,                    // 20% - IP group rubric (with priority IP bonus baked in)
-        'academic' => 0.30,              // 30% - GWA/GPA (from education.grade_ave or basic_info.gpa)
+        'academic' => 0.30,              // 30% - GWA (from education.grade_ave or basic_info.gpa)
         'income_tax' => 0.30,            // 30% - ITR / Income Tax Return document approval
         'awards' => 0.10,                // 10% - Citations/Awards (from education.rank)
         'social_responsibility' => 0.10, // 10% - Social responsibility (from essays in school_pref)
@@ -465,7 +465,7 @@ class ApplicantPriorityService
      * Get prioritized applicants based on weighted scoring with FCFS (First Come First Serve) as tiebreaker
      *
      * Priority Order:
-     * 1. Weighted Priority Score (IP Group 20%, GPA/GWA 30%, ITR 30%, Citations/Awards 10%, Social Responsibility 10%)
+     * 1. Weighted Priority Score (IP Group 20%, GWA 30%, ITR 30%, Citations/Awards 10%, Social Responsibility 10%)
      * 2. FCFS Tiebreaker: When scores are equal, earlier submission time wins
      * 3. User ID: Final tiebreaker for stable sorting
      */
@@ -506,7 +506,7 @@ class ApplicantPriorityService
             // Check for approved ITR / income tax document
             $hasApprovedIncomeTax = $this->hasApprovedIncomeTax($applicant);
 
-            // Academic score (GWA/GPA) rubric score (0-10 scale)
+            // Academic score (GWA) rubric score (0-10 scale)
             $academicRubricScore = $this->calculateAcademicRubricScore($applicant);
 
             // Citations/Awards rubric score (0-10 scale), based on education.rank
@@ -584,7 +584,7 @@ class ApplicantPriorityService
      * receive a bonus multiplier on their IP rubric score to reflect their higher priority status.
      *
      * @param  float  $ipRubricScore  IP Group rubric score (0-12 scale)
-     * @param  float  $academicRubricScore  Academic rubric score (0-10 scale) derived from GPA/GWA
+     * @param  float  $academicRubricScore  Academic rubric score (0-10 scale) derived from GWA
      * @param  bool  $hasApprovedIncomeTax  Whether income tax document is approved
      * @param  float  $awardsRubricScore  Citations/Awards rubric score (0-10 scale)
      * @param  float  $socialResponsibilityRubricScore  Social responsibility rubric score (0-10 scale)
@@ -629,7 +629,7 @@ class ApplicantPriorityService
 
     /**
      * Calculate academic rubric score (0-10) from:
-     * - basic_info.gpa (1.0 - 5.0, lower is better)
+     * - basic_info.gpa (75 - 100 scale, higher is better)
      *
      * NOTE: Per current policy, we DO NOT derive academic score from education.grade_ave anymore.
      */
@@ -641,15 +641,15 @@ class ApplicantPriorityService
             return 0.0;
         }
 
-        // GPA scale: 1.0 (best) → 5.0 (worst), map to 0–10 where higher is better.
-        $gpa = (float) $basicInfo->gpa;
-        if ($gpa < 1.0 || $gpa > 5.0) {
+        // GWA scale: 100 (best) → 75 (worst), map to 0–10 where higher is better.
+        $gwa = (float) $basicInfo->gpa;
+        if ($gwa < 75 || $gwa > 100) {
             return 0.0;
         }
 
-        // Normalize GPA to 0..1 then scale to 0..10
-        // 1.0 → 1.0, 5.0 → 0.0
-        $normalized = (5.0 - $gpa) / 4.0;
+        // Normalize GWA to 0..1 then scale to 0..10
+        // 100 → 1.0, 75 → 0.0
+        $normalized = ($gwa - 75) / 25;
 
         return round(max(0.0, min(1.0, $normalized)) * 10, 2);
     }

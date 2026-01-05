@@ -81,7 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/student/update-profile-pic', [StudentController::class, 'updateProfilePic'])->name('student.update-profile-pic');
     Route::get('/student/profile-pic/{filename}', [StudentController::class, 'showProfilePic'])->name('profile-pic.show');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
-    Route::post('/student/update-gpa', [StudentController::class, 'updateGPA'])->name('student.update-gpa');
+    Route::post('/student/update-gwa', [StudentController::class, 'updateGWA'])->name('student.update-gwa');
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
 
     // Application Draft Routes
@@ -175,7 +175,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/documents/{document}/update-status', [StaffDashboardController::class, 'updateDocumentStatus'])->name('staff.documents.update-status');
     Route::post('staff/logout', [App\Http\Controllers\StaffAuthController::class, 'logout'])->name('staff.logout');
     Route::get('/staff/grades/{user}', [StaffDashboardController::class, 'extractGrades'])->name('staff.grades.extract');
-    Route::post('/staff/users/{user}/update-gpa', [StaffDashboardController::class, 'updateGPA'])->name('staff.users.update-gpa');
+    Route::post('/staff/users/{user}/update-gwa', [StaffDashboardController::class, 'updateGWA'])->name('staff.users.update-gwa');
     Route::get('/staff/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('staff.settings');
     Route::post('/staff/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('staff.settings.update');
 

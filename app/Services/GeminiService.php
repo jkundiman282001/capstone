@@ -17,9 +17,9 @@ class GeminiService
     }
 
     /**
-     * Extract GPA from PDF file using Gemini AI
+     * Extract GWA from PDF file using Gemini AI
      */
-    public function extractGPAFromPdf($pdfPath)
+    public function extractGWAFromPdf($pdfPath)
     {
         if (! file_exists($pdfPath)) {
             \Log::error('Grades PDF file not found', ['path' => $pdfPath]);
@@ -38,7 +38,7 @@ class GeminiService
                             ],
                         ],
                         [
-                            'text' => 'Extract ONLY the GPA (Grade Point Average) from this student grade report PDF. Look for values labeled as "GPA", "Grade Point Average", "GWA", "General Weighted Average", or similar. Return ONLY the numeric GPA value (e.g., 3.85, 95, 1.5) as a single number. If multiple GPAs are found, return the most recent or overall GPA. If no GPA is found, return "N/A".',
+                            'text' => 'Extract ONLY the GWA (General Weighted Average) from this student grade report PDF. Look for values labeled as "GWA", "General Weighted Average", "GPA", "Grade Point Average", or similar. Return ONLY the numeric GWA value (e.g., 95, 1.5, 3.85) as a single number. If multiple GWAs are found, return the most recent or overall GWA. If no GWA is found, return "N/A". Note: We prefer the 75-100 scale.',
                         ],
                     ],
                 ],
@@ -50,7 +50,7 @@ class GeminiService
             $output = $response->json();
             $text = $output['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
-            return $this->parseGPA($text);
+            return $this->parseGWA($text);
         } else {
             \Log::error('Gemini API error', [
                 'status' => $response->status(),
@@ -63,10 +63,10 @@ class GeminiService
     }
 
     /**
-     * Extract GPA from image file using Gemini AI
+     * Extract GWA from image file using Gemini AI
      * Supports: JPG, JPEG, PNG, GIF, WEBP
      */
-    public function extractGPAFromImage($imagePath)
+    public function extractGWAFromImage($imagePath)
     {
         if (! file_exists($imagePath)) {
             \Log::error('Grades image file not found', ['path' => $imagePath]);
@@ -102,7 +102,7 @@ class GeminiService
                             ],
                         ],
                         [
-                            'text' => 'Extract ONLY the GPA (Grade Point Average) from this student grade report image. Look for values labeled as "GPA", "Grade Point Average", "GWA", "General Weighted Average", or similar. Return ONLY the numeric GPA value (e.g., 3.85, 95, 1.5) as a single number. If multiple GPAs are found, return the most recent or overall GPA. If no GPA is found, return "N/A".',
+                            'text' => 'Extract ONLY the GWA (General Weighted Average) from this student grade report image. Look for values labeled as "GWA", "General Weighted Average", "GPA", "Grade Point Average", or similar. Return ONLY the numeric GWA value (e.g., 95, 1.5, 3.85) as a single number. If multiple GWAs are found, return the most recent or overall GWA. If no GWA is found, return "N/A". Note: We prefer the 75-100 scale.',
                         ],
                     ],
                 ],
@@ -116,7 +116,7 @@ class GeminiService
             $output = $response->json();
             $text = $output['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
-            return $this->parseGPA($text);
+            return $this->parseGWA($text);
         } else {
             \Log::error('Gemini API error for image', [
                 'status' => $response->status(),
@@ -129,10 +129,10 @@ class GeminiService
     }
 
     /**
-     * Extract GPA from file (automatically detects PDF or Image)
-     * Returns the GPA value as a float or null if not found
+     * Extract GWA from file (automatically detects PDF or Image)
+     * Returns the GWA value as a float or null if not found
      */
-    public function extractGPA($filePath)
+    public function extractGWA($filePath)
     {
         if (! file_exists($filePath)) {
             \Log::error('Grades file not found', ['path' => $filePath]);
@@ -144,16 +144,16 @@ class GeminiService
 
         // Check if it's a PDF
         if ($mimeType === 'application/pdf') {
-            return $this->extractGPAFromPdf($filePath);
+            return $this->extractGWAFromPdf($filePath);
         }
 
         // Check if it's an image
         $imageMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (in_array($mimeType, $imageMimes)) {
-            return $this->extractGPAFromImage($filePath);
+            return $this->extractGWAFromImage($filePath);
         }
 
-        \Log::error('Unsupported file type for GPA extraction', [
+        \Log::error('Unsupported file type for GWA extraction', [
             'mime' => $mimeType,
             'path' => $filePath,
         ]);
@@ -162,10 +162,10 @@ class GeminiService
     }
 
     /**
-     * Parse GPA value from text response
-     * Extracts numeric GPA value from various formats
+     * Parse GWA value from text response
+     * Extracts numeric GWA value from various formats
      */
-    private function parseGPA($text)
+    private function parseGWA($text)
     {
         if (empty($text) || stripos($text, 'N/A') !== false || stripos($text, 'not found') !== false) {
             return null;
@@ -175,24 +175,26 @@ class GeminiService
         $text = trim($text);
 
         // Try to extract number patterns (supports formats like 3.85, 95, 1.5, etc.)
-        // Look for decimal numbers (GPA format: 1.0-5.0 or percentage: 75-100)
         if (preg_match('/(\d+\.?\d*)/', $text, $matches)) {
             $value = (float) $matches[1];
 
-            // If it's a percentage format (75-100), convert to GPA scale (1.0-5.0)
+            // If it's already in GWA format (75-100), just return it
             if ($value >= 75 && $value <= 100) {
-                // Convert percentage to GPA: (percentage - 75) / 25 * 4 + 1
-                // Example: 95% = (95-75)/25*4+1 = 4.2
-                $value = (($value - 75) / 25) * 4 + 1;
+                return round($value, 2);
             }
 
-            // Validate GPA range (typically 1.0 to 5.0 or 0.0 to 4.0)
-            if ($value >= 0 && $value <= 5.0) {
-                return round($value, 2);
+            // If it's in GPA format (1.0-5.0), convert to GWA (75-100)
+            if ($value >= 1.0 && $value <= 5.0) {
+                // In Philippine system, 1.0 is the BEST, 3.0 is PASSING (75%), 5.0 is FAILING.
+                // We map 1.0 -> 100% and 3.0 -> 75%
+                // Formula: GWA = 100 - (GPA - 1) * 12.5
+                $gwa = 100 - ($value - 1) * 12.5;
+                // Clamp to 0-100 range
+                return round(max(0, min(100, $gwa)), 2);
             }
         }
 
-        \Log::warning('Could not parse GPA from text', ['text' => $text]);
+        \Log::warning('Could not parse GWA from text', ['text' => $text]);
 
         return null;
     }

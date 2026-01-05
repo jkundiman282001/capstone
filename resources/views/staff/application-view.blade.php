@@ -442,9 +442,9 @@
                                     </div>
                                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGPAModal({{ $user->id }})" class="flex-1 sm:flex-none px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1" title="Enter GPA Manually">
+                                            <button onclick="showManualGWAModal({{ $user->id }})" class="flex-1 sm:flex-none px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1" title="Enter GWA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GPA
+                                                Enter GWA
                                             </button>
                                         @endif
                                         <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="flex-1 sm:flex-none px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
@@ -465,9 +465,9 @@
                                     </div>
                                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
+                                            <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GPA
+                                                Enter GWA
                                             </button>
                                         @endif
                                         <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
@@ -493,9 +493,9 @@
                                     </div>
                                     <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
+                                            <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GPA
+                                                Enter GWA
                                             </button>
                                         @endif
                                         <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
@@ -1041,38 +1041,38 @@
     </div>
 </div>
 
-<!-- Manual GPA Input Modal -->
-<div id="manualGPAModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<!-- Manual GWA Input Modal -->
+<div id="manualGWAModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
         <div class="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-indigo-500 to-purple-500">
             <div>
-                <h3 class="text-xl font-bold text-white">Enter GPA Manually</h3>
+                <h3 class="text-xl font-bold text-white">Enter GWA Manually</h3>
                 <p class="text-sm text-indigo-100 mt-1">Update student's grade average</p>
             </div>
-            <button onclick="closeManualGPAModal()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 text-white transition-all">
+            <button onclick="closeManualGWAModal()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 text-white transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
         <div class="p-6">
-            <form id="manualGPAForm" onsubmit="submitManualGPA(event)">
-                <input type="hidden" id="manualGPAUserId" name="user_id">
+            <form id="manualGWAForm" onsubmit="submitManualGWA(event)">
+                <input type="hidden" id="manualGWAUserId" name="user_id">
                 
                 <div class="mb-6">
-                    <label for="gpaValue" class="block text-sm font-bold text-slate-700 mb-2">
-                        GPA Value <span class="text-red-500">*</span>
+                    <label for="gwaValue" class="block text-sm font-bold text-slate-700 mb-2">
+                        GWA Value <span class="text-red-500">*</span>
                     </label>
                     <input 
                         type="number" 
-                        id="gpaValue" 
-                        name="gpa" 
+                        id="gwaValue" 
+                        name="gwa" 
                         step="0.01" 
-                        min="1.0" 
-                        max="5.0" 
+                        min="75" 
+                        max="100" 
                         required
-                        placeholder="e.g., 1.93, 3.85, 4.50"
+                        placeholder="e.g., 85.5, 92.0, 98.25"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-lg font-semibold"
                     >
-                    <p class="text-xs text-slate-500 mt-2">Enter GPA on a scale of 1.0 to 5.0 (Philippine grading system)</p>
+                    <p class="text-xs text-slate-500 mt-2">Enter GWA on a scale of 75 to 100 (Philippine grading system)</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
@@ -1086,12 +1086,12 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3">
-                    <button type="button" onclick="closeManualGPAModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+                    <button type="button" onclick="closeManualGWAModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
                         Cancel
                     </button>
-                    <button type="submit" id="submitGPABtn" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                    <button type="submit" id="submitGWABtn" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Save GPA
+                        Save GWA
                     </button>
                 </div>
             </form>
@@ -1208,7 +1208,7 @@
                             <optgroup id="terminationReasonsGroup" label="Termination Reasons (Confirmed grantee who broke a rule)">
                                 <option value="Violation of scholarship terms and conditions">Violation of scholarship terms and conditions</option>
                                 <option value="Academic performance below required standards">Academic performance below required standards</option>
-                                <option value="Failure to maintain minimum GPA requirement">Failure to maintain minimum GPA requirement</option>
+                                <option value="Failure to maintain minimum GWA requirement">Failure to maintain minimum GWA requirement</option>
                                 <option value="Disciplinary action or misconduct">Disciplinary action or misconduct</option>
                                 <option value="Non-compliance with program requirements">Non-compliance with program requirements</option>
                                 <option value="Withdrawal from academic program">Withdrawal from academic program</option>
@@ -1758,70 +1758,70 @@ document.getElementById('feedbackModal')?.addEventListener('click', function(e) 
     if (e.target === this) closeFeedbackModal();
 });
 
-// Manual GPA Modal Functions
-function showManualGPAModal(userId) {
-    const modal = document.getElementById('manualGPAModal');
-    const userIdInput = document.getElementById('manualGPAUserId');
-    const gpaInput = document.getElementById('gpaValue');
+// Manual GWA Modal Functions
+function showManualGWAModal(userId) {
+    const modal = document.getElementById('manualGWAModal');
+    const userIdInput = document.getElementById('manualGWAUserId');
+    const gwaInput = document.getElementById('gwaValue');
     
     userIdInput.value = userId;
-    gpaInput.value = '';
+    gwaInput.value = '';
     
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     
     // Focus on input
-    setTimeout(() => gpaInput.focus(), 100);
+    setTimeout(() => gwaInput.focus(), 100);
 }
 
-function closeManualGPAModal() {
-    const modal = document.getElementById('manualGPAModal');
+function closeManualGWAModal() {
+    const modal = document.getElementById('manualGWAModal');
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
-    document.getElementById('manualGPAForm').reset();
+    document.getElementById('manualGWAForm').reset();
 }
 
-function submitManualGPA(event) {
+function submitManualGWA(event) {
     event.preventDefault();
     
-    const gpaValue = parseFloat(document.getElementById('gpaValue').value);
+    const gwaValue = parseFloat(document.getElementById('gwaValue').value);
     
     // Client-side validation
-    if (isNaN(gpaValue) || gpaValue < 1.0 || gpaValue > 5.0) {
-        alert('Please enter a valid GPA between 1.0 and 5.0.');
-        document.getElementById('gpaValue').focus();
+    if (isNaN(gwaValue) || gwaValue < 75 || gwaValue > 100) {
+        alert('Please enter a valid GWA between 75 and 100.');
+        document.getElementById('gwaValue').focus();
         return;
     }
     
-    const submitBtn = document.getElementById('submitGPABtn');
+    const submitBtn = document.getElementById('submitGWABtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
     submitBtn.disabled = true;
     
-    const userId = document.getElementById('manualGPAUserId').value;
+    const userId = document.getElementById('manualGWAUserId').value;
     
-    fetch(`/staff/users/${userId}/update-gpa`, {
+    fetch(`/staff/users/${userId}/update-gwa`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ gpa: gpaValue })
+        body: JSON.stringify({ gwa: gwaValue })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            closeManualGPAModal();
-            alert(`GPA updated successfully to ${gpaValue}!`);
+            closeManualGWAModal();
+            alert(`GWA updated successfully to ${gwaValue}!`);
             location.reload();
         } else {
-            const errorMsg = data.message || data.errors?.gpa?.[0] || 'Unknown error';
-            alert('Error updating GPA: ' + errorMsg);
+            const errorMsg = data.message || data.errors?.gwa?.[0] || 'Unknown error';
+            alert('Error updating GWA: ' + errorMsg);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error updating GPA. Please try again.');
+        alert('Error updating GWA. Please try again.');
     })
     .finally(() => {
         submitBtn.innerHTML = originalText;
@@ -1830,8 +1830,8 @@ function submitManualGPA(event) {
 }
 
 // Close modal when clicking outside
-document.getElementById('manualGPAModal')?.addEventListener('click', function(e) {
-    if (e.target === this) closeManualGPAModal();
+document.getElementById('manualGWAModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeManualGWAModal();
 });
 
 // Application Rejection/Termination Modal Functions
@@ -2030,7 +2030,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDocumentModal();
         closeFeedbackModal();
-        closeManualGPAModal();
+        closeManualGWAModal();
         closeApplicationRejectionModal();
     }
 });

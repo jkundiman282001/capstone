@@ -1582,11 +1582,11 @@ class StaffDashboardController extends Controller
 
             // Try non-AI extraction service first (OCR + regex parsing)
             $extractionService = new \App\Services\GradeExtractionService;
-            $gpa = $extractionService->extractGPA($filePath);
+            $gwa = $extractionService->extractGWA($filePath);
             $extractionMethod = 'ocr';
 
             // If OCR extraction fails, fallback to AI service (Gemini)
-            if ($gpa === null) {
+            if ($gwa === null) {
                 \Log::info('OCR extraction failed, trying AI fallback', [
                     'file_path' => $filePath,
                     'stored_filetype' => $storedFileType,
@@ -1594,7 +1594,7 @@ class StaffDashboardController extends Controller
 
                 try {
                     $geminiService = new \App\Services\GeminiService;
-                    $gpa = $geminiService->extractGPA($filePath);
+                    $gwa = $geminiService->extractGWA($filePath);
                     $extractionMethod = 'ai';
                 } catch (\Exception $e) {
                     \Log::error('AI extraction also failed', [
@@ -1604,11 +1604,11 @@ class StaffDashboardController extends Controller
                 }
             }
 
-            if ($gpa === null) {
+            if ($gwa === null) {
                 // Use stored file type for more accurate error message
                 $errorMsg = $isImage
-                    ? 'Failed to extract GPA from image. Please ensure Tesseract OCR is installed and the document contains a visible GPA value. Alternatively, the AI extraction may have failed - please check your GEMINI_API_KEY in .env file.'
-                    : 'Failed to extract GPA from PDF. Please ensure pdftotext is available or the PDF has extractable text. Alternatively, the AI extraction may have failed - please check your GEMINI_API_KEY in .env file.';
+                    ? 'Failed to extract GWA from image. Please ensure Tesseract OCR is installed and the document contains a visible GWA value. Alternatively, the AI extraction may have failed - please check your GEMINI_API_KEY in .env file.'
+                    : 'Failed to extract GWA from PDF. Please ensure pdftotext is available or the PDF has extractable text. Alternatively, the AI extraction may have failed - please check your GEMINI_API_KEY in .env file.';
 
                 return response()->json([
                     'success' => false,
@@ -1619,7 +1619,7 @@ class StaffDashboardController extends Controller
 
             return response()->json([
                 'success' => true,
-                'gpa' => $gpa,
+                'gwa' => $gwa,
                 'file_type' => $storedFileType ?? mime_content_type($filePath),
                 'method' => $extractionMethod,
             ]);
@@ -1629,20 +1629,20 @@ class StaffDashboardController extends Controller
     }
 
     /**
-     * Update GPA manually for a user
-     * Stores GPA in the basic_info table instead of education table
+     * Update GWA manually for a user
+     * Stores GWA in the basic_info table instead of education table
      */
-    public function updateGPA(Request $request, $userId)
+    public function updateGWA(Request $request, $userId)
     {
         $user = User::with('basicInfo')->findOrFail($userId);
 
         $validated = $request->validate([
-            'gpa' => 'required|numeric|min:1.0|max:5.0',
+            'gwa' => 'required|numeric|min:75|max:100',
         ], [
-            'gpa.required' => 'GPA value is required.',
-            'gpa.numeric' => 'GPA must be a number.',
-            'gpa.min' => 'GPA must be at least 1.0.',
-            'gpa.max' => 'GPA cannot exceed 5.0.',
+            'gwa.required' => 'GWA value is required.',
+            'gwa.numeric' => 'GWA must be a number.',
+            'gwa.min' => 'GWA must be at least 75.',
+            'gwa.max' => 'GWA cannot exceed 100.',
         ]);
 
         // Get or create basic_info record
@@ -1655,14 +1655,14 @@ class StaffDashboardController extends Controller
             ], 404);
         }
 
-        // Update GPA in basic_info table
-        $basicInfo->gpa = $validated['gpa'];
+        // Update GWA in basic_info table
+        $basicInfo->gpa = $validated['gwa'];
         $basicInfo->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'GPA updated successfully.',
-            'gpa' => $validated['gpa'],
+            'message' => 'GWA updated successfully.',
+            'gwa' => $validated['gwa'],
             'basic_info_id' => $basicInfo->id,
         ]);
     }

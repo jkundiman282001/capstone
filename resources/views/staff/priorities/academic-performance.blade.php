@@ -16,7 +16,7 @@
                 </div>
                 <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">GWA (Grade Weighted Average) Priority Ranking</h1>
                 <p class="max-w-2xl text-sm text-slate-600">
-                    All applicants ranked by their GWA/Academic rubric score (0-10 scale). Higher scores indicate better academic performance. GPA is converted from a 1.0-5.0 scale (where 1.0 is best) to a 0-10 rubric score (where 10 is best).
+                    All applicants ranked by their GWA/Academic rubric score (0-10 scale). Higher scores indicate better academic performance. GWA is measured on a 75-100 scale (where 100 is best).
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-3 text-sm text-slate-700">
@@ -37,7 +37,7 @@
                             <tr>
                                 <th class="px-5 py-4 text-left">Rank</th>
                                 <th class="px-5 py-4 text-left">Applicant</th>
-                                <th class="px-5 py-4 text-center">GPA</th>
+                                <th class="px-5 py-4 text-center">GWA</th>
                                 <th class="px-5 py-4 text-center">GWA Score</th>
                                 <th class="px-5 py-4 text-center">Performance Level</th>
                                 <th class="px-5 py-4 text-right">Action</th>
@@ -70,10 +70,10 @@
                                     <td class="px-5 py-4 text-center">
                                         @if($gpa !== null)
                                             <span class="text-lg font-bold
-                                                @if($gpa <= 1.5) text-green-600
-                                                @elseif($gpa <= 2.0) text-blue-600
-                                                @elseif($gpa <= 2.5) text-amber-600
-                                                @elseif($gpa <= 3.0) text-orange-600
+                                                @if($gpa >= 95) text-green-600
+                                                @elseif($gpa >= 90) text-blue-600
+                                                @elseif($gpa >= 85) text-amber-600
+                                                @elseif($gpa >= 80) text-orange-600
                                                 @else text-slate-600
                                                 @endif">
                                                 {{ number_format($gpa, 2) }}
