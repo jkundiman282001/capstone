@@ -591,99 +591,101 @@ class StaffDashboardController extends Controller
 
     public function applicantsList(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        try {
+            $user = \Auth::guard('staff')->user();
+            $selectedProvince = $request->get('province');
+            $selectedMunicipality = $request->get('municipality');
+            $selectedBarangay = $request->get('barangay');
+            $selectedEthno = $request->get('ethno');
+            $selectedStatus = $request->get('status');
+            $selectedPriority = $request->get('priority');
 
-        // Get filters from request
-        $selectedProvince = $request->get('province');
-        $selectedMunicipality = $request->get('municipality');
-        $selectedBarangay = $request->get('barangay');
-        $selectedEthno = $request->get('ethno');
-        $selectedStatus = $request->get('status');
-        $selectedPriority = $request->get('priority');
-
-        // Build query for applicants - Exclude validated applicants (they appear in masterlist)
-        // Exclude rejected applicants by default (they only appear when status=rejected filter is used)
-        // Exclude grantees from regular list (they appear in grantees list)
-        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
-            ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus) {
-                // Show all applicants (pending, validated, rejected, grantees)
-                // Filter by specific status if selected
-                if ($selectedStatus && $selectedStatus !== 'rejected' && $selectedStatus !== 'applied' && $selectedStatus !== 'not_applied') {
-                    $query->where('application_status', $selectedStatus);
-                }
-
-                if ($selectedProvince) {
-                    $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
-                        $q->whereHas('address', function ($aq) use ($selectedProvince) {
-                            $aq->where('province', $selectedProvince);
-                        });
-                    });
-                }
-                if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress', function ($q) use ($selectedMunicipality) {
-                        $q->whereHas('address', function ($aq) use ($selectedMunicipality) {
-                            $aq->where('municipality', $selectedMunicipality);
-                        });
-                    });
-                }
-                if ($selectedBarangay) {
-                    $query->whereHas('fullAddress', function ($q) use ($selectedBarangay) {
-                        $q->whereHas('address', function ($aq) use ($selectedBarangay) {
-                            $aq->where('barangay', $selectedBarangay);
-                        });
-                    });
-                }
-            });
-
-        if ($selectedEthno) {
-            $applicantsQuery->where('ethno_id', $selectedEthno);
-        }
-
-        if ($selectedStatus) {
-            if ($selectedStatus === 'applied') {
-                $applicantsQuery->whereHas('basicInfo', function ($query) {
-                    $query->whereNotNull('type_assist');
-                });
-            } elseif ($selectedStatus === 'not_applied') {
-                $applicantsQuery->whereHas('basicInfo', function ($query) {
-                    $query->whereNull('type_assist');
-                });
-            } elseif ($selectedStatus === 'rejected') {
-                // When filtering for rejected, check if we want terminated (grantees) or regular rejected
-                $terminatedType = $request->get('type');
-                if ($terminatedType === 'terminated') {
-                    // Show only terminated applicants (rejected grantees)
-                    $applicantsQuery->whereHas('basicInfo', function ($query) {
-                        $query->where('application_status', 'rejected')
-                            ->where('grant_status', 'grantee');
-                    });
-                } else {
-                    // Show only regular rejected applicants (not grantees)
-                    $applicantsQuery->whereHas('basicInfo', function ($query) {
-                        $query->where('application_status', 'rejected')
-                            ->where(function ($q) {
-                                $q->where('grant_status', '!=', 'grantee')
-                                    ->orWhereNull('grant_status');
+            $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+                ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus) {
+                    if ($selectedStatus && $selectedStatus !== 'rejected' && $selectedStatus !== 'applied' && $selectedStatus !== 'not_applied') {
+                        $query->where('application_status', $selectedStatus);
+                    }
+                    if ($selectedProvince) {
+                        $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
+                            $q->whereHas('address', function ($aq) use ($selectedProvince) {
+                                $aq->where('province', $selectedProvince);
                             });
+                        });
+                    }
+                    if ($selectedMunicipality) {
+                        $query->whereHas('fullAddress', function ($q) use ($selectedMunicipality) {
+                            $q->whereHas('address', function ($aq) use ($selectedMunicipality) {
+                                $aq->where('municipality', $selectedMunicipality);
+                            });
+                        });
+                    }
+                    if ($selectedBarangay) {
+                        $query->whereHas('fullAddress', function ($q) use ($selectedBarangay) {
+                            $q->whereHas('address', function ($aq) use ($selectedBarangay) {
+                                $aq->where('barangay', $selectedBarangay);
+                            });
+                        });
+                    }
+                });
+
+            if ($selectedEthno) {
+                $applicantsQuery->where('ethno_id', $selectedEthno);
+            }
+
+            if ($selectedStatus) {
+                if ($selectedStatus === 'applied') {
+                    $applicantsQuery->whereHas('basicInfo', function ($query) {
+                        $query->whereNotNull('type_assist');
                     });
+                } elseif ($selectedStatus === 'not_applied') {
+                    $applicantsQuery->whereHas('basicInfo', function ($query) {
+                        $query->whereNull('type_assist');
+                    });
+                } elseif ($selectedStatus === 'rejected') {
+                    $terminatedType = $request->get('type');
+                    if ($terminatedType === 'terminated') {
+                        $applicantsQuery->whereHas('basicInfo', function ($query) {
+                            $query->where('application_status', 'rejected')
+                                ->where('grant_status', 'grantee');
+                        });
+                    } else {
+                        $applicantsQuery->whereHas('basicInfo', function ($query) {
+                            $query->where('application_status', 'rejected')
+                                ->where(function ($q) {
+                                    $q->where('grant_status', '!=', 'grantee')
+                                        ->orWhereNull('grant_status');
+                                });
+                        });
+                    }
                 }
             }
+
+            $applicants = $applicantsQuery->paginate(20);
+            $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
+            $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
+            $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+            $ethnicities = Ethno::orderBy('ethnicity')->get();
+
+            return view('staff.applicants-list', compact(
+                'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+                'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedStatus', 'selectedPriority'
+            ));
+        } catch (\Throwable $e) {
+            $applicants = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                20,
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+            $provinces = collect([]);
+            $municipalities = collect([]);
+            $barangays = collect([]);
+            $ethnicities = collect([]);
+            return view('staff.applicants-list', compact(
+                'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities'
+            ))->with('error', 'Unable to load applicants. Please try again later.');
         }
-
-        // Priority filtering removed - using ApplicantPriorityService instead
-
-        $applicants = $applicantsQuery->paginate(20);
-
-        // Get geographic data for filters
-        $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
-        $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
-        $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
-        $ethnicities = Ethno::orderBy('ethnicity')->get();
-
-        return view('staff.applicants-list', compact(
-            'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
-            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedStatus', 'selectedPriority'
-        ));
     }
 
     public function applicantPriority()

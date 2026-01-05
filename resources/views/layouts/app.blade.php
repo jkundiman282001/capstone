@@ -56,7 +56,11 @@
                                 <div class="flex items-center gap-3">
                                     <span class="text-sm tracking-wide">Notifications</span>
                                     @php
-                                        $unreadCount = auth()->guard('staff')->user()->unreadNotifications->count();
+                                        try {
+                                            $unreadCount = auth()->guard('staff')->user()->unreadNotifications->count();
+                                        } catch (\Throwable $e) {
+                                            $unreadCount = 0;
+                                        }
                                     @endphp
                                     @if($unreadCount > 0)
                                         <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->routeIs('staff.notifications') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $unreadCount }}</span>
@@ -85,11 +89,15 @@
                                 <div class="flex items-center gap-3">
                                     <span class="text-sm tracking-wide">Rejected Applicants</span>
                                     @php
-                                        $rejectedCount = \App\Models\BasicInfo::where('application_status', 'rejected')
-                                            ->where(function($query) {
-                                                $query->where('grant_status', '!=', 'grantee')
-                                                      ->orWhereNull('grant_status');
-                                            })->count();
+                                        try {
+                                            $rejectedCount = \App\Models\BasicInfo::where('application_status', 'rejected')
+                                                ->where(function($query) {
+                                                    $query->where('grant_status', '!=', 'grantee')
+                                                          ->orWhereNull('grant_status');
+                                                })->count();
+                                        } catch (\Throwable $e) {
+                                            $rejectedCount = 0;
+                                        }
                                     @endphp
                                     @if($rejectedCount > 0)
                                         <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->get('status') === 'rejected' && request()->get('type') !== 'terminated' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-700' }}">{{ $rejectedCount }}</span>
@@ -103,7 +111,11 @@
                                 <div class="flex items-center gap-3">
                                     <span class="text-sm tracking-wide">Terminated Applicants</span>
                                     @php
-                                        $terminatedCount = \App\Models\BasicInfo::where('application_status', 'rejected')->where('grant_status', 'grantee')->count();
+                                        try {
+                                            $terminatedCount = \App\Models\BasicInfo::where('application_status', 'rejected')->where('grant_status', 'grantee')->count();
+                                        } catch (\Throwable $e) {
+                                            $terminatedCount = 0;
+                                        }
                                     @endphp
                                     @if($terminatedCount > 0)
                                         <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->get('status') === 'rejected' && request()->get('type') === 'terminated' ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $terminatedCount }}</span>
