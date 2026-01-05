@@ -68,6 +68,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(\App\Models\Document::class, 'user_id');
     }
 
+    /**
+     * Get the profile picture URL.
+     */
+    public function getProfilePicUrlAttribute()
+    {
+        if ($this->profile_pic) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_pic);
+        }
+        return null;
+    }
+
 
     /**
      * Send the email verification notification using the custom template.

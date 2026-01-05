@@ -1122,7 +1122,7 @@ class StudentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile picture updated successfully',
-            'profile_pic_url' => asset('storage/' . $path)
+            'profile_pic_url' => Storage::disk('public')->url($path)
         ]);
     }
 

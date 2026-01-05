@@ -98,9 +98,9 @@
                             <div class="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
                                 <img
                                     id="profile-pic-image"
-                                    src="{{ $student->profile_pic ? asset('storage/' . $student->profile_pic) : '' }}"
+                                    src="{{ $student->profile_pic_url ?? '' }}"
                                     alt="Profile"
-                                    class="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110 {{ $student->profile_pic ? '' : 'hidden' }}"
+                                    class="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110 {{ $student->profile_pic_url ? '' : 'hidden' }}"
                                     onerror="this.style.display='none'; document.getElementById('profile-pic-placeholder').classList.remove('hidden'); document.getElementById('profile-pic-placeholder').classList.add('flex');"
                                 >
                                 <div id="profile-pic-placeholder" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 text-orange-300 {{ $student->profile_pic ? 'hidden' : 'flex' }}">

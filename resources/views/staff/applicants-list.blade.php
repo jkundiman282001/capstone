@@ -689,9 +689,9 @@
 
                     <!-- Profile Picture -->
                     <div class="relative -mt-12 flex justify-center px-4">
-                        @if($applicant->profile_pic)
-                            <img class="h-24 w-24 rounded-2xl object-cover border-4 border-white shadow-xl group-hover:scale-105 transition-transform" src="{{ asset('storage/' . $applicant->profile_pic) }}" alt="Profile">
-                        @else
+                        @if($applicant->profile_pic_url)
+                                <img class="h-24 w-24 rounded-2xl object-cover border-4 border-white shadow-xl group-hover:scale-105 transition-transform" src="{{ $applicant->profile_pic_url }}" alt="Profile">
+                            @else
                             <div class="h-24 w-24 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600 flex items-center justify-center font-black text-3xl border-4 border-white shadow-xl group-hover:scale-105 transition-transform">
                                 {{ substr($applicant->first_name, 0, 1) }}
                             </div>
