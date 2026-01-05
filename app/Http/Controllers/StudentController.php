@@ -311,8 +311,6 @@ class StudentController extends Controller
             2 => ['school' => $request->hs_school, 'type' => $request->hs_type, 'year' => $request->hs_year, 'avg' => $request->hs_avg, 'rank' => $request->hs_rank],
             3 => ['school' => $request->voc_school, 'type' => $request->voc_type, 'year' => $request->voc_year, 'avg' => $request->voc_avg, 'rank' => $request->voc_rank],
             4 => ['school' => $request->college_school, 'type' => $request->college_type, 'year' => $request->college_year, 'avg' => $request->college_avg, 'rank' => $request->college_rank],
-            5 => ['school' => $request->masteral_school, 'type' => $request->masteral_type, 'year' => $request->masteral_year, 'avg' => $request->masteral_avg, 'rank' => $request->masteral_rank],
-            6 => ['school' => $request->doctorate_school, 'type' => $request->doctorate_type, 'year' => $request->doctorate_year, 'avg' => $request->doctorate_avg, 'rank' => $request->doctorate_rank],
         ];
 
         $educationIds = [];

@@ -1117,9 +1117,7 @@
                                     ['key' => 'elem', 'label' => 'Elementary', 'cat' => 1, 'required' => true],
                                     ['key' => 'hs', 'label' => 'High School', 'cat' => 2, 'required' => true],
                                     ['key' => 'voc', 'label' => 'Vocational', 'cat' => 3, 'required' => false],
-                                    ['key' => 'college', 'label' => 'College', 'cat' => 4, 'required' => false],
-                                    ['key' => 'masteral', 'label' => 'Masteral', 'cat' => 5, 'required' => false],
-                                    ['key' => 'doctorate', 'label' => 'Doctorate', 'cat' => 6, 'required' => false]
+                                    ['key' => 'college', 'label' => 'College', 'cat' => 4, 'required' => false]
                                 ] as $level)
                                 <div class="p-5 border border-slate-200 rounded-lg bg-slate-50/30">
                                     <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
