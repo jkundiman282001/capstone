@@ -594,7 +594,7 @@
 
             <!-- Course -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Course</label>
+              <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Course/Preferred Course</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                   <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
