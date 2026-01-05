@@ -3,8 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class TransactionNotification extends Notification
@@ -12,8 +10,11 @@ class TransactionNotification extends Notification
     use Queueable;
 
     protected $title;
+
     protected $message;
+
     protected $actionType;
+
     protected $priority;
 
     /**

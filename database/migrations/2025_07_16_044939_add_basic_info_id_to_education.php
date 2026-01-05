@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('education', function (Blueprint $table) {
-            if (!Schema::hasColumn('education', 'basic_info_id')) {
+            if (! Schema::hasColumn('education', 'basic_info_id')) {
                 $table->unsignedBigInteger('basic_info_id')->nullable()->after('id');
                 $table->foreign('basic_info_id')->references('id')->on('basic_info')->onDelete('cascade');
             }

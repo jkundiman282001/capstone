@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BasicInfo;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\BasicInfo;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -26,6 +25,7 @@ class AuthController extends Controller
     public function showFlipForm()
     {
         $ethnicities = \App\Models\Ethno::all();
+
         return view('auth.modern', compact('ethnicities'));
     }
 
@@ -47,7 +47,7 @@ class AuthController extends Controller
             }
 
             // Redirect to apply if not yet applied, otherwise dashboard
-            if (!BasicInfo::where('user_id', $user->id)->exists()) {
+            if (! BasicInfo::where('user_id', $user->id)->exists()) {
                 return redirect()->route('student.apply');
             }
 
@@ -112,6 +112,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 
@@ -154,7 +155,7 @@ class AuthController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password)
+                    'password' => Hash::make($password),
                 ])->setRememberToken(Str::random(60));
 
                 $user->save();

@@ -39,7 +39,7 @@ class Document extends Model
      */
     public function getPriorityLevelAttribute(): string
     {
-        if (!$this->priority_rank) {
+        if (! $this->priority_rank) {
             return 'Not Ranked';
         }
 
@@ -58,9 +58,10 @@ class Document extends Model
     public function getWaitingHoursAttribute(): int
     {
         $submittedAt = $this->submitted_at ?? $this->created_at;
-        if (!$submittedAt) {
+        if (! $submittedAt) {
             return 0;
         }
+
         return $submittedAt->diffInHours(now());
     }
 }

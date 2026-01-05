@@ -3,8 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ApplicationStatusUpdated extends Notification
@@ -12,6 +10,7 @@ class ApplicationStatusUpdated extends Notification
     use Queueable;
 
     protected $status;
+
     protected $rejectionReason;
 
     /**
@@ -46,12 +45,12 @@ class ApplicationStatusUpdated extends Notification
         } elseif ($this->status === 'rejected') {
             $message = 'We regret to inform you that your scholarship application has been rejected.';
             if ($this->rejectionReason) {
-                $message .= ' Reason: ' . $this->rejectionReason;
+                $message .= ' Reason: '.$this->rejectionReason;
             }
         } else {
             $message = 'Your scholarship application status has been updated to pending.';
         }
-        
+
         return [
             'type' => 'application_status',
             'title' => 'Application Status Updated',
@@ -62,4 +61,3 @@ class ApplicationStatusUpdated extends Notification
         ];
     }
 }
-

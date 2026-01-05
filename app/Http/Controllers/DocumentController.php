@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Document;
 use App\Notifications\TransactionNotification;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +23,7 @@ class DocumentController extends Controller
         try {
             $request->validate([
                 'upload-file' => 'required|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
-                'type' => 'required|in:' . implode(',', $requiredTypes),
+                'type' => 'required|in:'.implode(',', $requiredTypes),
             ], [
                 'upload-file.required' => 'Please select a file to upload.',
                 'upload-file.file' => 'The uploaded file is invalid.',
@@ -37,7 +37,7 @@ class DocumentController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $e->errors()
+                    'errors' => $e->errors(),
                 ], 422);
             }
             throw $e;
@@ -45,7 +45,7 @@ class DocumentController extends Controller
 
         $file = $request->file('upload-file');
         $user = Auth::user();
-        
+
         // Check if there's an existing document of this type for this user
         // Get the most recent one in case there are duplicates
         $existingDocument = Document::where('user_id', $user->id)
@@ -60,10 +60,10 @@ class DocumentController extends Controller
             if (Storage::disk('public')->exists($existingDocument->filepath)) {
                 Storage::disk('public')->delete($existingDocument->filepath);
             }
-            
+
             // Store new file
             $path = $file->store('documents', 'public');
-            
+
             // Update existing document
             $existingDocument->filename = $file->getClientOriginalName();
             $existingDocument->filepath = $path;
@@ -76,13 +76,13 @@ class DocumentController extends Controller
             $existingDocument->submitted_at = now(); // Update submission timestamp
             $existingDocument->touch(); // Update timestamps
             $existingDocument->save();
-            
+
             $document = $existingDocument;
         } else {
             // Create new document if it doesn't exist
             $path = $file->store('documents', 'public');
 
-            $document = new Document();
+            $document = new Document;
             $document->user_id = $user->id;
             $document->filename = $file->getClientOriginalName();
             $document->filepath = $path;
@@ -95,7 +95,7 @@ class DocumentController extends Controller
         }
 
         // Calculate document priority (First Come, First Serve)
-        $priorityService = new \App\Services\DocumentPriorityService();
+        $priorityService = new \App\Services\DocumentPriorityService;
         $priorityService->onDocumentUploaded($document);
 
         // Notify all staff
@@ -109,17 +109,17 @@ class DocumentController extends Controller
         $student->notify(new TransactionNotification(
             'transaction',
             'Document Uploaded',
-            'You have successfully uploaded the ' . str_replace('_', ' ', $documentType) . ' document.',
+            'You have successfully uploaded the '.str_replace('_', ' ', $documentType).' document.',
             'normal'
         ));
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Document uploaded successfully! Please wait for staff review.'
+                'message' => 'Document uploaded successfully! Please wait for staff review.',
             ]);
         }
-        
+
         return back()->with('success', 'Document uploaded successfully! Please wait for staff review.');
     }
 
@@ -129,7 +129,7 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        if (!Storage::disk('public')->exists($document->filepath)) {
+        if (! Storage::disk('public')->exists($document->filepath)) {
             abort(404);
         }
 
@@ -154,14 +154,14 @@ class DocumentController extends Controller
         Auth::user()->notify(new TransactionNotification(
             'transaction',
             'Document Deleted',
-            'You have successfully deleted the ' . str_replace('_', ' ', $document->type) . ' document.',
+            'You have successfully deleted the '.str_replace('_', ' ', $document->type).' document.',
             'normal'
         ));
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Document deleted successfully.'
+                'message' => 'Document deleted successfully.',
             ]);
         }
 
@@ -186,10 +186,10 @@ class DocumentController extends Controller
         $priorityRank = null;
         $acceptancePercent = null;
         $priorityFactors = [];
-        $priorityService = new \App\Services\ApplicantPriorityService();
+        $priorityService = new \App\Services\ApplicantPriorityService;
         $prioritizedApplicants = $priorityService->getPrioritizedApplicants();
         $priorityStatistics = $priorityService->getPriorityStatistics();
-        
+
         // Find the student's rank in the prioritized list
         $priorityScore = null;
         foreach ($prioritizedApplicants as $applicantData) {
@@ -210,13 +210,13 @@ class DocumentController extends Controller
                 break;
             }
         }
-        
+
         // Count validated applicants who are not grantees yet
         $validatedNonGranteesCount = \App\Models\BasicInfo::where('application_status', 'validated')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('grant_status')
-                  ->orWhere('grant_status', '!=', 'grantee')
-                  ->orWhere('grant_status', '!=', 'Grantee');
+                    ->orWhere('grant_status', '!=', 'grantee')
+                    ->orWhere('grant_status', '!=', 'Grantee');
             })
             ->count();
 

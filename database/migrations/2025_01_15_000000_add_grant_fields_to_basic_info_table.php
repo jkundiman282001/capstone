@@ -12,20 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         // Check if the table exists before trying to alter it
-        if (!Schema::hasTable('basic_info')) {
+        if (! Schema::hasTable('basic_info')) {
             return;
         }
 
         Schema::table('basic_info', function (Blueprint $table) {
             // Only add columns if they don't already exist
-            if (!Schema::hasColumn('basic_info', 'grant_1st_sem')) {
+            if (! Schema::hasColumn('basic_info', 'grant_1st_sem')) {
                 $col = $table->boolean('grant_1st_sem')->default(false);
                 if (Schema::hasColumn('basic_info', 'gpa')) {
                     $col->after('gpa');
                 }
             }
 
-            if (!Schema::hasColumn('basic_info', 'grant_2nd_sem')) {
+            if (! Schema::hasColumn('basic_info', 'grant_2nd_sem')) {
                 $col = $table->boolean('grant_2nd_sem')->default(false);
                 if (Schema::hasColumn('basic_info', 'grant_1st_sem')) {
                     $col->after('grant_1st_sem');
@@ -42,7 +42,7 @@ return new class extends Migration
     public function down(): void
     {
         // Check if the table exists before trying to alter it
-        if (!Schema::hasTable('basic_info')) {
+        if (! Schema::hasTable('basic_info')) {
             return;
         }
 
@@ -54,10 +54,9 @@ return new class extends Migration
             if (Schema::hasColumn('basic_info', 'grant_2nd_sem')) {
                 $drops[] = 'grant_2nd_sem';
             }
-            if (!empty($drops)) {
+            if (! empty($drops)) {
                 $table->dropColumn($drops);
             }
         });
     }
 };
-

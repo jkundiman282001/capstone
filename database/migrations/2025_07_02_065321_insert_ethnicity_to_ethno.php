@@ -50,7 +50,7 @@ return new class extends Migration
     public function down(): void
     {
         DB::table('ethno')->whereIn('ethnicity', [
-            'The Subanen', 'Manobo', "B'laan", "T'boli", 'Mandaya', 'Mansaka', 'Tiruray', 'Higaonon', 'Bagobo', 'Bukidnon', 'Tagakaolo', 'Banwaon', 'Dibabawon', 'Talaandig', 'Mamanua', 'Manguangan', 'Maranao', 'Maguindanaon', 'Tausug', 'Kalagan', 'Sangil', 'Ilanun/Iranun', 'Palibugan', 'Yakan', 'Sama', 'Badjao', 'Jumamapun', 'Palawanon', 'Molbog', 'Other'
+            'The Subanen', 'Manobo', "B'laan", "T'boli", 'Mandaya', 'Mansaka', 'Tiruray', 'Higaonon', 'Bagobo', 'Bukidnon', 'Tagakaolo', 'Banwaon', 'Dibabawon', 'Talaandig', 'Mamanua', 'Manguangan', 'Maranao', 'Maguindanaon', 'Tausug', 'Kalagan', 'Sangil', 'Ilanun/Iranun', 'Palibugan', 'Yakan', 'Sama', 'Badjao', 'Jumamapun', 'Palawanon', 'Molbog', 'Other',
         ])->delete();
     }
 };

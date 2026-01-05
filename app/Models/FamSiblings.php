@@ -19,4 +19,4 @@ class FamSiblings extends Model
         'course_year',
         'present_status',
     ];
-} 
+}

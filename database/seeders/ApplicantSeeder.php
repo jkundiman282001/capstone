@@ -2,19 +2,17 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use App\Models\Address;
-use App\Models\MailingAddress;
-use App\Models\PermanentAddress;
-use App\Models\Origin;
-use App\Models\FullAddress;
-use App\Models\SchoolPref;
 use App\Models\BasicInfo;
-use App\Models\Family;
 use App\Models\Ethno;
+use App\Models\Family;
+use App\Models\FullAddress;
+use App\Models\Origin;
+use App\Models\SchoolPref;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class ApplicantSeeder extends Seeder
 {
@@ -25,7 +23,7 @@ class ApplicantSeeder extends Seeder
     {
         // Get first ethnicity if exists, or create one
         $ethno = Ethno::first();
-        if (!$ethno) {
+        if (! $ethno) {
             $ethno = Ethno::create(['ethnicity' => 'Igorot']);
         }
 
@@ -226,6 +224,7 @@ class ApplicantSeeder extends Seeder
             if ($existingUser) {
                 $this->command->warn("User {$applicantData['user']['email']} already exists. Skipping...");
                 $skipped++;
+
                 continue;
             }
 
@@ -292,10 +291,10 @@ class ApplicantSeeder extends Seeder
             Family::create([
                 'basic_info_id' => $basicInfo->id,
                 'fam_type' => 'father',
-                'name' => $user->last_name . ', Father',
-                'address' => $address->barangay . ', ' . $address->municipality,
+                'name' => $user->last_name.', Father',
+                'address' => $address->barangay.', '.$address->municipality,
                 'occupation' => 'Farmer',
-                'office_address' => $address->municipality . ', ' . $address->province,
+                'office_address' => $address->municipality.', '.$address->province,
                 'educational_attainment' => 'High School',
                 'ethno_id' => $ethno->id,
                 'income' => '15000',
@@ -305,8 +304,8 @@ class ApplicantSeeder extends Seeder
             Family::create([
                 'basic_info_id' => $basicInfo->id,
                 'fam_type' => 'mother',
-                'name' => $user->last_name . ', Mother',
-                'address' => $address->barangay . ', ' . $address->municipality,
+                'name' => $user->last_name.', Mother',
+                'address' => $address->barangay.', '.$address->municipality,
                 'occupation' => 'Housewife',
                 'office_address' => 'N/A',
                 'educational_attainment' => 'Elementary',
@@ -321,4 +320,3 @@ class ApplicantSeeder extends Seeder
         $this->command->info("Seeder completed! Created: {$created}, Skipped: {$skipped}");
     }
 }
-

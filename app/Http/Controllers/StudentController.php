@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApplicationDraft;
+use App\Models\BasicInfo;
+use App\Models\Document;
+use App\Notifications\TransactionNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\BasicInfo;
-use App\Models\Document;
-use App\Models\ApplicationDraft;
-use App\Notifications\TransactionNotification;
 
 class StudentController extends Controller
 {
@@ -20,11 +20,11 @@ class StudentController extends Controller
         $applicationStatus = 'pending';
         $rejectionReason = null;
         $grantStatus = null;
-        
+
         // Check if user is authenticated
         if ($request->user()) {
             $hasApplied = BasicInfo::where('user_id', $request->user()->id)->exists();
-            
+
             // Get application status and rejection reason if exists
             if ($hasApplied) {
                 $basicInfo = BasicInfo::where('user_id', $request->user()->id)->first();
@@ -39,21 +39,21 @@ class StudentController extends Controller
         $validatedCount = BasicInfo::where('application_status', 'validated')->count();
         $availableSlots = max(0, $maxSlots - $validatedCount);
         $isFull = $availableSlots === 0;
-        
+
         // Count applicants who have applied (have type_assist filled)
         $applicantsApplied = BasicInfo::whereNotNull('type_assist')->count();
-        
+
         // Count applicants who are approved/validated
         $applicantsApproved = $validatedCount;
-        
+
         // Count pending applications (applied but not yet reviewed/approved)
         $applicantsPending = BasicInfo::whereNotNull('type_assist')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('application_status')
-                      ->orWhere('application_status', 'pending');
+                    ->orWhere('application_status', 'pending');
             })
             ->count();
-        
+
         $stats = [
             'slotsLeft' => $availableSlots,
             'applicantsApplied' => $applicantsApplied,
@@ -78,26 +78,26 @@ class StudentController extends Controller
 
         // Check if this is a renewal application
         $isRenewal = $request->has('is_renewal') && $request->input('is_renewal') == '1';
-        
+
         // Check if user has already submitted an application
         $hasSubmitted = BasicInfo::where('user_id', $user->id)
             ->whereNotNull('type_assist')
             ->exists();
-        
+
         // Allow renewal if user is a validated grantee, otherwise block
-        if ($hasSubmitted && !$isRenewal) {
+        if ($hasSubmitted && ! $isRenewal) {
             return redirect()->route('student.apply')
                 ->with('error', 'You have already submitted an application. You cannot submit another application.');
         }
-        
+
         // For renewals, check if user is eligible (validated grantee)
         if ($isRenewal) {
             $existingApplication = BasicInfo::where('user_id', $user->id)
                 ->whereNotNull('type_assist')
                 ->first();
-            
-            if (!$existingApplication || 
-                $existingApplication->application_status !== 'validated' || 
+
+            if (! $existingApplication ||
+                $existingApplication->application_status !== 'validated' ||
                 strtolower(trim($existingApplication->grant_status ?? '')) !== 'grantee') {
                 return redirect()->route('student.apply')
                     ->with('error', 'You are not eligible for scholarship renewal. Only validated grantees can renew their scholarship.');
@@ -111,16 +111,16 @@ class StudentController extends Controller
             'birthplace' => 'required_if:is_renewal,0|string|max:255',
             'gender' => 'required_if:is_renewal,0|string|in:Male,Female',
             'civil_status' => 'required_if:is_renewal,0|string|max:50',
-            
+
             // Addresses
             'mailing_barangay' => 'required_if:is_renewal,0|string|max:255',
             'mailing_municipality' => 'required_if:is_renewal,0|string|max:255',
             'mailing_province' => 'required_if:is_renewal,0|string|max:255',
-            
+
             'permanent_barangay' => 'required_if:is_renewal,0|string|max:255',
             'permanent_municipality' => 'required_if:is_renewal,0|string|max:255',
             'permanent_province' => 'required_if:is_renewal,0|string|max:255',
-            
+
             'origin_barangay' => 'required_if:is_renewal,0|string|max:255',
             'origin_municipality' => 'required_if:is_renewal,0|string|max:255',
             'origin_province' => 'required_if:is_renewal,0|string|max:255',
@@ -131,7 +131,7 @@ class StudentController extends Controller
             'school1_course1' => 'required_if:is_renewal,0|string|max:255',
             'school1_type' => 'required_if:is_renewal,0|string|max:50',
             'school1_years' => 'required_if:is_renewal,0|integer',
-            
+
             'contribution' => 'required_if:is_renewal,0|string',
             'plans_after_grad' => 'required_if:is_renewal,0|string',
         ]);
@@ -141,7 +141,7 @@ class StudentController extends Controller
             // Handle document uploads for renewal
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $type => $file) {
-                    if (!$file) {
+                    if (! $file) {
                         continue;
                     }
 
@@ -158,7 +158,7 @@ class StudentController extends Controller
                         if (Storage::disk('public')->exists($existingDocument->filepath)) {
                             Storage::disk('public')->delete($existingDocument->filepath);
                         }
-                        
+
                         $existingDocument->filename = $file->getClientOriginalName();
                         $existingDocument->filepath = $path;
                         $existingDocument->filetype = $file->getClientMimeType();
@@ -169,11 +169,11 @@ class StudentController extends Controller
                         $existingDocument->priority_score = 0;
                         $existingDocument->submitted_at = now();
                         $existingDocument->save();
-                        
+
                         $document = $existingDocument;
                     } else {
                         // Create new document
-                        $document = new Document();
+                        $document = new Document;
                         $document->user_id = $user->id;
                         $document->filename = $file->getClientOriginalName();
                         $document->filepath = $path;
@@ -185,7 +185,7 @@ class StudentController extends Controller
                         $document->save();
                     }
 
-                    $priorityService = new \App\Services\DocumentPriorityService();
+                    $priorityService = new \App\Services\DocumentPriorityService;
                     $priorityService->onDocumentUploaded($document);
 
                     foreach (\App\Models\Staff::all() as $staff) {
@@ -212,7 +212,7 @@ class StudentController extends Controller
 
             return redirect()->route('student.dashboard');
         }
-    
+
         // Get the selected type of assistance (only one allowed)
         $typeAssist = null;
         if ($request->has('type_of_assistance') && is_array($request->type_of_assistance) && count($request->type_of_assistance) > 0) {
@@ -317,7 +317,7 @@ class StudentController extends Controller
 
         $educationIds = [];
         foreach ($educationLevels as $category => $data) {
-            if (!empty($data['school'])) { // Only save if school name is provided
+            if (! empty($data['school'])) { // Only save if school name is provided
                 $education = \App\Models\Education::create([
                     'basic_info_id' => $basicInfo->id,
                     'category' => $category,
@@ -339,13 +339,13 @@ class StudentController extends Controller
         if ($fatherOccupation === 'Other' && $request->has('father_occupation_other')) {
             $fatherOccupation = $request->father_occupation_other;
         }
-        
+
         // Handle "Other" occupation for mother
         $motherOccupation = $request->mother_occupation;
         if ($motherOccupation === 'Other' && $request->has('mother_occupation_other')) {
             $motherOccupation = $request->mother_occupation_other;
         }
-        
+
         // Clean income values - remove commas and non-numeric characters, convert to integer
         // If empty or invalid, default to 0 since the column doesn't allow null
         $fatherIncome = $request->father_income;
@@ -354,14 +354,14 @@ class StudentController extends Controller
         } else {
             $fatherIncome = 0;
         }
-        
+
         $motherIncome = $request->mother_income;
         if ($motherIncome) {
             $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
         } else {
             $motherIncome = 0;
         }
-        
+
         $father = \App\Models\Family::create([
             'basic_info_id' => $basicInfo->id,
             'name' => $request->father_name,
@@ -405,21 +405,21 @@ class StudentController extends Controller
             }
         }
 
-        $message = $isRenewal 
-            ? 'Your scholarship renewal application has been submitted!' 
+        $message = $isRenewal
+            ? 'Your scholarship renewal application has been submitted!'
             : 'Your IP Scholarship application has been submitted!';
         $request->session()->flash('status', $message);
 
         // Handle document uploads submitted with the form
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $type => $file) {
-                if (!$file) {
+                if (! $file) {
                     continue;
                 }
 
                 $path = $file->store('documents', 'public');
 
-                $document = new Document();
+                $document = new Document;
                 $document->user_id = $user->id;
                 $document->filename = $file->getClientOriginalName();
                 $document->filepath = $path;
@@ -430,7 +430,7 @@ class StudentController extends Controller
                 $document->type = $type;
                 $document->save();
 
-                $priorityService = new \App\Services\DocumentPriorityService();
+                $priorityService = new \App\Services\DocumentPriorityService;
                 $priorityService->onDocumentUploaded($document);
 
                 foreach (\App\Models\Staff::all() as $staff) {
@@ -462,7 +462,7 @@ class StudentController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             $request->validate([
                 'draft_id' => 'nullable|exists:application_drafts,id',
                 'name' => 'nullable|string|max:255',
@@ -473,12 +473,12 @@ class StudentController extends Controller
             $draftId = $request->input('draft_id');
             $name = $request->input('name');
             $formData = $request->input('form_data', []);
-            
+
             // Generate name from form data if not provided
-            if (!$name && is_array($formData)) {
+            if (! $name && is_array($formData)) {
                 $firstName = $formData['first_name'] ?? '';
                 $lastName = $formData['last_name'] ?? '';
-                $name = trim($firstName . ' ' . $lastName);
+                $name = trim($firstName.' '.$lastName);
                 $name = $name ?: 'Untitled Application';
                 if ($name !== 'Untitled Application') {
                     $name .= ' - Scholarship Application';
@@ -491,13 +491,13 @@ class StudentController extends Controller
                     ->where('user_id', $user->id)
                     ->first();
 
-                if (!$draft) {
+                if (! $draft) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Draft not found or you do not have permission to update it.',
                     ], 404);
                 }
-                
+
                 $draft->update([
                     'name' => $name,
                     'current_step' => $request->input('current_step'),
@@ -537,7 +537,7 @@ class StudentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while saving the draft: ' . $e->getMessage(),
+                'message' => 'An error occurred while saving the draft: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -548,7 +548,7 @@ class StudentController extends Controller
     public function getDrafts(Request $request)
     {
         $user = auth()->user();
-        
+
         $drafts = ApplicationDraft::where('user_id', $user->id)
             ->orderBy('updated_at', 'desc')
             ->get()
@@ -575,12 +575,12 @@ class StudentController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             $draft = ApplicationDraft::where('id', $id)
                 ->where('user_id', $user->id)
                 ->first();
 
-            if (!$draft) {
+            if (! $draft) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Draft not found or you do not have permission to access it.',
@@ -607,7 +607,7 @@ class StudentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while loading the draft: ' . $e->getMessage(),
+                'message' => 'An error occurred while loading the draft: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -618,7 +618,7 @@ class StudentController extends Controller
     public function deleteDraft($id, Request $request)
     {
         $user = auth()->user();
-        
+
         $draft = ApplicationDraft::where('id', $id)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -652,50 +652,50 @@ class StudentController extends Controller
     {
         $student = Auth::user(); // Get the authenticated user
         $basicInfo = \App\Models\BasicInfo::where('user_id', $student->id)->first();
-        
+
         // Acceptance chance calculation moved to view
         $priorityRank = null;
         $priorityFactors = [];
         $priorityStatistics = [];
-        
+
         // Get masterlist: validated applicants who are not yet grantees (waiting list)
         // Masterlist = validated applicants (approved) who are waiting for grant (not yet grantees)
         $masterlistApplicants = \App\Models\User::with([
             'basicInfo',
             'ethno',
             'documents',
-            'basicInfo.schoolPref'
+            'basicInfo.schoolPref',
         ])
-        ->whereHas('basicInfo', function($query) {
-            $query->where('application_status', 'validated')
-                  ->where(function($q) {
-                      $q->whereNull('grant_status')
-                        ->orWhere('grant_status', '!=', 'grantee');
-                  });
-        })
-        ->get();
-        
+            ->whereHas('basicInfo', function ($query) {
+                $query->where('application_status', 'validated')
+                    ->where(function ($q) {
+                        $q->whereNull('grant_status')
+                            ->orWhere('grant_status', '!=', 'grantee');
+                    });
+            })
+            ->get();
+
         // Get student's application status
         $studentApplicationStatus = $basicInfo ? ($basicInfo->application_status ?? null) : null;
         $studentGrantStatus = $basicInfo ? ($basicInfo->grant_status ?? null) : null;
         $isStudentValidated = ($studentApplicationStatus === 'validated');
         // Handle case variations and whitespace for grant_status
         $isStudentGrantee = $studentGrantStatus && strtolower(trim($studentGrantStatus)) === 'grantee';
-        $isStudentInMasterlist = $isStudentValidated && !$isStudentGrantee;
-        
+        $isStudentInMasterlist = $isStudentValidated && ! $isStudentGrantee;
+
         // Initialize student priority score
         $studentPriorityScore = null;
-        
+
         // Check if student has documents uploaded (indicator they've applied)
         $hasDocuments = $student->documents()->exists();
-        
+
         // Calculate priority factors for display (if student has applied OR is validated OR has documents)
         // Also check if basicInfo exists OR student has documents
         if (($basicInfo && ($basicInfo->type_assist || $isStudentValidated)) || $hasDocuments) {
             $student->load(['ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education']);
-            
+
             // Get priority factors
-            $priorityService = new \App\Services\ApplicantPriorityService();
+            $priorityService = new \App\Services\ApplicantPriorityService;
             $breakdown = $priorityService->calculateApplicantPriority($student);
             $priorityFactors = [
                 'is_priority_ethno' => $breakdown['is_priority_ethno'] ?? false,
@@ -705,11 +705,11 @@ class StudentController extends Controller
                 'awards_rubric_score' => $breakdown['awards_rubric_score'] ?? 0,
                 'social_responsibility_rubric_score' => $breakdown['social_responsibility_rubric_score'] ?? 0,
             ];
-            
+
             // Calculate student's priority score for weighted lottery
             $studentPriorityScore = $breakdown['priority_score'] ?? 0;
         }
-        
+
         // ============================================
         // ACCEPTANCE CHANCE CALCULATION
         // ============================================
@@ -722,10 +722,10 @@ class StudentController extends Controller
         //    - If not validated: 85% (lower due to validation requirement)
         // 3. Otherwise → (slots_left / total_applicants_waiting) * 100
         // ============================================
-        
+
         // Initialize acceptance chance
         $acceptanceChance = 0.0;
-        
+
         // Step 1: Get basic information
         $maxSlots = \App\Models\Setting::get('max_slots', 120);
         // Use case-insensitive comparison to count grantees
@@ -733,57 +733,57 @@ class StudentController extends Controller
             ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
             ->count();
         $slotsLeft = max(0, $maxSlots - $granteesCount);
-        
+
         // Step 2: Count total applicants waiting for approval (validated but not yet grantees)
         // This represents applicants who are in the queue waiting for grant approval
         // Exclude grantees by checking that grant_status is not 'grantee' or 'Grantee'
         // Use case-insensitive comparison and handle NULL values
-        
+
         // First, get all validated applicants with their grant_status for debugging
         $allValidatedApplicants = BasicInfo::where('application_status', 'validated')
             ->with('user:id,first_name,last_name')
             ->get(['id', 'user_id', 'application_status', 'grant_status']);
-        
+
         // Log all validated applicants for debugging
         \Log::info('All validated applicants:', [
             'total' => $allValidatedApplicants->count(),
-            'applicants' => $allValidatedApplicants->map(function($app) {
+            'applicants' => $allValidatedApplicants->map(function ($app) {
                 return [
                     'user_id' => $app->user_id,
-                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'name' => $app->user ? $app->user->first_name.' '.$app->user->last_name : 'N/A',
                     'grant_status' => $app->grant_status,
-                    'grant_status_lower' => $app->grant_status ? strtolower(trim($app->grant_status)) : 'NULL'
+                    'grant_status_lower' => $app->grant_status ? strtolower(trim($app->grant_status)) : 'NULL',
                 ];
-            })->toArray()
+            })->toArray(),
         ]);
-        
+
         // Count applicants waiting (not grantees)
         // Method: Count all validated, then subtract grantees (more reliable)
         $allValidatedCount = BasicInfo::where('application_status', 'validated')->count();
-        
+
         // Try multiple ways to count grantees to debug
         $granteesCountMethod1 = BasicInfo::where('application_status', 'validated')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('grant_status', 'grantee')
-                  ->orWhere('grant_status', 'Grantee');
+                    ->orWhere('grant_status', 'Grantee');
             })
             ->count();
-        
+
         // Try case-insensitive approach
         $granteesCountMethod2 = BasicInfo::where('application_status', 'validated')
             ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
             ->count();
-        
+
         // Get all grant_status values for debugging
         $allGrantStatuses = BasicInfo::where('application_status', 'validated')
             ->whereNotNull('grant_status')
             ->pluck('grant_status')
             ->toArray();
-        
+
         // Use the case-insensitive method
         $granteesCountForWaiting = $granteesCountMethod2;
         $totalApplicantsWaiting = $allValidatedCount - $granteesCountForWaiting;
-        
+
         // Debug logging
         \Log::info('Total Applicants Waiting Calculation:', [
             'all_validated_count' => $allValidatedCount,
@@ -793,37 +793,37 @@ class StudentController extends Controller
             'total_applicants_waiting' => $totalApplicantsWaiting,
             'calculation' => "{$allValidatedCount} - {$granteesCountForWaiting} = {$totalApplicantsWaiting}",
             'all_grant_statuses' => $allGrantStatuses,
-            'all_validated_applicants' => $allValidatedApplicants->map(function($app) {
+            'all_validated_applicants' => $allValidatedApplicants->map(function ($app) {
                 return [
                     'user_id' => $app->user_id,
                     'grant_status' => $app->grant_status,
-                    'grant_status_lower' => $app->grant_status ? strtolower(trim($app->grant_status)) : 'NULL'
+                    'grant_status_lower' => $app->grant_status ? strtolower(trim($app->grant_status)) : 'NULL',
                 ];
-            })->toArray()
+            })->toArray(),
         ]);
-        
+
         // Get the actual applicants waiting for debugging
         // Simple approach: get all validated, exclude grantees using whereNotIn
         $applicantsWaiting = BasicInfo::where('application_status', 'validated')
-            ->where(function($q) {
+            ->where(function ($q) {
                 // Include NULL or values not in ['grantee', 'Grantee']
                 $q->whereNull('grant_status')
-                  ->orWhereNotIn('grant_status', ['grantee', 'Grantee']);
+                    ->orWhereNotIn('grant_status', ['grantee', 'Grantee']);
             })
             ->with('user:id,first_name,last_name')
             ->get(['id', 'user_id', 'application_status', 'grant_status']);
-        
+
         \Log::info('Applicants waiting for approval (not grantees):', [
             'total' => $totalApplicantsWaiting,
-            'applicants' => $applicantsWaiting->map(function($app) {
+            'applicants' => $applicantsWaiting->map(function ($app) {
                 return [
                     'user_id' => $app->user_id,
-                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'name' => $app->user ? $app->user->first_name.' '.$app->user->last_name : 'N/A',
                     'grant_status' => $app->grant_status,
                 ];
-            })->toArray()
+            })->toArray(),
         ]);
-        
+
         // Set priority statistics for display (calculation will be done in the view)
         $priorityStatistics = [
             'total_applicants' => $totalApplicantsWaiting, // Total applicants waiting for approval (validated but not yet grantees)
@@ -833,29 +833,29 @@ class StudentController extends Controller
             'is_student_validated' => $isStudentValidated,
             'student_grant_status' => $studentGrantStatus,
             // Debug data: applicants waiting for approval
-            'applicants_waiting_debug' => $applicantsWaiting->map(function($app) {
+            'applicants_waiting_debug' => $applicantsWaiting->map(function ($app) {
                 return [
                     'user_id' => $app->user_id,
-                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'name' => $app->user ? $app->user->first_name.' '.$app->user->last_name : 'N/A',
                     'grant_status' => $app->grant_status ?? 'NULL',
                 ];
             })->toArray(),
             // Debug data: all validated applicants
-            'all_validated_debug' => $allValidatedApplicants->map(function($app) {
+            'all_validated_debug' => $allValidatedApplicants->map(function ($app) {
                 return [
                     'user_id' => $app->user_id,
-                    'name' => $app->user ? $app->user->first_name . ' ' . $app->user->last_name : 'N/A',
+                    'name' => $app->user ? $app->user->first_name.' '.$app->user->last_name : 'N/A',
                     'grant_status' => $app->grant_status ?? 'NULL',
                 ];
             })->toArray(),
         ];
-        
+
         // Calculate rank if student is in masterlist
         if ($isStudentInMasterlist) {
-            $priorityService = new \App\Services\ApplicantPriorityService();
+            $priorityService = new \App\Services\ApplicantPriorityService;
             $studentScore = $studentPriorityScore ?? 0;
             $rank = 1;
-            
+
             foreach ($masterlistApplicants as $applicant) {
                 if ($applicant->id === $student->id) {
                     continue; // Skip self
@@ -865,10 +865,10 @@ class StudentController extends Controller
                     $rank++;
                 }
             }
-            
+
             $priorityRank = $rank;
         }
-        
+
         // Get documents for the view
         $documents = $student->documents ?? collect();
         $requiredTypes = [
@@ -879,18 +879,18 @@ class StudentController extends Controller
             'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
             'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
-        
+
         return view('student.performance', compact(
-            'student', 
-            'basicInfo', 
-            'priorityRank', 
+            'student',
+            'basicInfo',
+            'priorityRank',
             'priorityFactors',
             'priorityStatistics',
             'documents',
             'requiredTypes'
         ));
     }
-    
+
     /**
      * Calculate student's priority score
      */
@@ -898,24 +898,28 @@ class StudentController extends Controller
     {
         try {
             $breakdown = $priorityService->calculateApplicantPriority($student);
+
             return (float) ($breakdown['priority_score'] ?? 0.0);
         } catch (\Exception $e) {
             return 0.0;
         }
     }
-    
+
     /**
      * Check if student is in priority ethno group
      */
     private function checkPriorityEthno($student): bool
     {
         $ethnicity = optional($student->ethno)->ethnicity ?? null;
-        if (!$ethnicity) return false;
-        
+        if (! $ethnicity) {
+            return false;
+        }
+
         $priorityGroups = ["b'laan", 'bagobo', 'kalagan', 'kaulo'];
+
         return in_array(strtolower(trim($ethnicity)), $priorityGroups, true);
     }
-    
+
     /**
      * Check if student's course is priority
      */
@@ -924,9 +928,11 @@ class StudentController extends Controller
         $basicInfo = $student->basicInfo;
         $schoolPref = $basicInfo?->schoolPref;
         $courseName = $schoolPref->degree ?? $schoolPref->degree2 ?? $student->course ?? null;
-        
-        if (!$courseName) return false;
-        
+
+        if (! $courseName) {
+            return false;
+        }
+
         $priorityCourses = [
             'Agriculture', 'Aqua-Culture and Fisheries', 'Anthropology',
             'Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)',
@@ -936,11 +942,12 @@ class StudentController extends Controller
             'Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)',
             'Mechanical Engineering', 'Mining Engineering', 'Social Sciences (AB courses)', 'Social Work',
         ];
-        
+
         $courseName = trim($courseName);
+
         return in_array($courseName, $priorityCourses, true);
     }
-    
+
     /**
      * Check if student has all other requirements
      */
@@ -951,31 +958,31 @@ class StudentController extends Controller
             ->whereIn('type', $otherRequiredTypes)
             ->where('status', 'approved')
             ->get();
-        
+
         $hasBirthCert = $approvedDocs->where('type', 'birth_certificate')->isNotEmpty();
         $hasEndorsement = $approvedDocs->where('type', 'endorsement')->isNotEmpty();
         $hasGoodMoral = $approvedDocs->where('type', 'good_moral')->isNotEmpty();
-        
+
         return $hasBirthCert && $hasEndorsement && $hasGoodMoral;
     }
-    
+
     /**
      * Calculate acceptance chance using weighted-lottery (probabilistic) method
-     * 
+     *
      * Implementation: Approximation with replacement
-     * 
+     *
      * Formula:
      * 1. Weight: w_i = score_i / sum(all scores)
      * 2. Chance: Chance_i ≈ 1 - (1 - w_i)^S
-     * 
+     *
      * Where S = number of slots remaining
-     * 
+     *
      * This gives each applicant a probability based on their priority score
      * relative to all other applicants' scores. Higher scores = higher probability.
-     * 
-     * @param float $studentScore The applicant's priority score
-     * @param array $allScores Array of all applicants' priority scores
-     * @param int $slotsLeft Number of slots remaining
+     *
+     * @param  float  $studentScore  The applicant's priority score
+     * @param  array  $allScores  Array of all applicants' priority scores
+     * @param  int  $slotsLeft  Number of slots remaining
      * @return float Acceptance chance percentage (0-100)
      */
     private function calculateWeightedLotteryChance(float $studentScore, array $allScores, int $slotsLeft): float
@@ -984,47 +991,48 @@ class StudentController extends Controller
         if ($slotsLeft <= 0) {
             return 0.0;
         }
-        
+
         // If student has no score, chance is 0
         if ($studentScore <= 0) {
             return 0.0;
         }
-        
+
         // Calculate sum of all scores
         $totalScoreSum = array_sum($allScores);
-        
+
         // Avoid division by zero
         if ($totalScoreSum <= 0) {
             return 0.0;
         }
-        
+
         // Step 1: Calculate weight (w_i = score_i / sum(all scores))
         $weight = $studentScore / $totalScoreSum;
-        
+
         // Ensure weight is between 0 and 1
         $weight = max(0.0, min(1.0, $weight));
-        
+
         // Step 2: Calculate chance using approximation formula
         // Chance_i ≈ 1 - (1 - w_i)^S
         // Where S = slots_left
         $chance = 1 - pow(1 - $weight, $slotsLeft);
-        
+
         // Convert to percentage and ensure it's between 0 and 100
         $chancePercent = $chance * 100;
-        
+
         return round(max(0.0, min(100.0, $chancePercent)), 2);
     }
 
     public function notifications(Request $request)
     {
         $student = Auth::user();
-        
+
         // Fetch real notifications from database
         $notifications = $student->notifications()
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($notification) {
                 $data = $notification->data;
+
                 return [
                     'id' => $notification->id,
                     'type' => $data['type'] ?? 'general',
@@ -1036,50 +1044,52 @@ class StudentController extends Controller
                     'rejection_reason' => $data['rejection_reason'] ?? null,
                 ];
             });
-        
+
         return view('student.notifications', compact('student', 'notifications'));
     }
-    
+
     public function markNotificationAsRead($id)
     {
         try {
             $user = Auth::user();
             $notification = $user->notifications()->where('id', $id)->first();
-            
-            if ($notification && !$notification->read_at) {
+
+            if ($notification && ! $notification->read_at) {
                 $notification->markAsRead();
+
                 return response()->json(['success' => true]);
             }
-            
+
             return response()->json(['success' => false, 'message' => 'Notification not found or already read'], 404);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'An error occurred'], 500);
         }
     }
-    
+
     public function markAllNotificationsAsRead()
     {
         try {
             $user = Auth::user();
             $user->unreadNotifications->markAsRead();
-            
+
             return response()->json(['success' => true, 'message' => 'All notifications marked as read']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'An error occurred'], 500);
         }
     }
-    
+
     public function deleteNotification($id)
     {
         try {
             $user = Auth::user();
             $notification = $user->notifications()->where('id', $id)->first();
-            
+
             if ($notification) {
                 $notification->delete();
+
                 return response()->json(['success' => true, 'message' => 'Notification deleted']);
             }
-            
+
             return response()->json(['success' => false, 'message' => 'Notification not found'], 404);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'An error occurred'], 500);
@@ -1089,13 +1099,14 @@ class StudentController extends Controller
     public function support(Request $request)
     {
         $student = Auth::user();
+
         return view('student.support', compact('student'));
     }
 
     public function updateProfilePic(Request $request)
     {
         $request->validate([
-            'profile_pic' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'profile_pic' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $user = Auth::user();
@@ -1107,7 +1118,7 @@ class StudentController extends Controller
 
         // Store new profile picture
         $path = $request->file('profile_pic')->store('profile-pics', 'public');
-        
+
         // Update user profile
         $user->update(['profile_pic' => $path]);
 
@@ -1122,7 +1133,7 @@ class StudentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile picture updated successfully',
-            'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)])
+            'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)]),
         ]);
     }
 
@@ -1132,9 +1143,9 @@ class StudentController extends Controller
      */
     public function showProfilePic($filename)
     {
-        $path = 'profile-pics/' . $filename;
-        
-        if (!Storage::disk('public')->exists($path)) {
+        $path = 'profile-pics/'.$filename;
+
+        if (! Storage::disk('public')->exists($path)) {
             // Check if it's the default profile pic or if we should fallback
             abort(404);
         }
@@ -1145,13 +1156,13 @@ class StudentController extends Controller
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'contact_num' => 'required|string|max:20',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'current_year_level' => 'nullable|string|in:1st,2nd,3rd,4th,5th',
         ]);
 
@@ -1191,38 +1202,38 @@ class StudentController extends Controller
     public function updateGPA(Request $request)
     {
         $user = Auth::user();
-        
+
         $validated = $request->validate([
-            'gpa' => 'required|numeric|min:1.0|max:5.0'
+            'gpa' => 'required|numeric|min:1.0|max:5.0',
         ], [
             'gpa.required' => 'GPA value is required.',
             'gpa.numeric' => 'GPA must be a number.',
             'gpa.min' => 'GPA must be at least 1.0.',
             'gpa.max' => 'GPA cannot exceed 5.0.',
         ]);
-        
+
         // Get or create basic_info record
         $basicInfo = $user->basicInfo;
-        
-        if (!$basicInfo) {
+
+        if (! $basicInfo) {
             // Create basic_info if it doesn't exist
             $basicInfo = BasicInfo::create([
                 'user_id' => $user->id,
             ]);
         }
-        
+
         // Update GPA in basic_info table
         $basicInfo->gpa = $validated['gpa'];
         $basicInfo->save();
-        
+
         // Notify the student
         $user->notify(new \App\Notifications\TransactionNotification(
             'update',
             'GPA Updated',
-            'Your academic GPA has been successfully updated to ' . $validated['gpa'] . '.',
+            'Your academic GPA has been successfully updated to '.$validated['gpa'].'.',
             'normal'
         ));
-        
+
         return response()->json([
             'success' => true,
             'message' => 'GPA updated successfully.',
@@ -1233,6 +1244,7 @@ class StudentController extends Controller
     public function typeOfAssistance()
     {
         $types = \App\Models\TypeAssist::all();
+
         return view('student.type_of_assistance', compact('types'));
     }
 
@@ -1244,7 +1256,8 @@ class StudentController extends Controller
         $family_mother = \App\Models\Family::where('fam_type', 'mother')->where('user_id', $userId)->first();
         $siblings = \App\Models\FamSiblings::all();
         $school_pref = \App\Models\SchoolPref::latest()->first();
+
         // ...fetch other data as needed
         return view('student.apply', compact('ethnicities', 'family_father', 'family_mother', 'siblings', 'school_pref'));
     }
-} 
+}

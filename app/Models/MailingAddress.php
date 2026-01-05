@@ -10,7 +10,9 @@ class MailingAddress extends Model
     use HasFactory;
 
     protected $table = 'mailing_address';
+
     protected $primaryKey = 'id';
+
     public $timestamps = true;
 
     protected $fillable = [
@@ -22,4 +24,4 @@ class MailingAddress extends Model
     {
         return $this->belongsTo(Address::class, 'address_id');
     }
-} 
+}

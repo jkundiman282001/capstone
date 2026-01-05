@@ -39,4 +39,4 @@ return new class extends Migration
             $table->dropColumn(['education_id', 'family_id']);
         });
     }
-}; 
+};

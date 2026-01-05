@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\BasicInfo;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class CoursePriorityService
 {
@@ -15,10 +13,10 @@ class CoursePriorityService
     {
         // Get all applicants with school preferences
         $applicants = User::with([
-            'basicInfo.schoolPref', 
-            'basicInfo.fullAddress.address'
+            'basicInfo.schoolPref',
+            'basicInfo.fullAddress.address',
         ])
-            ->whereHas('basicInfo', function($query) {
+            ->whereHas('basicInfo', function ($query) {
                 $query->whereNotNull('school_pref_id');
             })
             ->get();
@@ -27,7 +25,9 @@ class CoursePriorityService
 
         foreach ($applicants as $applicant) {
             $schoolPref = $applicant->basicInfo->schoolPref ?? null;
-            if (!$schoolPref) continue;
+            if (! $schoolPref) {
+                continue;
+            }
 
             // Score-based prioritization removed - using ApplicantPriorityService instead
             $totalScore = 0;
@@ -36,7 +36,7 @@ class CoursePriorityService
             // Process first preference course
             if ($schoolPref->degree) {
                 $courseName = trim($schoolPref->degree);
-                if (!isset($courseData[$courseName])) {
+                if (! isset($courseData[$courseName])) {
                     $courseData[$courseName] = [
                         'course_name' => $courseName,
                         'first_preference_count' => 0,
@@ -62,7 +62,7 @@ class CoursePriorityService
                 $courseData[$courseName]['high_priority_applicants']++;
 
                 // Track schools
-                if ($schoolPref->address && !in_array($schoolPref->address, $courseData[$courseName]['schools'])) {
+                if ($schoolPref->address && ! in_array($schoolPref->address, $courseData[$courseName]['schools'])) {
                     $courseData[$courseName]['schools'][] = $schoolPref->address;
                 }
 
@@ -70,7 +70,7 @@ class CoursePriorityService
                 $fullAddress = $applicant->basicInfo->fullAddress ?? null;
                 $address = $fullAddress->address ?? null;
                 $province = $address->province ?? 'Unknown';
-                if ($province && $province !== 'Unknown' && !in_array($province, $courseData[$courseName]['provinces'])) {
+                if ($province && $province !== 'Unknown' && ! in_array($province, $courseData[$courseName]['provinces'])) {
                     $courseData[$courseName]['provinces'][] = $province;
                 }
             }
@@ -78,7 +78,7 @@ class CoursePriorityService
             // Process second preference course
             if ($schoolPref->degree2) {
                 $courseName = trim($schoolPref->degree2);
-                if (!isset($courseData[$courseName])) {
+                if (! isset($courseData[$courseName])) {
                     $courseData[$courseName] = [
                         'course_name' => $courseName,
                         'first_preference_count' => 0,
@@ -104,7 +104,7 @@ class CoursePriorityService
                 $courseData[$courseName]['high_priority_applicants']++;
 
                 // Track schools
-                if ($schoolPref->address2 && !in_array($schoolPref->address2, $courseData[$courseName]['schools'])) {
+                if ($schoolPref->address2 && ! in_array($schoolPref->address2, $courseData[$courseName]['schools'])) {
                     $courseData[$courseName]['schools'][] = $schoolPref->address2;
                 }
 
@@ -112,7 +112,7 @@ class CoursePriorityService
                 $fullAddress = $applicant->basicInfo->fullAddress ?? null;
                 $address = $fullAddress->address ?? null;
                 $province = $address->province ?? 'Unknown';
-                if ($province && $province !== 'Unknown' && !in_array($province, $courseData[$courseName]['provinces'])) {
+                if ($province && $province !== 'Unknown' && ! in_array($province, $courseData[$courseName]['provinces'])) {
                     $courseData[$courseName]['provinces'][] = $province;
                 }
             }
@@ -136,17 +136,18 @@ class CoursePriorityService
             $data['priority_score'] = round($priorityScore, 2);
 
             // Sort top applicants by score
-            usort($data['top_applicants'], function($a, $b) {
+            usort($data['top_applicants'], function ($a, $b) {
                 return $b['score'] <=> $a['score'];
             });
             $data['top_applicants'] = array_slice($data['top_applicants'], 0, 5); // Top 5 only
         }
 
         // Sort courses by priority score (descending)
-        uasort($courseData, function($a, $b) {
+        uasort($courseData, function ($a, $b) {
             if ($b['priority_score'] != $a['priority_score']) {
                 return $b['priority_score'] <=> $a['priority_score'];
             }
+
             // Tie-breaker: total applicants
             return $b['total_applicants'] <=> $a['total_applicants'];
         });
@@ -189,13 +190,13 @@ class CoursePriorityService
 
         $totalCourses = count($courses);
         $totalApplicants = array_sum(array_column($courses, 'total_applicants'));
-        $highPriorityCourses = count(array_filter($courses, function($course) {
+        $highPriorityCourses = count(array_filter($courses, function ($course) {
             return $course['priority_score'] >= 70;
         }));
         $totalHighPriorityApplicants = array_sum(array_column($courses, 'high_priority_applicants'));
 
         // Get most popular course
-        $mostPopular = !empty($courses) ? $courses[0] : null;
+        $mostPopular = ! empty($courses) ? $courses[0] : null;
 
         // Get course with highest average score
         $highestScoreCourse = null;
@@ -231,6 +232,7 @@ class CoursePriorityService
     public function getTopPriorityCourses(int $limit = 10): array
     {
         $courses = $this->getPrioritizedCourses();
+
         return array_slice($courses, 0, $limit);
     }
 
@@ -240,7 +242,7 @@ class CoursePriorityService
     public function getCoursesByPriorityLevel(string $level = 'high'): array
     {
         $courses = $this->getPrioritizedCourses();
-        
+
         $thresholds = [
             'high' => 70,
             'medium' => 50,
@@ -249,21 +251,21 @@ class CoursePriorityService
         ];
 
         $threshold = $thresholds[$level] ?? 70;
-        
+
         if ($level === 'high') {
-            return array_filter($courses, function($course) use ($threshold) {
+            return array_filter($courses, function ($course) use ($threshold) {
                 return $course['priority_score'] >= $threshold;
             });
         } elseif ($level === 'medium') {
-            return array_filter($courses, function($course) use ($threshold) {
+            return array_filter($courses, function ($course) use ($threshold) {
                 return $course['priority_score'] >= $threshold && $course['priority_score'] < 70;
             });
         } elseif ($level === 'low') {
-            return array_filter($courses, function($course) use ($threshold) {
+            return array_filter($courses, function ($course) use ($threshold) {
                 return $course['priority_score'] >= $threshold && $course['priority_score'] < 50;
             });
         } else {
-            return array_filter($courses, function($course) use ($threshold) {
+            return array_filter($courses, function ($course) use ($threshold) {
                 return $course['priority_score'] < $threshold;
             });
         }
@@ -325,9 +327,9 @@ class CoursePriorityService
         }
 
         // Capture preferred courses from scholarship applications (authoritative source)
-        $applicantsWithPreferences = User::whereHas('basicInfo', function($query) {
-                $query->whereHas('schoolPref');
-            })
+        $applicantsWithPreferences = User::whereHas('basicInfo', function ($query) {
+            $query->whereHas('schoolPref');
+        })
             ->with(['basicInfo.schoolPref'])
             ->get();
 
@@ -397,7 +399,7 @@ class CoursePriorityService
 
             $data['priority_score'] = round($priorityScore, 2);
 
-            if (!empty($data['applicants'])) {
+            if (! empty($data['applicants'])) {
                 usort($data['applicants'], function ($a, $b) {
                     return $b['score'] <=> $a['score'];
                 });
@@ -406,15 +408,16 @@ class CoursePriorityService
         }
 
         // Remove courses with no applicants
-        $courseData = array_filter($courseData, function($data) {
+        $courseData = array_filter($courseData, function ($data) {
             return $data['total_applicants'] > 0;
         });
 
         // Sort by priority score (descending)
-        uasort($courseData, function($a, $b) {
+        uasort($courseData, function ($a, $b) {
             if ($b['priority_score'] != $a['priority_score']) {
                 return $b['priority_score'] <=> $a['priority_score'];
             }
+
             return $b['total_applicants'] <=> $a['total_applicants'];
         });
 
@@ -437,9 +440,10 @@ class CoursePriorityService
     private function initializeCourseBucket(array &$courseData, array &$courseApplicants, string $courseName): void
     {
         if (isset($courseData[$courseName])) {
-            if (!isset($courseApplicants[$courseName])) {
+            if (! isset($courseApplicants[$courseName])) {
                 $courseApplicants[$courseName] = [];
             }
+
             return;
         }
 
@@ -467,7 +471,7 @@ class CoursePriorityService
      */
     private function resolveCourseName(?string $rawCourseName, array $priorityCourses, array $excludedCourses): ?string
     {
-        if (!$rawCourseName) {
+        if (! $rawCourseName) {
             return null;
         }
 
@@ -491,6 +495,7 @@ class CoursePriorityService
                 if (in_array($priorityCourse, $excludedCourses, true)) {
                     return null;
                 }
+
                 return $priorityCourse;
             }
         }
@@ -511,12 +516,12 @@ class CoursePriorityService
         string $countKey,
         string $sourceLabel
     ): void {
-        if (!$rawCourseName) {
+        if (! $rawCourseName) {
             return;
         }
 
         $normalizedCourse = $this->resolveCourseName($rawCourseName, $priorityCourses, $excludedCourses);
-        if (!$normalizedCourse) {
+        if (! $normalizedCourse) {
             return;
         }
 
@@ -527,7 +532,7 @@ class CoursePriorityService
         // Score-based prioritization removed - using ApplicantPriorityService instead
         $totalScore = 0;
 
-        if (!in_array($user->id, $courseApplicants[$normalizedCourse], true)) {
+        if (! in_array($user->id, $courseApplicants[$normalizedCourse], true)) {
             $courseApplicants[$normalizedCourse][] = $user->id;
             $courseData[$normalizedCourse]['total_applicants']++;
             $courseData[$normalizedCourse]['total_score_sum'] += $totalScore;
@@ -550,7 +555,7 @@ class CoursePriorityService
      */
     private function addApplicantToCourse(array &$courseEntry, User $user, float $totalScore, string $source, string $submittedCourse): void
     {
-        if (!isset($courseEntry['applicants'])) {
+        if (! isset($courseEntry['applicants'])) {
             $courseEntry['applicants'] = [];
         }
 
@@ -562,7 +567,7 @@ class CoursePriorityService
 
         $courseEntry['applicants'][] = [
             'id' => $user->id,
-            'name' => trim($user->first_name . ' ' . $user->last_name),
+            'name' => trim($user->first_name.' '.$user->last_name),
             'score' => round($totalScore, 2),
             'source' => $source,
             'submitted_course' => trim((string) $submittedCourse),
@@ -576,12 +581,12 @@ class CoursePriorityService
     {
         $basicInfo = $user->basicInfo;
         $schoolPref = $basicInfo->schoolPref ?? null;
-        
-        if (!$schoolPref) {
+
+        if (! $schoolPref) {
             return [
                 'has_courses' => false,
                 'courses' => [],
-                'message' => 'No school preferences found for this applicant.'
+                'message' => 'No school preferences found for this applicant.',
             ];
         }
 
@@ -621,7 +626,7 @@ class CoursePriorityService
         }
 
         // Sort courses by priority score
-        usort($courses, function($a, $b) {
+        usort($courses, function ($a, $b) {
             return $b['priority_score'] <=> $a['priority_score'];
         });
 
@@ -630,7 +635,7 @@ class CoursePriorityService
             'courses' => $courses,
             'applicant_score' => $totalScore,
             'applicant_rank' => $priorityRank,
-            'total_courses' => count($courses)
+            'total_courses' => count($courses),
         ];
     }
 
@@ -695,7 +700,7 @@ class CoursePriorityService
         // Score-based alignment removed - using ApplicantPriorityService instead
         // Base alignment based on course priority
         $alignment = 0.5; // Base alignment
-        
+
         // Check if course is a priority course
         $priorityCourses = [
             'Agriculture', 'Aqua-Culture and Fisheries', 'Anthropology',
@@ -703,9 +708,9 @@ class CoursePriorityService
             'Criminology', 'Education', 'Foreign Service',
             'Forestry and Environment Studies', 'Geodetic Engineering', 'Geology',
             'Law', 'Medicine and Allied Health Sciences', 'Mechanical Engineering',
-            'Mining Engineering', 'Social Sciences', 'Social Work'
+            'Mining Engineering', 'Social Sciences', 'Social Work',
         ];
-        
+
         foreach ($priorityCourses as $priorityCourse) {
             if (stripos($courseName, $priorityCourse) !== false) {
                 $alignment += 0.3; // Priority course bonus
@@ -741,7 +746,7 @@ class CoursePriorityService
     private function calculateMatchQuality(float $applicantScore, float $priorityScore): string
     {
         $average = ($applicantScore + $priorityScore) / 2;
-        
+
         if ($average >= 80) {
             return 'Excellent Match';
         } elseif ($average >= 70) {
@@ -759,10 +764,10 @@ class CoursePriorityService
     private function generateCourseRecommendations(string $courseName, User $user, $applicantScore, ?string $schoolType): array
     {
         $recommendations = [];
-        
+
         // Score-based recommendations removed - using ApplicantPriorityService instead
         $recommendations[] = 'Application under review - priority determined by ApplicantPriorityService';
-        
+
         if ($schoolType === 'Public') {
             $recommendations[] = 'Public school preference may increase scholarship eligibility';
         }
@@ -770,4 +775,3 @@ class CoursePriorityService
         return $recommendations;
     }
 }
-

@@ -16,7 +16,7 @@ class VerifyEmailNotification extends BaseVerifyEmail
 
         return (new MailMessage)
             ->subject('Verify your NCIP-EAP portal email')
-            ->greeting('Hello ' . ($notifiable->first_name ?? 'NCIP Scholar') . '!')
+            ->greeting('Hello '.($notifiable->first_name ?? 'NCIP Scholar').'!')
             ->line('Salamat for registering with the NCIP Educational Assistance Program portal.')
             ->line('Please confirm your email address to unlock your dashboard, upload requirements, and track your application status.')
             ->action('Verify email address', $verificationUrl)
@@ -25,4 +25,3 @@ class VerifyEmailNotification extends BaseVerifyEmail
             ->salutation('— NCIP-EAP Support Team');
     }
 }
-

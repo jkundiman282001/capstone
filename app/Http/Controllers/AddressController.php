@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Address;
+use Illuminate\Http\Request;
 
 class AddressController extends Controller
 {
@@ -14,6 +14,7 @@ class AddressController extends Controller
             ->where('barangay', '!=', '')
             ->orderBy('barangay')
             ->pluck('barangay');
+
         return response()->json($barangays);
     }
 
@@ -24,6 +25,7 @@ class AddressController extends Controller
             ->where('municipality', '!=', '')
             ->orderBy('municipality')
             ->pluck('municipality');
+
         return response()->json($municipalities);
     }
 }

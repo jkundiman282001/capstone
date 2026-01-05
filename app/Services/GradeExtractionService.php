@@ -1,8 +1,8 @@
 <?php
+
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class GradeExtractionService
 {
@@ -12,8 +12,9 @@ class GradeExtractionService
      */
     public function extractGPA($filePath)
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             Log::error('Grades file not found', ['path' => $filePath]);
+
             return null;
         }
 
@@ -31,13 +32,15 @@ class GradeExtractionService
         } else {
             Log::error('Unsupported file type for GPA extraction', [
                 'mime' => $mimeType,
-                'path' => $filePath
+                'path' => $filePath,
             ]);
+
             return null;
         }
 
         if (empty($text)) {
             Log::warning('No text extracted from document', ['path' => $filePath, 'mime_type' => $mimeType]);
+
             return null;
         }
 
@@ -46,12 +49,12 @@ class GradeExtractionService
         if ($gpa === null) {
             Log::warning('GPA parsing failed', [
                 'text_preview' => substr($text, 0, 500),
-                'text_length' => strlen($text)
+                'text_length' => strlen($text),
             ]);
         } else {
             Log::info('GPA extracted successfully', ['gpa' => $gpa]);
         }
-        
+
         return $gpa;
     }
 
@@ -63,8 +66,9 @@ class GradeExtractionService
         try {
             // Try using smalot/pdfparser if available
             if (class_exists('\Smalot\PdfParser\Parser')) {
-                $parser = new \Smalot\PdfParser\Parser();
+                $parser = new \Smalot\PdfParser\Parser;
                 $pdf = $parser->parseFile($pdfPath);
+
                 return $pdf->getText();
             }
 
@@ -72,17 +76,19 @@ class GradeExtractionService
             $output = [];
             $returnVar = 0;
             @exec("pdftotext \"$pdfPath\" - 2>&1", $output, $returnVar);
-            if ($returnVar === 0 && !empty($output)) {
+            if ($returnVar === 0 && ! empty($output)) {
                 return implode("\n", $output);
             }
 
             Log::warning('PDF text extraction failed - no parser available', ['path' => $pdfPath]);
+
             return '';
         } catch (\Exception $e) {
             Log::error('Error extracting text from PDF', [
                 'path' => $pdfPath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return '';
         }
     }
@@ -95,10 +101,11 @@ class GradeExtractionService
         try {
             // Check if Tesseract is available
             $tesseractPath = $this->findTesseractPath();
-            if (!$tesseractPath) {
+            if (! $tesseractPath) {
                 Log::warning('Tesseract OCR not found. Please install Tesseract OCR for image text extraction.', [
-                    'image_path' => $imagePath
+                    'image_path' => $imagePath,
                 ]);
+
                 return '';
             }
 
@@ -108,29 +115,30 @@ class GradeExtractionService
             $tempFile = tempnam(sys_get_temp_dir(), 'tesseract_');
             $output = [];
             $returnVar = 0;
-            
+
             // Tesseract command: tesseract input_image output_base [options]
             // We'll output to a temp file
             $command = "\"$tesseractPath\" \"$imagePath\" \"$tempFile\" 2>&1";
             Log::info('Running Tesseract command', ['command' => $command]);
-            
+
             @exec($command, $output, $returnVar);
-            
+
             $outputText = implode("\n", $output);
             Log::info('Tesseract execution result', [
                 'return_var' => $returnVar,
                 'output' => $outputText,
-                'temp_file' => $tempFile . '.txt',
-                'temp_file_exists' => file_exists($tempFile . '.txt')
+                'temp_file' => $tempFile.'.txt',
+                'temp_file_exists' => file_exists($tempFile.'.txt'),
             ]);
-            
-            if ($returnVar === 0 && file_exists($tempFile . '.txt')) {
-                $text = file_get_contents($tempFile . '.txt');
-                @unlink($tempFile . '.txt');
+
+            if ($returnVar === 0 && file_exists($tempFile.'.txt')) {
+                $text = file_get_contents($tempFile.'.txt');
+                @unlink($tempFile.'.txt');
                 @unlink($tempFile); // Clean up base temp file too
-                
-                if (!empty($text)) {
+
+                if (! empty($text)) {
                     Log::info('Tesseract OCR successful', ['text_length' => strlen($text)]);
+
                     return $text;
                 } else {
                     Log::warning('Tesseract OCR returned empty text', ['image_path' => $imagePath]);
@@ -140,25 +148,26 @@ class GradeExtractionService
                     'path' => $imagePath,
                     'output' => $outputText,
                     'return_var' => $returnVar,
-                    'temp_file_exists' => file_exists($tempFile . '.txt')
+                    'temp_file_exists' => file_exists($tempFile.'.txt'),
                 ]);
             }
-            
+
             // Clean up temp file if it exists
-            if (file_exists($tempFile . '.txt')) {
-                @unlink($tempFile . '.txt');
+            if (file_exists($tempFile.'.txt')) {
+                @unlink($tempFile.'.txt');
             }
             if (file_exists($tempFile)) {
                 @unlink($tempFile);
             }
-            
+
             return '';
         } catch (\Exception $e) {
             Log::error('Error extracting text from image', [
                 'path' => $imagePath,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return '';
         }
     }
@@ -177,13 +186,15 @@ class GradeExtractionService
             'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract.exe',
             'C:\\Tesseract-OCR\\tesseract.exe',
             // Check ProgramData (some installers use this)
-            getenv('ProgramFiles') . '\\Tesseract-OCR\\tesseract.exe',
-            getenv('ProgramFiles(x86)') . '\\Tesseract-OCR\\tesseract.exe',
+            getenv('ProgramFiles').'\\Tesseract-OCR\\tesseract.exe',
+            getenv('ProgramFiles(x86)').'\\Tesseract-OCR\\tesseract.exe',
         ];
 
         foreach ($possiblePaths as $path) {
-            if (empty($path)) continue;
-            
+            if (empty($path)) {
+                continue;
+            }
+
             $output = [];
             $returnVar = 0;
             // Use where command on Windows, which command on Unix
@@ -192,7 +203,7 @@ class GradeExtractionService
             } else {
                 @exec("$path --version 2>&1", $output, $returnVar);
             }
-            
+
             if ($returnVar === 0) {
                 return $path;
             }
@@ -202,7 +213,7 @@ class GradeExtractionService
         if (PHP_OS_FAMILY === 'Windows') {
             $output = [];
             @exec('where tesseract 2>&1', $output, $returnVar);
-            if ($returnVar === 0 && !empty($output[0]) && file_exists($output[0])) {
+            if ($returnVar === 0 && ! empty($output[0]) && file_exists($output[0])) {
                 return $output[0];
             }
         }
@@ -251,6 +262,7 @@ class GradeExtractionService
         // Pattern 3: Look for "GWA: 95" or "General Weighted Average: 95" (percentage format)
         if (preg_match('/\b(?:gwa|general\s+weighted\s+average)\s*[:\s=]+\s*(\d+\.?\d*)\b/i', $text, $matches)) {
             $value = (float) $matches[1];
+
             return $this->normalizeGPA($value);
         }
 
@@ -293,6 +305,7 @@ class GradeExtractionService
         }
 
         Log::warning('Could not parse GPA from text', ['text_sample' => substr($text, 0, 500)]);
+
         return null;
     }
 
@@ -316,4 +329,3 @@ class GradeExtractionService
         return null;
     }
 }
-

@@ -3,8 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class DocumentStatusUpdated extends Notification
@@ -12,6 +10,7 @@ class DocumentStatusUpdated extends Notification
     use Queueable;
 
     protected $document;
+
     protected $status;
 
     /**
@@ -44,13 +43,13 @@ class DocumentStatusUpdated extends Notification
         $documentName = str_replace('_', ' ', ucwords($this->document->type, '_'));
 
         if ($this->status === 'approved') {
-            $message = 'Your document "' . $documentName . '" has been approved by the admin.';
+            $message = 'Your document "'.$documentName.'" has been approved by the admin.';
         } elseif ($this->status === 'rejected') {
-            $message = 'Your document "' . $documentName . '" has been rejected by the admin.';
+            $message = 'Your document "'.$documentName.'" has been rejected by the admin.';
         } else {
-            $message = 'The status of your document "' . $documentName . '" has been updated to pending.';
+            $message = 'The status of your document "'.$documentName.'" has been updated to pending.';
         }
-        
+
         return [
             'type' => 'document_status',
             'title' => 'Document Status Updated',

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('permanent_address')) {
+        if (! Schema::hasTable('permanent_address')) {
             Schema::create('permanent_address', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedInteger('address_id');

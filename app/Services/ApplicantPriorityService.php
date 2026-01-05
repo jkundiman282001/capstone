@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\BasicInfo;
-use Carbon\Carbon;
+use App\Models\User;
 
 class ApplicantPriorityService
 {
@@ -80,11 +79,12 @@ class ApplicantPriorityService
         9 => 1.45,
         10 => 1.49,
     ];
+
     /**
      * Priority Indigenous Groups (2nd priority tier)
      */
     private $priorityEthnoGroups = [
-        "b'laan", 'bagobo', 'kalagan', 'kaulo'
+        "b'laan", 'bagobo', 'kalagan', 'kaulo',
     ];
 
     /**
@@ -111,7 +111,7 @@ class ApplicantPriorityService
         'Mining Engineering',
         'Social Sciences (AB courses)',
         'Social Work',
-        ];
+    ];
 
     private $excludedCourses = [
         'BS Information Technology',
@@ -127,24 +127,25 @@ class ApplicantPriorityService
      */
     private function isPriorityEthno(?string $ethnicity): bool
     {
-        if (!$ethnicity) {
+        if (! $ethnicity) {
             return false;
         }
         $norm = strtolower(trim($ethnicity));
+
         return in_array($norm, $this->priorityEthnoGroups, true);
     }
 
     /**
      * Calculate IP Group rubric score (0-10 scale)
      * Based on NCIP IP Group Priority Rubric (Rank 1 - Highest Priority)
-     * 
+     *
      * Scoring Rubric:
      * - 10/10: Validated documentation (tribal cert + endorsement + birth cert all approved)
      * - 8/10: Missing 1 supporting document (tribal cert approved OR 2 docs approved)
      * - 6/10: Questionable/incomplete but partially verifiable
      * - 4/10: Self-declared only (no documents submitted)
      * - 0/10: No IP affiliation
-     * 
+     *
      * Priority IP Group Bonus: Applicants in priority IP groups (B'laan, Bagobo, Kalagan, Kaulo)
      * receive a +2 point bonus to ensure they rank higher than non-priority IP groups with
      * the same documentation quality.
@@ -152,12 +153,12 @@ class ApplicantPriorityService
     private function calculateIpRubricScore(User $user, bool $isPriorityEthno = false): float
     {
         // No IP affiliation
-        if (!$user->ethno || !$user->ethno->ethnicity) {
+        if (! $user->ethno || ! $user->ethno->ethnicity) {
             return 0;
         }
 
         $documents = $user->documents ?? collect();
-        
+
         // IP verification documents:
         // 1. tribal_certificate - Certificate of Tribal Membership/Confirmation (PRIMARY)
         // 2. endorsement - Endorsement of the IPS/IP Traditional Leaders
@@ -189,20 +190,20 @@ class ApplicantPriorityService
 
         // Apply rubric scoring (0-10 scale)
         $baseScore = 0;
-        
+
         // Rubric 10/10: All 3 key IP documents approved, OR tribal cert + endorsement approved
-        if ($approvedDocs >= 3 || 
-            ($ipDocuments['tribal_certificate']?->status === 'approved' && 
+        if ($approvedDocs >= 3 ||
+            ($ipDocuments['tribal_certificate']?->status === 'approved' &&
              $ipDocuments['endorsement']?->status === 'approved')) {
             $baseScore = 10;
         }
         // Rubric 8/10: Missing 1 supporting document - has tribal cert approved OR has 2 approved docs
-        elseif ($approvedDocs === 2 || 
+        elseif ($approvedDocs === 2 ||
             ($approvedDocs === 1 && $ipDocuments['tribal_certificate']?->status === 'approved')) {
             $baseScore = 8;
         }
         // Rubric 6/10: Documentation questionable or incomplete but partially verifiable
-        elseif ($approvedDocs === 1 || 
+        elseif ($approvedDocs === 1 ||
             ($totalSubmitted >= 2 && $pendingDocs >= 1) ||
             ($rejectedDocs > 0 && $totalSubmitted >= 1)) {
             $baseScore = 6;
@@ -215,14 +216,14 @@ class ApplicantPriorityService
         else {
             $baseScore = 0;
         }
-        
+
         // Apply priority IP group bonus: +2 points (allows up to 12 for priority groups)
         // This ensures priority IP groups rank higher than non-priority ones with same docs
         // We allow scores above 10 for priority groups, then normalize with max=12
         if ($isPriorityEthno && $baseScore > 0) {
             $baseScore = $baseScore + 2; // Don't cap at 10 - allow up to 12 for priority groups
         }
-        
+
         return $baseScore;
     }
 
@@ -248,6 +249,7 @@ class ApplicantPriorityService
         // Fall back to the course captured during account creation
         if ($user->course) {
             $registeredCourse = trim($user->course);
+
             return $registeredCourse !== '' ? $registeredCourse : null;
         }
 
@@ -259,7 +261,7 @@ class ApplicantPriorityService
      */
     private function normalizeCourseName(?string $courseName): ?string
     {
-        if (!$courseName) {
+        if (! $courseName) {
             return null;
         }
 
@@ -286,12 +288,12 @@ class ApplicantPriorityService
      */
     private function isPriorityCourse(?string $courseName): bool
     {
-        if (!$courseName) {
+        if (! $courseName) {
             return false;
         }
 
         $normalized = $this->normalizeCourseName($courseName);
-        if (!$normalized) {
+        if (! $normalized) {
             return false;
         }
 
@@ -340,7 +342,7 @@ class ApplicantPriorityService
      */
     private function isRelatedCourse(?string $courseName): bool
     {
-        if (!$courseName) {
+        if (! $courseName) {
             return false;
         }
 
@@ -361,7 +363,7 @@ class ApplicantPriorityService
         foreach ($relatedCourses as $priorityCourse => $related) {
             foreach ($related as $relatedCourse) {
                 // Check if course name contains related course keywords or vice versa
-                if (stripos($courseName, $relatedCourse) !== false || 
+                if (stripos($courseName, $relatedCourse) !== false ||
                     stripos($relatedCourse, $courseName) !== false) {
                     return true;
                 }
@@ -373,7 +375,7 @@ class ApplicantPriorityService
 
     /**
      * Calculate Course Priority rubric score (0-10 scale)
-     * 
+     *
      * Scoring Rubric:
      * - 10/10: Exact match with priority course
      * - 6/10: Course is related/relevant to priority courses (mid-scale)
@@ -381,7 +383,7 @@ class ApplicantPriorityService
      */
     private function calculateCourseRubricScore(?string $courseName): float
     {
-        if (!$courseName) {
+        if (! $courseName) {
             return 0;
         }
 
@@ -445,23 +447,23 @@ class ApplicantPriorityService
     private function hasAllOtherRequirements(User $applicant): bool
     {
         $otherRequiredTypes = ['birth_certificate', 'endorsement', 'good_moral'];
-        
+
         $approvedDocs = $applicant->documents()
             ->whereIn('type', $otherRequiredTypes)
             ->where('status', 'approved')
             ->get();
-        
+
         // Check if all three documents are approved
         $hasBirthCert = $approvedDocs->where('type', 'birth_certificate')->isNotEmpty();
         $hasEndorsement = $approvedDocs->where('type', 'endorsement')->isNotEmpty();
         $hasGoodMoral = $approvedDocs->where('type', 'good_moral')->isNotEmpty();
-        
+
         return $hasBirthCert && $hasEndorsement && $hasGoodMoral;
     }
 
     /**
      * Get prioritized applicants based on weighted scoring with FCFS (First Come First Serve) as tiebreaker
-     * 
+     *
      * Priority Order:
      * 1. Weighted Priority Score (IP Group 20%, GPA/GWA 30%, ITR 30%, Citations/Awards 10%, Social Responsibility 10%)
      * 2. FCFS Tiebreaker: When scores are equal, earlier submission time wins
@@ -475,9 +477,9 @@ class ApplicantPriorityService
             'ethno',
             'basicInfo.schoolPref',
             'basicInfo.education',
-            'documents'
+            'documents',
         ])
-            ->whereHas('basicInfo', function($query) {
+            ->whereHas('basicInfo', function ($query) {
                 $query->whereNotNull('type_assist');
             })
             ->get();
@@ -486,11 +488,13 @@ class ApplicantPriorityService
 
         foreach ($applicants as $applicant) {
             $basicInfo = $applicant->basicInfo;
-            if (!$basicInfo) continue;
+            if (! $basicInfo) {
+                continue;
+            }
 
             // Get application submission time (when basicInfo was created/updated with type_assist)
             $applicationSubmittedAt = $basicInfo->updated_at ?? $basicInfo->created_at ?? now();
-            if (!$applicationSubmittedAt) {
+            if (! $applicationSubmittedAt) {
                 $applicationSubmittedAt = now();
             }
 
@@ -536,7 +540,7 @@ class ApplicantPriorityService
         }
 
         // Sort applicants by weighted score first, then FCFS (First Come First Serve) as tiebreaker
-        usort($prioritizedApplicants, function($a, $b) {
+        usort($prioritizedApplicants, function ($a, $b) {
             // PRIMARY: Weighted priority score (descending - higher score = better rank)
             $scoreComparison = $b['priority_score'] <=> $a['priority_score'];
             if ($scoreComparison !== 0) {
@@ -569,21 +573,21 @@ class ApplicantPriorityService
 
     /**
      * Calculate priority score using AHP (Analytical Hierarchy Process) methodology
-     * 
+     *
      * AHP Principles Applied:
      * 1. Normalization: All criteria scores normalized to 0-1 scale
      * 2. Weighted Sum: Each normalized score multiplied by its AHP-derived weight
      * 3. Consistency: Weights validated for consistency
      * 4. Hierarchical Structure: Criteria organized in priority hierarchy
-     * 
+     *
      * Priority IP Group Bonus: Applicants in priority IP groups (B'laan, Bagobo, Kalagan, Kaulo)
      * receive a bonus multiplier on their IP rubric score to reflect their higher priority status.
-     * 
-     * @param float $ipRubricScore IP Group rubric score (0-12 scale)
-     * @param float $academicRubricScore Academic rubric score (0-10 scale) derived from GPA/GWA
-     * @param bool $hasApprovedIncomeTax Whether income tax document is approved
-     * @param float $awardsRubricScore Citations/Awards rubric score (0-10 scale)
-     * @param float $socialResponsibilityRubricScore Social responsibility rubric score (0-10 scale)
+     *
+     * @param  float  $ipRubricScore  IP Group rubric score (0-12 scale)
+     * @param  float  $academicRubricScore  Academic rubric score (0-10 scale) derived from GPA/GWA
+     * @param  bool  $hasApprovedIncomeTax  Whether income tax document is approved
+     * @param  float  $awardsRubricScore  Citations/Awards rubric score (0-10 scale)
+     * @param  float  $socialResponsibilityRubricScore  Social responsibility rubric score (0-10 scale)
      * @return float Final priority score (0-100 scale)
      */
     private function calculatePriorityScore(
@@ -633,7 +637,7 @@ class ApplicantPriorityService
     {
         $basicInfo = $user->basicInfo;
 
-        if (!$basicInfo || $basicInfo->gpa === null) {
+        if (! $basicInfo || $basicInfo->gpa === null) {
             return 0.0;
         }
 
@@ -646,6 +650,7 @@ class ApplicantPriorityService
         // Normalize GPA to 0..1 then scale to 0..10
         // 1.0 → 1.0, 5.0 → 0.0
         $normalized = (5.0 - $gpa) / 4.0;
+
         return round(max(0.0, min(1.0, $normalized)) * 10, 2);
     }
 
@@ -696,7 +701,7 @@ class ApplicantPriorityService
     private function calculateSocialResponsibilityRubricScore(User $user): float
     {
         $schoolPref = $user->basicInfo?->schoolPref;
-        $text = trim((string) ($schoolPref?->ques_answer1 ?? '') . ' ' . (string) ($schoolPref?->ques_answer2 ?? ''));
+        $text = trim((string) ($schoolPref?->ques_answer1 ?? '').' '.(string) ($schoolPref?->ques_answer2 ?? ''));
 
         if ($text === '') {
             return 0.0;
@@ -793,10 +798,10 @@ class ApplicantPriorityService
 
     /**
      * Normalize a score to 0-1 scale (AHP normalization method)
-     * 
-     * @param float $value The value to normalize
-     * @param float $min Minimum possible value
-     * @param float $max Maximum possible value
+     *
+     * @param  float  $value  The value to normalize
+     * @param  float  $min  Minimum possible value
+     * @param  float  $max  Maximum possible value
      * @return float Normalized value between 0 and 1
      */
     private function normalizeScore(float $value, float $min, float $max): float
@@ -804,10 +809,10 @@ class ApplicantPriorityService
         if ($max == $min) {
             return 0.0; // Avoid division by zero
         }
-        
+
         // Linear normalization: (value - min) / (max - min)
         $normalized = ($value - $min) / ($max - $min);
-        
+
         // Ensure result is within [0, 1] bounds
         return max(0.0, min(1.0, $normalized));
     }
@@ -815,7 +820,7 @@ class ApplicantPriorityService
     /**
      * Validate weights consistency (AHP consistency check)
      * Ensures weights sum to 1.0 and checks for logical consistency
-     * 
+     *
      * @throws \RuntimeException If weights are inconsistent
      */
     private function validateWeightsConsistency(): void
@@ -843,19 +848,19 @@ class ApplicantPriorityService
      * Calculate Consistency Ratio (CR) for AHP pairwise comparison matrix
      * CR = CI / RI, where CI = (λ_max - n) / (n - 1)
      * CR < 0.10 indicates acceptable consistency
-     * 
+     *
      * @return array Contains CR, CI, λ_max, and consistency status
      */
     public function calculateConsistencyRatio(): array
     {
         $n = count($this->priorityWeights);
-        
+
         // Calculate weighted sum vector
         $weightedSumVector = [];
         foreach (array_keys($this->priorityWeights) as $criterion) {
             $sum = 0;
             foreach (array_keys($this->priorityWeights) as $otherCriterion) {
-                $sum += $this->pairwiseComparisonMatrix[$criterion][$otherCriterion] 
+                $sum += $this->pairwiseComparisonMatrix[$criterion][$otherCriterion]
                      * $this->priorityWeights[$otherCriterion];
             }
             $weightedSumVector[$criterion] = $sum;
@@ -895,14 +900,14 @@ class ApplicantPriorityService
     /**
      * Get AHP-derived weights from pairwise comparison matrix
      * Uses eigenvector method to calculate weights
-     * 
+     *
      * @return array Normalized weights derived from pairwise comparisons
      */
     public function getAHPWeights(): array
     {
         $n = count($this->pairwiseComparisonMatrix);
         $weights = [];
-        
+
         // Calculate geometric mean for each row
         foreach (array_keys($this->pairwiseComparisonMatrix) as $criterion) {
             $product = 1.0;
@@ -927,6 +932,7 @@ class ApplicantPriorityService
     public function getTopPriorityApplicants(int $limit = 20): array
     {
         $applicants = $this->getPrioritizedApplicants();
+
         return array_slice($applicants, 0, $limit);
     }
 
@@ -938,31 +944,31 @@ class ApplicantPriorityService
         $applicants = $this->getPrioritizedApplicants();
 
         $totalApplicants = count($applicants);
-        $priorityEthnoCount = count(array_filter($applicants, function($a) {
+        $priorityEthnoCount = count(array_filter($applicants, function ($a) {
             return $a['is_priority_ethno'];
         }));
-        $incomeTaxCount = count(array_filter($applicants, function($a) {
+        $incomeTaxCount = count(array_filter($applicants, function ($a) {
             return $a['has_approved_income_tax'];
         }));
-        $academicCount = count(array_filter($applicants, function($a) {
+        $academicCount = count(array_filter($applicants, function ($a) {
             return ($a['academic_rubric_score'] ?? 0) > 0;
         }));
-        $awardsCount = count(array_filter($applicants, function($a) {
+        $awardsCount = count(array_filter($applicants, function ($a) {
             return ($a['awards_rubric_score'] ?? 0) > 0;
         }));
-        $socialCount = count(array_filter($applicants, function($a) {
+        $socialCount = count(array_filter($applicants, function ($a) {
             return ($a['social_responsibility_rubric_score'] ?? 0) > 0;
         }));
 
-        $oldestApplication = !empty($applicants) ? $applicants[0] : null;
-        $newestApplication = !empty($applicants) ? end($applicants) : null;
+        $oldestApplication = ! empty($applicants) ? $applicants[0] : null;
+        $newestApplication = ! empty($applicants) ? end($applicants) : null;
 
         // Calculate slots information
         $maxSlots = 120;
         $granteesCount = \App\Models\BasicInfo::where('application_status', 'validated')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('grant_status', 'grantee')
-                  ->orWhere('grant_status', 'Grantee');
+                    ->orWhere('grant_status', 'Grantee');
             })
             ->count();
         $slotsLeft = max(0, $maxSlots - $granteesCount);
@@ -979,13 +985,13 @@ class ApplicantPriorityService
             'max_slots' => $maxSlots,
             'oldest_application' => $oldestApplication ? [
                 'user_id' => $oldestApplication['user_id'],
-                'name' => $oldestApplication['user']->first_name . ' ' . $oldestApplication['user']->last_name,
+                'name' => $oldestApplication['user']->first_name.' '.$oldestApplication['user']->last_name,
                 'submitted_at' => $oldestApplication['application_submitted_at']->format('Y-m-d H:i:s'),
                 'days_waiting' => $oldestApplication['days_since_submission'],
             ] : null,
             'newest_application' => $newestApplication ? [
                 'user_id' => $newestApplication['user_id'],
-                'name' => $newestApplication['user']->first_name . ' ' . $newestApplication['user']->last_name,
+                'name' => $newestApplication['user']->first_name.' '.$newestApplication['user']->last_name,
                 'submitted_at' => $newestApplication['application_submitted_at']->format('Y-m-d H:i:s'),
             ] : null,
         ];
@@ -1001,20 +1007,22 @@ class ApplicantPriorityService
         switch ($level) {
             case 'high':
                 // Top 20% of applicants
-                $limit = max(1, (int)ceil(count($applicants) * 0.2));
+                $limit = max(1, (int) ceil(count($applicants) * 0.2));
+
                 return array_slice($applicants, 0, $limit);
             case 'medium':
                 // Next 30% of applicants
-                $start = max(1, (int)ceil(count($applicants) * 0.2));
-                $limit = (int)ceil(count($applicants) * 0.3);
+                $start = max(1, (int) ceil(count($applicants) * 0.2));
+                $limit = (int) ceil(count($applicants) * 0.3);
+
                 return array_slice($applicants, $start, $limit);
             case 'low':
                 // Remaining applicants
-                $start = max(1, (int)ceil(count($applicants) * 0.5));
+                $start = max(1, (int) ceil(count($applicants) * 0.5));
+
                 return array_slice($applicants, $start);
             default:
                 return $applicants;
         }
     }
 }
-

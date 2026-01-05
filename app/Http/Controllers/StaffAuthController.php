@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Staff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Staff;
 
 class StaffAuthController extends Controller
 {
@@ -23,8 +23,10 @@ class StaffAuthController extends Controller
 
         if (Auth::guard('staff')->attempt($credentials)) {
             $request->session()->regenerate();
+
             return redirect()->route('staff.dashboard');
         }
+
         return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
     }
 
@@ -46,6 +48,7 @@ class StaffAuthController extends Controller
 
         Auth::guard('staff')->login($staff);
         $request->session()->regenerate();
+
         return redirect()->route('staff.dashboard');
     }
 
@@ -54,6 +57,7 @@ class StaffAuthController extends Controller
         Auth::guard('staff')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('staff.login');
     }
-} 
+}

@@ -35,5 +35,3 @@ class Replacement extends Model
         return $this->belongsTo(Staff::class, 'created_by_staff_id');
     }
 }
-
-

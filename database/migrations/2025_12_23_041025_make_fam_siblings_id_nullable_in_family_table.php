@@ -13,7 +13,7 @@ return new class extends Migration
     {
         // Disable foreign key checks temporarily
         \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        
+
         try {
             // Get the foreign key constraint name if it exists
             $constraints = \DB::select("
@@ -24,7 +24,7 @@ return new class extends Migration
                 AND COLUMN_NAME = 'fam_siblings_id'
                 AND REFERENCED_TABLE_NAME IS NOT NULL
             ");
-            
+
             // Drop foreign key if it exists
             foreach ($constraints as $constraint) {
                 try {
@@ -33,7 +33,7 @@ return new class extends Migration
                     // Ignore if already dropped
                 }
             }
-            
+
             // Make column nullable
             if (Schema::hasColumn('family', 'fam_siblings_id')) {
                 \DB::statement('ALTER TABLE `family` MODIFY `fam_siblings_id` INT UNSIGNED NULL');

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\BasicInfo;
 
 class LandingController extends Controller
@@ -14,49 +13,49 @@ class LandingController extends Controller
         $validatedCount = BasicInfo::where('application_status', 'validated')->count();
         $availableSlots = max(0, $maxSlots - $validatedCount);
         $isFull = $availableSlots === 0;
-        
+
         // Count applicants who have applied (have type_assist filled)
         $applicantsApplied = BasicInfo::whereNotNull('type_assist')->count();
-        
+
         // Count applicants who are approved/validated
         $applicantsApproved = $validatedCount;
-        
+
         // Count pending applications (applied but not yet reviewed/approved)
         $applicantsPending = BasicInfo::whereNotNull('type_assist')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('application_status')
-                      ->orWhere('application_status', 'pending');
+                    ->orWhere('application_status', 'pending');
             })
             ->count();
-        
+
         // Count distinct IP groups represented
-        $ipGroupsRepresented = \App\Models\User::whereHas('basicInfo', function($query) {
-                $query->whereNotNull('type_assist');
-            })
+        $ipGroupsRepresented = \App\Models\User::whereHas('basicInfo', function ($query) {
+            $query->whereNotNull('type_assist');
+        })
             ->whereNotNull('ethno_id')
             ->distinct('ethno_id')
             ->count('ethno_id');
-        
+
         // Calculate success rate (approved / applied * 100)
-        $successRate = $applicantsApplied > 0 
-            ? round(($applicantsApproved / $applicantsApplied) * 100, 1) 
+        $successRate = $applicantsApplied > 0
+            ? round(($applicantsApproved / $applicantsApplied) * 100, 1)
             : 0;
-        
+
         // Count geographic coverage (provinces)
         $provincesCovered = \App\Models\BasicInfo::whereNotNull('type_assist')
-            ->whereHas('fullAddress', function($q) {
-                $q->whereHas('address', function($aq) {
+            ->whereHas('fullAddress', function ($q) {
+                $q->whereHas('address', function ($aq) {
                     $aq->where('province', '!=', '');
                 });
             })
             ->get()
-            ->map(function($basicInfo) {
+            ->map(function ($basicInfo) {
                 return optional(optional($basicInfo->fullAddress)->address)->province;
             })
             ->filter()
             ->unique()
             ->count();
-        
+
         $stats = [
             'slotsLeft' => $availableSlots,
             'applicantsApplied' => $applicantsApplied,
@@ -73,4 +72,3 @@ class LandingController extends Controller
         return view('landing', compact('stats'));
     }
 }
-

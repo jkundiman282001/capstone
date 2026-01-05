@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('family', function (Blueprint $table) {
-            if (Schema::hasColumn('family', 'educational_attain') && !Schema::hasColumn('family', 'educational_attainment')) {
+            if (Schema::hasColumn('family', 'educational_attain') && ! Schema::hasColumn('family', 'educational_attainment')) {
                 \DB::statement('ALTER TABLE `family` CHANGE `educational_attain` `educational_attainment` VARCHAR(255)');
             }
         });
@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('family', function (Blueprint $table) {
-            if (Schema::hasColumn('family', 'educational_attainment') && !Schema::hasColumn('family', 'educational_attain')) {
+            if (Schema::hasColumn('family', 'educational_attainment') && ! Schema::hasColumn('family', 'educational_attain')) {
                 \DB::statement('ALTER TABLE `family` CHANGE `educational_attainment` `educational_attain` VARCHAR(255)');
             }
         });

@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('scoring_notes')->nullable();
             $table->timestamp('last_calculated_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['total_score', 'priority_rank']);
             $table->index('user_id');
         });

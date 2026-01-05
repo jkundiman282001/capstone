@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Http\Request;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\StaffDashboardController;
+use App\Http\Controllers\StudentController;
 use App\Models\BasicInfo;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
@@ -32,7 +32,7 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
     $request->fulfill();
 
     // Check if user has application, if not redirect to apply
-    if (!BasicInfo::where('user_id', $request->user()->id)->exists()) {
+    if (! BasicInfo::where('user_id', $request->user()->id)->exists()) {
         return redirect()->route('student.apply')->with('success', 'Email verified! Please complete your scholarship application.');
     }
 
@@ -42,9 +42,10 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
 Route::post('/email/verification-notification', function (Request $request) {
     if ($request->user()->hasVerifiedEmail()) {
         // Check application status for redirect
-        if (!BasicInfo::where('user_id', $request->user()->id)->exists()) {
+        if (! BasicInfo::where('user_id', $request->user()->id)->exists()) {
             return redirect()->route('student.apply');
         }
+
         return redirect()->route('student.dashboard');
     }
 
@@ -57,12 +58,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/student/type-of-assistance', [StudentController::class, 'typeOfAssistance'])->name('student.type_of_assistance');
     Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
     Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
-    
+
     // Locked performance tab
     Route::get('/student/performance', [DocumentController::class, 'index'])
         ->middleware('has.applied')
         ->name('student.performance');
-        
+
     Route::get('/student/notifications', [StudentController::class, 'notifications'])->name('student.notifications');
     Route::post('/student/notifications/{id}/mark-read', [StudentController::class, 'markNotificationAsRead'])->name('student.notifications.mark-read');
     Route::post('/student/notifications/mark-all-read', [StudentController::class, 'markAllNotificationsAsRead'])->name('student.notifications.mark-all-read');
@@ -74,22 +75,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
     Route::post('/student/update-gpa', [StudentController::class, 'updateGPA'])->name('student.update-gpa');
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
-    
+
     // Application Draft Routes
     Route::post('/student/drafts', [StudentController::class, 'saveDraft'])->name('student.drafts.save');
     Route::get('/student/drafts', [StudentController::class, 'getDrafts'])->name('student.drafts.list');
     Route::get('/student/drafts/{id}', [StudentController::class, 'getDraft'])->name('student.drafts.get');
     Route::delete('/student/drafts/{id}', [StudentController::class, 'deleteDraft'])->name('student.drafts.delete');
-    Route::get('/student/apply', function() {
+    Route::get('/student/apply', function () {
         $ethnicities = \App\Models\Ethno::all();
         $barangays = \App\Models\Address::query()->select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
         $municipalities = \App\Models\Address::query()->select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
         $provinces = \App\Models\Address::query()->select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
-        
+
         // Document data
         $user = \Illuminate\Support\Facades\Auth::user();
         $documents = \App\Models\Document::where('user_id', $user->id)->latest()->get();
-        
+
         // Regular application required documents
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
@@ -99,7 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'good_moral' => 'Certificate of Good Moral from the Guidance Counselor',
             'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
-        
+
         // Renewal application required documents
         $renewalRequiredTypes = [
             'certificate_of_enrollment' => 'Certificate of Enrollment',
@@ -111,23 +112,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $hasSubmitted = \App\Models\BasicInfo::where('user_id', $user->id)
             ->whereNotNull('type_assist')
             ->exists();
-        
+
         $submittedApplication = null;
         $canRenew = false;
         if ($hasSubmitted) {
             $submittedApplication = \App\Models\BasicInfo::where('user_id', $user->id)
                 ->whereNotNull('type_assist')
                 ->first();
-            
+
             // Check if user can renew (must be validated and a grantee)
             if ($submittedApplication) {
-                $canRenew = ($submittedApplication->application_status === 'validated' && 
+                $canRenew = ($submittedApplication->application_status === 'validated' &&
                            strtolower(trim($submittedApplication->grant_status ?? '')) === 'grantee');
             }
         }
 
         // Check if user is new (hasn't submitted application) - show form directly
-        $isNewUser = !$hasSubmitted;
+        $isNewUser = ! $hasSubmitted;
 
         return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes', 'renewalRequiredTypes', 'hasSubmitted', 'submittedApplication', 'canRenew', 'isNewUser'));
     })->name('student.apply');
@@ -164,7 +165,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/users/{user}/update-gpa', [StaffDashboardController::class, 'updateGPA'])->name('staff.users.update-gpa');
     Route::get('/staff/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('staff.settings');
     Route::post('/staff/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('staff.settings.update');
-    
+
     // Document priority routes (First Come, First Serve)
     Route::post('/staff/documents/recalculate-priorities', [StaffDashboardController::class, 'recalculateDocumentPriorities'])->name('staff.documents.recalculate-priorities');
     Route::get('/staff/documents/prioritized', [StaffDashboardController::class, 'getPrioritizedDocuments'])->name('staff.documents.prioritized');
@@ -179,7 +180,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/priorities/citation-awards', [StaffDashboardController::class, 'citationAwardsPriority'])->name('staff.priorities.citation-awards');
     Route::get('/staff/priorities/social-responsibility', [StaffDashboardController::class, 'socialResponsibilityPriority'])->name('staff.priorities.social-responsibility');
     Route::get('/staff/priorities/other-requirements', [StaffDashboardController::class, 'otherRequirementsPriority'])->name('staff.priorities.other-requirements');
-    
+
     // Masterlist routes
     Route::get('/staff/masterlist/regular/all', [StaffDashboardController::class, 'masterlistRegular'])->name('staff.masterlist.regular.all');
     Route::get('/staff/masterlist/regular/grantees', [StaffDashboardController::class, 'masterlistRegularGrantees'])->name('staff.masterlist.regular.grantees');
@@ -195,7 +196,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/replacements', [StaffDashboardController::class, 'storeReplacement'])->name('staff.replacements.store');
     Route::post('/staff/waiting-list/update', [StaffDashboardController::class, 'updateWaitingList'])->name('staff.waiting-list.update');
     Route::post('/staff/grantees/update-grants', [StaffDashboardController::class, 'updateGrants'])->name('staff.grantees.update-grants');
-    
+
     // Announcements routes
     Route::get('/staff/announcements', [StaffDashboardController::class, 'announcements'])->name('staff.announcements.index');
     Route::post('/staff/announcements', [StaffDashboardController::class, 'storeAnnouncement'])->name('staff.announcements.store');

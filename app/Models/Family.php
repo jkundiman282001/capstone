@@ -28,4 +28,4 @@ class Family extends Model
     {
         return $this->belongsTo(\App\Models\Ethno::class, 'ethno_id');
     }
-} 
+}

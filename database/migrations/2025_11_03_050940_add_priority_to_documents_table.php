@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('priority_rank')->nullable()->after('status');
             $table->decimal('priority_score', 10, 2)->default(0)->after('priority_rank');
             $table->timestamp('submitted_at')->nullable()->after('priority_score');
-            
+
             $table->index(['priority_rank', 'status']);
             $table->index(['priority_score', 'status']);
             $table->index('submitted_at');

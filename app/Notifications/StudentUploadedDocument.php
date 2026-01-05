@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -12,7 +11,9 @@ class StudentUploadedDocument extends Notification
     use Queueable;
 
     protected $student;
+
     protected $documentType;
+
     /**
      * Create a new notification instance.
      */
@@ -51,7 +52,7 @@ class StudentUploadedDocument extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'message' => 'Student ' . $this->student->first_name . ' ' . $this->student->last_name . ' uploaded a document: ' . $this->documentType,
+            'message' => 'Student '.$this->student->first_name.' '.$this->student->last_name.' uploaded a document: '.$this->documentType,
             'student_id' => $this->student->id,
             'document_type' => $this->documentType,
         ];

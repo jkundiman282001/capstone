@@ -29,7 +29,7 @@ return new class extends Migration
                 'disqualification_not_ip',
                 'disqualification_exceeded_income',
                 'disqualification_incomplete_docs',
-                'disqualification_remarks'
+                'disqualification_remarks',
             ]);
         });
     }

@@ -10,5 +10,6 @@ class Ethno extends Model
     use HasFactory;
 
     protected $table = 'ethno';
+
     protected $fillable = ['ethnicity'];
-} 
+}

@@ -10,7 +10,9 @@ class Origin extends Model
     use HasFactory;
 
     protected $table = 'origin';
+
     protected $primaryKey = 'id';
+
     public $timestamps = true;
 
     protected $fillable = [
@@ -22,4 +24,4 @@ class Origin extends Model
     {
         return $this->belongsTo(Address::class, 'address_id');
     }
-} 
+}

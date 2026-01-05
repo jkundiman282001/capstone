@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('current_step')->default(1);
             $table->longText('form_data'); // JSON encoded form data
             $table->timestamps();
-            
+
             $table->index('user_id');
             $table->index('created_at');
         });

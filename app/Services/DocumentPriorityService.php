@@ -24,15 +24,16 @@ class DocumentPriorityService
      * Priority Indigenous Groups (secondary priority after FCFS)
      */
     private $priorityEthnoGroups = [
-        "b'laan", 'bagobo', 'kalagan', 'kaulo'
+        "b'laan", 'bagobo', 'kalagan', 'kaulo',
     ];
 
     private function isPriorityEthno(?string $ethnicity): bool
     {
-        if (!$ethnicity) {
+        if (! $ethnicity) {
             return false;
         }
         $norm = strtolower(trim($ethnicity));
+
         return in_array($norm, $this->priorityEthnoGroups, true);
     }
 
@@ -44,9 +45,9 @@ class DocumentPriorityService
     {
         // Use submitted_at if available, otherwise use created_at
         $submittedAt = $document->submitted_at ?? $document->created_at;
-        
+
         // Update submitted_at if it's null
-        if (!$document->submitted_at && $document->created_at) {
+        if (! $document->submitted_at && $document->created_at) {
             $document->submitted_at = $document->created_at;
             $document->save();
         }
@@ -56,19 +57,19 @@ class DocumentPriorityService
         // Formula: Older documents get higher scores
         $now = Carbon::now();
         $hoursSinceSubmission = $now->diffInHours($submittedAt);
-        
+
         // Priority score: Base score + hours since submission
         // Older documents (more hours) = higher score = higher priority
         // Use timestamp difference in seconds for more precision
         $secondsSinceSubmission = $now->diffInSeconds($submittedAt);
-        
+
         // Base score from hours (older = higher)
         // Convert hours to a score (max ~100000 hours = ~11 years)
         $priorityScore = $hoursSinceSubmission * 1000;
-        
+
         // Add seconds for fine-grained ordering (ensures earliest submission wins ties)
         $priorityScore += $secondsSinceSubmission;
-        
+
         // Add document type weight (for future expansion - lower weight = higher priority type)
         // For now, we'll use it as a secondary factor (subtract small amount)
         $typeWeight = $this->documentTypePriorities[$document->type] ?? 10;
@@ -101,7 +102,7 @@ class DocumentPriorityService
 
         // Set submitted_at for documents that don't have it
         foreach ($pendingDocuments as $document) {
-            if (!$document->submitted_at) {
+            if (! $document->submitted_at) {
                 $document->submitted_at = $document->created_at;
                 $document->save();
             }
@@ -115,7 +116,9 @@ class DocumentPriorityService
         // Sort primarily by submission time (ascending = oldest first)
         // Tie-breaker: priority indigenous group first, then created_at
         $sortedDocuments = $pendingDocuments
-            ->filter(function ($doc) { return !is_null($doc->submitted_at); })
+            ->filter(function ($doc) {
+                return ! is_null($doc->submitted_at);
+            })
             ->sort(function ($a, $b) {
                 // Primary: submitted_at asc
                 if ($a->submitted_at != $b->submitted_at) {
@@ -127,6 +130,7 @@ class DocumentPriorityService
                 if ($aPriority !== $bPriority) {
                     return $bPriority <=> $aPriority;
                 }
+
                 // Tertiary: created_at asc
                 return $a->created_at <=> $b->created_at;
             })
@@ -142,18 +146,18 @@ class DocumentPriorityService
 
         return [
             'total_documents' => $sortedDocuments->count(),
-            'documents' => $sortedDocuments->map(function($doc) {
+            'documents' => $sortedDocuments->map(function ($doc) {
                 return [
                     'id' => $doc->id,
                     'type' => $doc->type,
-                    'applicant' => $doc->user->first_name . ' ' . $doc->user->last_name,
+                    'applicant' => $doc->user->first_name.' '.$doc->user->last_name,
                     'priority_rank' => $doc->priority_rank,
                     'priority_score' => $doc->priority_score,
                     'priority_ethno' => optional(optional($doc->user)->ethno)->ethnicity,
                     'submitted_at' => $doc->submitted_at ? $doc->submitted_at->format('Y-m-d H:i:s') : null,
                     'submitted_hours_ago' => $doc->submitted_at ? Carbon::now()->diffInHours($doc->submitted_at) : null,
                 ];
-            })->toArray()
+            })->toArray(),
         ];
     }
 
@@ -217,7 +221,7 @@ class DocumentPriorityService
         $rankedPending = Document::where('status', 'pending')
             ->whereNotNull('priority_rank')
             ->count();
-        
+
         $oldestDocument = Document::where('status', 'pending')
             ->orderBy('submitted_at', 'asc')
             ->orderBy('created_at', 'asc')
@@ -245,4 +249,3 @@ class DocumentPriorityService
         ];
     }
 }
-

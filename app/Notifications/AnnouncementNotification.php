@@ -3,8 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class AnnouncementNotification extends Notification
@@ -40,7 +38,7 @@ class AnnouncementNotification extends Notification
     {
         return [
             'type' => 'announcement',
-            'title' => 'New Admin Announcement: ' . $this->announcement->title,
+            'title' => 'New Admin Announcement: '.$this->announcement->title,
             'message' => $this->announcement->content,
             'announcement_id' => $this->announcement->id,
             'priority' => $this->announcement->priority,

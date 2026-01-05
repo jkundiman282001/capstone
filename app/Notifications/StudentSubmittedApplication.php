@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -12,6 +11,7 @@ class StudentSubmittedApplication extends Notification
     use Queueable;
 
     protected $student;
+
     /**
      * Create a new notification instance.
      */
@@ -49,7 +49,7 @@ class StudentSubmittedApplication extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'message' => 'Student ' . $this->student->first_name . ' ' . $this->student->last_name . ' has submitted their application form.',
+            'message' => 'Student '.$this->student->first_name.' '.$this->student->last_name.' has submitted their application form.',
             'student_id' => $this->student->id,
         ];
     }

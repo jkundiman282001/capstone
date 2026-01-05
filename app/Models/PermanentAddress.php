@@ -10,7 +10,9 @@ class PermanentAddress extends Model
     use HasFactory;
 
     protected $table = 'permanent_address';
+
     protected $primaryKey = 'id';
+
     public $timestamps = true;
 
     protected $fillable = [
@@ -22,4 +24,4 @@ class PermanentAddress extends Model
     {
         return $this->belongsTo(Address::class, 'address_id');
     }
-} 
+}

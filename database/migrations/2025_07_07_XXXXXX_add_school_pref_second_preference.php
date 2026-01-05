@@ -28,4 +28,4 @@ return new class extends Migration
             $table->dropColumn(['address2', 'degree2', 'school_type2', 'num_years2']);
         });
     }
-}; 
+};

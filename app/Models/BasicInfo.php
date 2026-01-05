@@ -11,8 +11,11 @@ class BasicInfo extends Model
     use HasFactory;
 
     protected $table = 'basic_info';
+
     protected $primaryKey = 'id';
+
     public $timestamps = true;
+
     protected $fillable = [
         'user_id',
         'full_address_id',
@@ -98,4 +101,4 @@ class BasicInfo extends Model
     {
         return $this->hasMany(\App\Models\FamSiblings::class, 'basic_info_id');
     }
-} 
+}

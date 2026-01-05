@@ -21,7 +21,7 @@ return new class extends Migration
         } catch (\Exception $e) {
             // Foreign key might not exist, ignore
         }
-        
+
         // Drop family_id foreign key if it exists
         try {
             Schema::table('basic_info', function (Blueprint $table) {

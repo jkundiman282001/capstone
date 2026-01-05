@@ -10,7 +10,9 @@ class FullAddress extends Model
     use HasFactory;
 
     protected $table = 'full_address';
+
     protected $primaryKey = 'id';
+
     public $timestamps = true;
 
     protected $fillable = [
@@ -46,4 +48,4 @@ class FullAddress extends Model
             'address_id' // Local key on mailing_address table
         );
     }
-} 
+}

@@ -27,4 +27,4 @@ class SchoolPref extends Model
         'ques_answer1',
         'ques_answer2',
     ];
-} 
+}

@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Education extends Model
 {
     use HasFactory;
+
     protected $table = 'education';
+
     protected $primaryKey = 'id';
+
     protected $fillable = [
         'basic_info_id',
         'category',
@@ -28,4 +31,4 @@ class Education extends Model
     protected $casts = [
         'grade_ave' => 'decimal:2', // Cast to decimal with 2 decimal places
     ];
-} 
+}

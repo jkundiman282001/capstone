@@ -27,4 +27,4 @@ return new class extends Migration
             $table->unsignedBigInteger('basic_info_id')->nullable();
         });
     }
-}; 
+};
