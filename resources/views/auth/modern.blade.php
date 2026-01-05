@@ -466,7 +466,7 @@
                 <input type="checkbox" name="remember" value="1" class="checkbox-orange">
                 <span class="text-sm font-medium text-slate-700 group-hover:text-orange-600 transition-colors">Remember me</span>
               </label>
-              <a href="#" class="text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors">Forgot password?</a>
+              <a href="{{ route('password.request') }}" class="text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors">Forgot password?</a>
             </div>
 
             <!-- Submit Button -->

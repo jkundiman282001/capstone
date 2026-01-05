@@ -484,7 +484,7 @@
                     <p class="text-sm leading-relaxed">
                         National Commission on Indigenous Peoples<br/>
                         Educational Assistance Program<br/>
-                        <a href="mailto:support@ncip-eap.gov.ph" class="text-orange-400 hover:text-orange-300">support@ncip-eap.gov.ph</a>
+                        <a href="mailto:gahipayubo@gmail.com" class="text-orange-400 hover:text-orange-300">gahipayubo@gmail.com</a>
                     </p>
                 </div>
             </div>

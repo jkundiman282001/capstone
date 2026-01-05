@@ -448,38 +448,27 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="#" class="space-y-4 p-6">
-                        @csrf
-                        <div>
-                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Your Email</label>
-                            <input type="email" name="email"
-                                   value="{{ auth()->user()->email ?? '' }}"
-                                   class="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-                                   readonly required>
-                        </div>
+                    <form method="GET" action="mailto:gahipayubo@gmail.com" class="space-y-4 p-6">
                         <div>
                             <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</label>
-                            <input type="text" name="subject"
-                                   class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-500/10"
-                                   placeholder="What do you need help with?" required>
+                            <input type="text" name="subject" required
+                                   class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                                   placeholder="What do you need help with?">
                         </div>
                         <div>
-                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Message</label>
-                            <textarea name="message" rows="5"
-                                      class="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-                                      placeholder="Describe the issue or question..." required></textarea>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Your Message</label>
+                            <textarea name="body" required rows="4"
+                                      class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                                      placeholder="Describe your issue or question..."></textarea>
                         </div>
                         <button type="submit"
-                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/20">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <path d="M22 2 11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M22 2 15 22l-4-9-9-4L22 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 active:scale-[0.98]">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m22 2-7 20-4-9-9-4Z"/>
+                                <path d="M22 2 11 13"/>
                             </svg>
-                            Send Message
+                            Open Email Client
                         </button>
-                        <p class="text-xs text-slate-500">
-                            For urgent issues: include <strong>URGENT</strong> in the subject.
-                        </p>
                     </form>
                 </section>
 
