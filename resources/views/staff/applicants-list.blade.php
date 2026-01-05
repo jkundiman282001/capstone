@@ -779,6 +779,13 @@
                                     title="{{ $canReplaceFromWaiting ? 'Replace a grantee with this waiting-list applicant' : 'Only validated waiting-list applicants can replace a grantee' }}">
                                 <span>Replace Grantee</span>
                             </button>
+
+                            <button type="button"
+                                    onclick="window.confirmDeleteApplicant({{ $applicant->id }}, '{{ addslashes($fullName) }}')"
+                                    class="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-xl px-4 py-2.5 font-bold text-sm transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <span>Delete Account</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1158,8 +1165,98 @@
     </div>
 </div>
 
+<!-- Delete Applicant Confirmation Modal -->
+<div id="deleteApplicantModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="p-6 text-center">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-2">Delete Applicant Account?</h3>
+            <p class="text-slate-500 text-sm mb-6">
+                Are you sure you want to delete <span id="deleteApplicantName" class="font-bold text-slate-900"></span>? 
+                This action is <span class="text-red-600 font-bold uppercase">permanent</span> and will remove all associated documents, basic information, and history.
+            </p>
+            
+            <div class="flex flex-col gap-3">
+                <button id="confirmDeleteBtn" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2">
+                    <span id="deleteBtnText">Yes, Delete Account</span>
+                    <div id="deleteBtnSpinner" class="hidden animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                </button>
+                <button onclick="window.closeDeleteModal()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    let applicantIdToDelete = null;
+
+    window.confirmDeleteApplicant = function(id, name) {
+        applicantIdToDelete = id;
+        document.getElementById('deleteApplicantName').textContent = name;
+        const modal = document.getElementById('deleteApplicantModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+
+    window.closeDeleteModal = function() {
+        const modal = document.getElementById('deleteApplicantModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        applicantIdToDelete = null;
+    };
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (!applicantIdToDelete) return;
+
+        const btn = this;
+        const text = document.getElementById('deleteBtnText');
+        const spinner = document.getElementById('deleteBtnSpinner');
+
+        // Disable button and show spinner
+        btn.disabled = true;
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+        text.textContent = 'Deleting...';
+        spinner.classList.remove('hidden');
+
+        fetch(`/staff/applications/${applicantIdToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message and reload
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+                // Reset button
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                text.textContent = 'Yes, Delete Account';
+                spinner.classList.add('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again.');
+            // Reset button
+            btn.disabled = false;
+            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+            text.textContent = 'Yes, Delete Account';
+            spinner.classList.add('hidden');
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const provinceFilter = document.getElementById('province-filter');
         const municipalityFilter = document.getElementById('municipality-filter');

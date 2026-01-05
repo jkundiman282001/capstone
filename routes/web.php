@@ -153,6 +153,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
     Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
     Route::post('/staff/applications/{user}/update-status', [StaffDashboardController::class, 'updateApplicationStatus'])->name('staff.applications.update-status');
+    Route::delete('/staff/applications/{user}', [StaffDashboardController::class, 'destroyApplicant'])->name('staff.applications.destroy');
     Route::post('/staff/applications/{user}/move-to-pamana', [StaffDashboardController::class, 'moveToPamana'])->name('staff.applications.move-to-pamana');
     Route::post('/staff/applications/{user}/add-to-grantees', [StaffDashboardController::class, 'addToGrantees'])->name('staff.applications.add-to-grantees');
     Route::post('/staff/applications/{user}/add-to-waiting', [StaffDashboardController::class, 'addToWaiting'])->name('staff.applications.add-to-waiting');

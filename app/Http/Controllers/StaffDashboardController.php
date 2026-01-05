@@ -1458,6 +1458,95 @@ class StaffDashboardController extends Controller
         ]);
     }
 
+    public function destroyApplicant($userId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $user = User::with(['basicInfo.fullAddress', 'documents'])->findOrFail($userId);
+            $basicInfo = $user->basicInfo;
+
+            // 1. Delete associated files from storage
+            // Profile picture
+            if ($user->profile_pic && $user->profile_pic !== 'profile_pics/default.png') {
+                Storage::disk('public')->delete($user->profile_pic);
+            }
+
+            // Documents
+            foreach ($user->documents as $document) {
+                if ($document->filepath) {
+                    Storage::disk('public')->delete($document->filepath);
+                }
+                $document->delete();
+            }
+
+            if ($basicInfo) {
+                // 2. Delete related model records
+                // Education
+                \App\Models\Education::where('basic_info_id', $basicInfo->id)->delete();
+                
+                // Family
+                \App\Models\Family::where('basic_info_id', $basicInfo->id)->delete();
+                
+                // Siblings
+                \App\Models\FamSiblings::where('basic_info_id', $basicInfo->id)->delete();
+
+                // School Preference
+                if ($basicInfo->school_pref_id) {
+                    \App\Models\SchoolPref::where('id', $basicInfo->school_pref_id)->delete();
+                }
+
+                // Full Address and its components (Mailing, Permanent, Origin)
+                if ($basicInfo->full_address_id) {
+                    $fullAddress = \App\Models\FullAddress::find($basicInfo->full_address_id);
+                    if ($fullAddress) {
+                        if ($fullAddress->mailing_address_id) {
+                            \App\Models\MailingAddress::where('id', $fullAddress->mailing_address_id)->delete();
+                        }
+                        if ($fullAddress->permanent_address_id) {
+                            \App\Models\PermanentAddress::where('id', $fullAddress->permanent_address_id)->delete();
+                        }
+                        if ($fullAddress->origin_id) {
+                            \App\Models\Origin::where('id', $fullAddress->origin_id)->delete();
+                        }
+                        $fullAddress->delete();
+                    }
+                }
+
+                // 3. Delete BasicInfo
+                $basicInfo->delete();
+            }
+
+            // 4. Finally delete the user
+            // Delete application drafts
+            \App\Models\ApplicationDraft::where('user_id', $user->id)->delete();
+
+            // Delete replacement records
+            \App\Models\Replacement::where('replacement_user_id', $user->id)
+                ->orWhere('replaced_user_id', $user->id)
+                ->delete();
+
+            // Delete notifications
+            $user->notifications()->delete();
+
+            $user->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Applicant account and all associated data have been deleted successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting applicant: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function extractGrades($userId)
     {
         $user = \App\Models\User::with('documents')->findOrFail($userId);

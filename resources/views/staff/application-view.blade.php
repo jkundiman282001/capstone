@@ -278,6 +278,16 @@
                         </div>
                     @endif
                     
+                    <!-- Danger Zone: Delete Account -->
+                    <div class="mt-4 flex flex-wrap justify-center lg:justify-end gap-3 pt-4 border-t border-slate-100 w-full">
+                        <button type="button"
+                                onclick="window.confirmDeleteApplicant({{ $user->id }}, '{{ addslashes($user->first_name . ' ' . $user->last_name) }}')"
+                                class="px-5 py-2.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete Account
+                        </button>
+                    </div>
+                    
                     <!-- Show rejection reason and disqualification reasons if application is rejected -->
                     @if($basicInfo->application_status === 'rejected')
                         <div class="mt-4 space-y-3">
@@ -1313,8 +1323,93 @@
     </div>
 </div>
 
+<!-- Delete Applicant Confirmation Modal -->
+<div id="deleteApplicantModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+        <div class="p-8 text-center">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Delete Account?</h3>
+            <p class="text-slate-500 mb-6">Are you sure you want to delete the account of <span id="deleteApplicantName" class="font-bold text-slate-900"></span>? This action is permanent and will remove all associated data and documents.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" 
+                        onclick="window.closeDeleteModal()"
+                        class="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all">
+                    Cancel
+                </button>
+                <button type="button" 
+                        id="confirmDeleteBtn"
+                        class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2">
+                    <span id="deleteBtnText">Delete Permanently</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-let currentDocumentUrl = '';
+    // Delete Applicant Functionality
+    let applicantIdToDelete = null;
+
+    window.confirmDeleteApplicant = function(id, name) {
+        applicantIdToDelete = id;
+        document.getElementById('deleteApplicantName').textContent = name;
+        const modal = document.getElementById('deleteApplicantModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeDeleteModal = function() {
+        const modal = document.getElementById('deleteApplicantModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+        applicantIdToDelete = null;
+    };
+
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', function() {
+        if (!applicantIdToDelete) return;
+
+        const btn = this;
+        const btnText = document.getElementById('deleteBtnText');
+        const originalText = btnText.textContent;
+        
+        btn.disabled = true;
+        btnText.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Deleting...`;
+
+        fetch(`/staff/applications/${applicantIdToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.href = '{{ route("staff.dashboard") }}';
+            } else {
+                alert('Error: ' + data.message);
+                btn.disabled = false;
+                btnText.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the account.');
+            btn.disabled = false;
+            btnText.textContent = originalText;
+        });
+    });
+
+    let currentDocumentUrl = '';
 let currentDocumentName = '';
 let currentDocumentType = '';
 
@@ -2026,6 +2121,7 @@ document.addEventListener('keydown', function(e) {
         closeFeedbackModal();
         closeManualGPAModal();
         closeApplicationRejectionModal();
+        window.closeDeleteModal();
     }
 });
 
