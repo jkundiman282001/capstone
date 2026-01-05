@@ -808,7 +808,7 @@
                             </div>
                             <div class="flex-1">
                                 <p class="text-base font-black text-blue-900 mb-2">Need Assistance?</p>
-                                <p class="text-sm text-blue-800 leading-relaxed">Contact support at (02) 888-1234 or email support@ncip.gov.ph</p>
+                                <p class="text-sm text-blue-800 leading-relaxed">Need help? Contact us at <a href="mailto:gahipayubo@gmail.com" class="font-bold underline hover:text-blue-900">gahipayubo@gmail.com</a></p>
                 </div>
                         </div>
                     </div>
