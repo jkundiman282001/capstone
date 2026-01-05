@@ -36,18 +36,24 @@ class StaffDashboardController extends Controller
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno'])
             ->whereHas('basicInfo', function($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -603,18 +609,24 @@ class StaffDashboardController extends Controller
 
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -742,8 +754,10 @@ class StaffDashboardController extends Controller
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
-                        $addrQuery->where('barangay', $assignedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($assignedBarangay) {
+                        $q->whereHas('address', function($aq) use ($assignedBarangay) {
+                            $aq->where('barangay', $assignedBarangay);
+                        });
                     });
                 }
             });
@@ -860,8 +874,10 @@ class StaffDashboardController extends Controller
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
-                        $addrQuery->where('barangay', $assignedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($assignedBarangay) {
+                        $q->whereHas('address', function($aq) use ($assignedBarangay) {
+                            $aq->where('barangay', $assignedBarangay);
+                        });
                     });
                 }
             });
@@ -916,8 +932,10 @@ class StaffDashboardController extends Controller
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
-                        $addrQuery->where('barangay', $assignedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($assignedBarangay) {
+                        $q->whereHas('address', function($aq) use ($assignedBarangay) {
+                            $aq->where('barangay', $assignedBarangay);
+                        });
                     });
                 }
             });
@@ -965,8 +983,10 @@ class StaffDashboardController extends Controller
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
-                        $addrQuery->where('barangay', $assignedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($assignedBarangay) {
+                        $q->whereHas('address', function($aq) use ($assignedBarangay) {
+                            $aq->where('barangay', $assignedBarangay);
+                        });
                     });
                 }
             });
@@ -1046,8 +1066,10 @@ class StaffDashboardController extends Controller
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
-                        $addrQuery->where('barangay', $assignedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($assignedBarangay) {
+                        $q->whereHas('address', function($aq) use ($assignedBarangay) {
+                            $aq->where('barangay', $assignedBarangay);
+                        });
                     });
                 }
             });
@@ -1752,18 +1774,24 @@ class StaffDashboardController extends Controller
                       });
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -1807,18 +1835,24 @@ class StaffDashboardController extends Controller
                       ->where('grant_status', 'grantee'); // Only show grantees
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -1871,18 +1905,24 @@ class StaffDashboardController extends Controller
                       ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'"); // Case-insensitive grantee check
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -2049,18 +2089,24 @@ class StaffDashboardController extends Controller
                       });
 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -2216,18 +2262,24 @@ class StaffDashboardController extends Controller
                       ->where('grant_status', 'waiting'); // Only show waiting list
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -2389,8 +2441,10 @@ class StaffDashboardController extends Controller
                   });
             
             if ($assignedBarangay !== 'All') {
-                $query->whereHas('fullAddress.address', function($addrQuery) use ($assignedBarangay) {
-                    $addrQuery->where('barangay', $assignedBarangay);
+                $query->whereHas('fullAddress', function($q) use ($assignedBarangay) {
+                    $q->whereHas('address', function($aq) use ($assignedBarangay) {
+                        $aq->where('barangay', $assignedBarangay);
+                    });
                 });
             }
         })
@@ -2951,18 +3005,24 @@ class StaffDashboardController extends Controller
                       ->where('grant_status', 'waiting'); // Only show waiting list
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });
@@ -3013,18 +3073,24 @@ class StaffDashboardController extends Controller
                       });
                 
                 if ($selectedProvince) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedProvince) {
-                        $addrQuery->where('province', $selectedProvince);
+                    $query->whereHas('fullAddress', function($q) use ($selectedProvince) {
+                        $q->whereHas('address', function($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
                     });
                 }
                 if ($selectedMunicipality) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedMunicipality) {
-                        $addrQuery->where('municipality', $selectedMunicipality);
+                    $query->whereHas('fullAddress', function($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
                     });
                 }
                 if ($selectedBarangay) {
-                    $query->whereHas('fullAddress.address', function($addrQuery) use ($selectedBarangay) {
-                        $addrQuery->where('barangay', $selectedBarangay);
+                    $query->whereHas('fullAddress', function($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
                     });
                 }
             });

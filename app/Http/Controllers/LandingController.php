@@ -44,8 +44,10 @@ class LandingController extends Controller
         
         // Count geographic coverage (provinces)
         $provincesCovered = \App\Models\BasicInfo::whereNotNull('type_assist')
-            ->whereHas('fullAddress.address', function($query) {
-                $query->where('province', '!=', '');
+            ->whereHas('fullAddress', function($q) {
+                $q->whereHas('address', function($aq) {
+                    $aq->where('province', '!=', '');
+                });
             })
             ->get()
             ->map(function($basicInfo) {

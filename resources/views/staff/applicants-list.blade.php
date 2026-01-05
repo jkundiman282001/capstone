@@ -659,10 +659,10 @@
                     <!-- Card Header with Gradient -->
                     <div class="relative h-24 bg-gradient-to-br from-orange-500 via-amber-500 to-red-500 p-4">
                         <!-- Status Badge -->
-                        @if($applicant->basicInfo && $applicant->basicInfo->type_assist)
+                        @if($applicant->basicInfo?->type_assist)
                             @php
-                                $appStatus = $applicant->basicInfo->application_status ?? 'pending';
-                                $grantStatus = $applicant->basicInfo->grant_status ?? null;
+                                $appStatus = $applicant->basicInfo?->application_status ?? 'pending';
+                                $grantStatus = $applicant->basicInfo?->grant_status ?? null;
                                 $isGrantee = strtolower($grantStatus) === 'grantee';
                                 $isValidated = $appStatus === 'validated';
                                 $isRejected = $appStatus === 'rejected';
@@ -726,7 +726,7 @@
                         <div class="flex flex-wrap gap-1.5 mb-3">
                             <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700">
                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                                {{ Str::limit($applicant->basicInfo->fullAddress->address->municipality ?? 'N/A', 12) }}
+                                {{ Str::limit($applicant->basicInfo?->fullAddress?->address?->municipality ?? 'N/A', 12) }}
                             </span>
                             @if($applicant->ethno)
                                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700">
@@ -759,8 +759,8 @@
 
                         <!-- Action Button -->
                         @php
-                            $appStatus = strtolower(trim((string) ($applicant->basicInfo->application_status ?? 'pending')));
-                            $grantStatus = strtolower(trim((string) ($applicant->basicInfo->grant_status ?? '')));
+                            $appStatus = strtolower(trim((string) ($applicant->basicInfo?->application_status ?? 'pending')));
+                            $grantStatus = strtolower(trim((string) ($applicant->basicInfo?->grant_status ?? '')));
                             $canReplaceFromWaiting = ($appStatus === 'validated' && $grantStatus === 'waiting');
                             $fullName = trim(($applicant->first_name ?? '') . ' ' . ($applicant->middle_name ?? '') . ' ' . ($applicant->last_name ?? ''));
                         @endphp
