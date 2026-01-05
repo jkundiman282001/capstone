@@ -32,7 +32,11 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
     $request->fulfill();
 
     // Check if user has application, if not redirect to apply
-    if (! BasicInfo::where('user_id', $request->user()->id)->exists()) {
+    $hasSubmitted = BasicInfo::where('user_id', $request->user()->id)
+        ->whereNotNull('type_assist')
+        ->exists();
+
+    if (! $hasSubmitted) {
         return redirect()->route('student.apply')->with('success', 'Email verified! Please complete your scholarship application.');
     }
 
@@ -42,7 +46,11 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
 Route::post('/email/verification-notification', function (Request $request) {
     if ($request->user()->hasVerifiedEmail()) {
         // Check application status for redirect
-        if (! BasicInfo::where('user_id', $request->user()->id)->exists()) {
+        $hasSubmitted = BasicInfo::where('user_id', $request->user()->id)
+            ->whereNotNull('type_assist')
+            ->exists();
+
+        if (! $hasSubmitted) {
             return redirect()->route('student.apply');
         }
 
@@ -130,7 +138,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Check if user is new (hasn't submitted application) - show form directly
         $isNewUser = ! $hasSubmitted;
 
-        return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes', 'renewalRequiredTypes', 'hasSubmitted', 'submittedApplication', 'canRenew', 'isNewUser'));
+        // Fetch latest draft for auto-loading
+        $latestDraft = \App\Models\ApplicationDraft::where('user_id', $user->id)
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        return view('student.apply', compact('ethnicities', 'barangays', 'municipalities', 'provinces', 'documents', 'requiredTypes', 'renewalRequiredTypes', 'hasSubmitted', 'submittedApplication', 'canRenew', 'isNewUser', 'latestDraft'));
     })->name('student.apply');
 });
 

@@ -58,7 +58,11 @@ class AuthController extends Controller
             }
 
             // Redirect to apply if not yet applied, otherwise dashboard
-            if (! BasicInfo::where('user_id', $user->id)->exists()) {
+            $hasSubmitted = BasicInfo::where('user_id', $user->id)
+                ->whereNotNull('type_assist')
+                ->exists();
+
+            if (! $hasSubmitted) {
                 return redirect()->route('student.apply');
             }
 

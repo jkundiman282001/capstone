@@ -3874,6 +3874,21 @@
     })();
     @endif
 
+    // Auto-load latest draft if available
+    @if(isset($latestDraft) && $latestDraft)
+    (function() {
+        // Wait for everything to be loaded
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (typeof window.continueDraft === 'function') {
+                    console.log('Auto-loading latest draft:', {{ $latestDraft->id }});
+                    window.continueDraft({{ $latestDraft->id }});
+                }
+            }, 500); // Small delay to ensure all scripts are ready
+        });
+    })();
+    @endif
+
 </script>
 @endpush 
 @endsection
