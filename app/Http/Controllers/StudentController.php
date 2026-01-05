@@ -1122,8 +1122,24 @@ class StudentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile picture updated successfully',
-            'profile_pic_url' => Storage::disk('public')->url($path)
+            'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)])
         ]);
+    }
+
+    /**
+     * Serve the profile picture directly from storage.
+     * This bypasses symlink issues on cloud hosting.
+     */
+    public function showProfilePic($filename)
+    {
+        $path = 'profile-pics/' . $filename;
+        
+        if (!Storage::disk('public')->exists($path)) {
+            // Check if it's the default profile pic or if we should fallback
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($path);
     }
 
     public function updateProfile(Request $request)

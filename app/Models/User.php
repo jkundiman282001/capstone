@@ -72,12 +72,13 @@ class User extends Authenticatable implements MustVerifyEmail
      * Get the profile picture URL.
      */
     public function getProfilePicUrlAttribute()
-    {
-        if ($this->profile_pic) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_pic);
-        }
-        return null;
-    }
+     {
+         if ($this->profile_pic) {
+             // Use the direct route to serve images, bypasses symlink issues on Cloud
+             return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
+         }
+         return null;
+     }
 
 
     /**

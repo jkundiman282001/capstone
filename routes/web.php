@@ -70,6 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/student/support', [StudentController::class, 'support'])->name('student.support');
     Route::post('/student/apply', [StudentController::class, 'apply'])->name('student.apply');
     Route::post('/student/update-profile-pic', [StudentController::class, 'updateProfilePic'])->name('student.update-profile-pic');
+    Route::get('/student/profile-pic/{filename}', [StudentController::class, 'showProfilePic'])->name('profile-pic.show');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
     Route::post('/student/update-gpa', [StudentController::class, 'updateGPA'])->name('student.update-gpa');
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
