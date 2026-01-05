@@ -460,7 +460,7 @@
             </p>
             @if(!$stats['isFull'])
                 <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold">
-                    ⚠️ Limited slots available: Only {{ number_format($stats['availableSlots']) }} slots available!
+                    ⚠️ Hurry! Only {{ number_format($stats['availableSlots']) }} slots remaining!
                 </p>
             @else
                 <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold bg-red-500/30 px-6 py-3 rounded-lg inline-block">
