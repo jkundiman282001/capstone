@@ -49,23 +49,18 @@
                             <span id="notif-badge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-white">{{ $notifications->count() }}</span>
                         @endif
                     </button>
-                    <!-- Dropdown -->
-                    <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-96 bg-white text-gray-800 rounded-2xl shadow-2xl z-[9999] border border-orange-200 overflow-hidden">
-                        <div class="p-5 border-b border-orange-200 bg-gradient-to-r from-orange-600 to-amber-600 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                                <span class="font-bold text-white">Notifications</span>
+                    <!-- Notification Dropdown -->
+                    <div id="notif-dropdown" class="absolute right-0 mt-3 w-96 bg-white rounded-3xl shadow-2xl border border-slate-100 hidden z-[10000] overflow-hidden transform origin-top-right transition-all duration-200">
+                        <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-amber-50">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-black text-slate-800 tracking-tight">Recent Notifications</h3>
+                                @if($notifications && $notifications->count() > 0)
+                                    <button onclick="markAllRead()" class="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-100/50 px-3 py-1.5 rounded-lg">Mark all as read</button>
+                                @endif
                             </div>
-                            @if($notifications->count() > 0)
-                                <span class="text-xs font-bold text-orange-700 bg-white px-3 py-1.5 rounded-full shadow-sm">{{ $notifications->count() }} new</span>
-                            @else
-                                <span class="text-xs font-semibold text-white/70 bg-white/20 px-3 py-1.5 rounded-full">All caught up!</span>
-                            @endif
                         </div>
                         <ul class="max-h-80 overflow-y-auto">
-                            @forelse($notifications as $notif)
+                            @forelse($notifications ?? [] as $notif)
                                 @php
                                     $notifUrl = '#';
                                     if (isset($notif->data['student_id'])) {
@@ -76,41 +71,30 @@
                                 @endphp
                                 <li onclick="window.location.href='{{ $notifUrl }}'" class="px-5 py-4 border-b border-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 cursor-pointer transition-all duration-200 group">
                                     <div class="flex items-start gap-3">
-                                        <div class="w-2 h-2 bg-orange-500 rounded-full mt-1.5 group-hover:animate-pulse"></div>
+                                        <div class="w-2 h-2 bg-orange-500 rounded-full mt-1.5 group-hover:animate-pulse shadow-lg shadow-orange-500/50"></div>
                                         <div class="flex-1">
-                                            <div class="text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">{{ $notif->data['message'] ?? ($notif->data['title'] ?? '') }}</div>
-                                            <div class="flex items-center gap-2 mt-1.5">
-                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <div class="text-xs text-slate-500 font-medium">{{ $notif->created_at->diffForHumans() }}</div>
+                                            <div class="text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">
+                                                {{ $notif->data['message'] ?? ($notif->data['title'] ?? 'Notification') }}
                                             </div>
+                                            <div class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{{ $notif->created_at->diffForHumans() }}</div>
                                         </div>
                                     </div>
                                 </li>
                             @empty
-                                <li class="px-5 py-12 text-center">
-                                    <div class="flex flex-col items-center gap-3">
-                                        <div class="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center">
-                                            <svg class="w-8 h-8 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-slate-600 font-semibold">All caught up!</p>
-                                            <p class="text-xs text-slate-400 mt-1">No new notifications at this time</p>
-                                        </div>
+                                <li class="px-5 py-10 text-center">
+                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                        </svg>
                                     </div>
+                                    <p class="text-slate-600 font-bold">All caught up!</p>
+                                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-widest">No new alerts</p>
                                 </li>
                             @endforelse
                         </ul>
-                        @if($notifications->count() > 0)
-                        <div class="p-3 border-t border-slate-100 bg-gradient-to-r from-orange-50 to-amber-50">
-                            <button onclick="markAllRead()" class="w-full text-center text-sm font-bold text-orange-600 hover:text-orange-700 py-2 rounded-lg hover:bg-white transition-all">
-                                Mark all as read
-                            </button>
-                        </div>
-                        @endif
+                        <div class="p-4 border-t border-slate-100 bg-slate-50">
+                             <a href="{{ route('staff.notifications') }}" class="block text-center text-xs font-black text-slate-500 hover:text-orange-600 uppercase tracking-widest transition-colors">View All Notifications</a>
+                         </div>
                     </div>
                 </div>
                 <!-- End Notification Bell -->
@@ -573,35 +557,6 @@
     function toggleNotifDropdown() {
         const dropdown = document.getElementById('notif-dropdown');
         dropdown.classList.toggle('hidden');
-        
-        // Add smooth animation
-        if (!dropdown.classList.contains('hidden')) {
-            dropdown.style.opacity = '0';
-            dropdown.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                dropdown.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
-                dropdown.style.opacity = '1';
-                dropdown.style.transform = 'translateY(0)';
-            }, 10);
-        }
-        
-        // Hide the notification badge when bell is clicked
-        const badge = document.getElementById('notif-badge');
-        if (badge && !dropdown.classList.contains('hidden')) {
-            badge.style.display = 'none';
-        }
-        
-        // Mark notifications as read in backend
-        if (!dropdown.classList.contains('hidden')) {
-            fetch("{{ route('staff.notifications.markRead') }}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
     }
     
     // Mark all notifications as read

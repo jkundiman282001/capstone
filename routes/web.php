@@ -146,7 +146,10 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
     Route::get('/staff/reports', [StaffDashboardController::class, 'reportsIndex'])->name('staff.reports.index');
     Route::get('/staff/reports/download', [StaffDashboardController::class, 'downloadReport'])->name('staff.reports.download');
-    Route::post('/staff/notifications/mark-read', [App\Http\Controllers\StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
+    Route::get('/staff/notifications', [StaffDashboardController::class, 'notifications'])->name('staff.notifications');
+    Route::post('/staff/notifications/mark-read', [StaffDashboardController::class, 'markNotificationsRead'])->name('staff.notifications.markRead');
+    Route::delete('/staff/notifications/{id}', [StaffDashboardController::class, 'deleteNotification'])->name('staff.notifications.delete');
+    Route::post('/staff/notifications/mark-all-read', [StaffDashboardController::class, 'markAllNotificationsRead'])->name('staff.notifications.markAllRead');
     Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
     Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
     Route::post('/staff/applications/{user}/update-status', [StaffDashboardController::class, 'updateApplicationStatus'])->name('staff.applications.update-status');

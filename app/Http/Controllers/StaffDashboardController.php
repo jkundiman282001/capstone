@@ -436,6 +436,35 @@ class StaffDashboardController extends Controller
     }
 
 
+    public function notifications(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+        if (!$user) return redirect()->route('staff.login');
+
+        $name = $user->name;
+        $assignedBarangay = $user->assigned_barangay ?? 'All';
+
+        // Fetch real notifications from database
+        $notifications = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($notification) {
+                $data = $notification->data;
+                return [
+                    'id' => $notification->id,
+                    'type' => $data['type'] ?? 'general',
+                    'title' => $data['title'] ?? 'Notification',
+                    'message' => $data['message'] ?? '',
+                    'is_read' => $notification->read_at !== null,
+                    'created_at' => $notification->created_at,
+                    'priority' => $data['priority'] ?? 'normal',
+                    'student_id' => $data['student_id'] ?? null,
+                ];
+            });
+
+        return view('staff.notifications', compact('name', 'assignedBarangay', 'notifications'));
+    }
+
     public function markNotificationsRead(Request $request)
     {
         $user = \Auth::guard('staff')->user();
@@ -443,6 +472,28 @@ class StaffDashboardController extends Controller
             $user->unreadNotifications->markAsRead();
         }
         return response()->json(['success' => true]);
+    }
+
+    public function markAllNotificationsRead(Request $request)
+    {
+        $user = \Auth::guard('staff')->user();
+        if ($user) {
+            $user->unreadNotifications->markAsRead();
+        }
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteNotification($id)
+    {
+        $user = \Auth::guard('staff')->user();
+        if ($user) {
+            $notification = $user->notifications()->where('id', $id)->first();
+            if ($notification) {
+                $notification->delete();
+                return response()->json(['success' => true]);
+            }
+        }
+        return response()->json(['success' => false, 'message' => 'Notification not found'], 404);
     }
 
     public function viewApplication($user)

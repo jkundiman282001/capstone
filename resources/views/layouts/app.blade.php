@@ -51,6 +51,20 @@
                                 <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.dashboard') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
                             </div>
                         </a>
+                        <a href="{{ route('staff.notifications') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.notifications') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm tracking-wide">Notifications</span>
+                                    @php
+                                        $unreadCount = auth()->guard('staff')->user()->unreadNotifications->count();
+                                    @endphp
+                                    @if($unreadCount > 0)
+                                        <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->routeIs('staff.notifications') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $unreadCount }}</span>
+                                    @endif
+                                </div>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.notifications') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                            </div>
+                        </a>
                     </div>
                 </section>
 
