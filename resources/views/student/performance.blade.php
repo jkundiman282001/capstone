@@ -127,6 +127,14 @@
             @if(isset($slotsLeft) && $slotsLeft !== null)
               <p class="text-xs text-slate-500">{{ number_format($slotsLeft) }} slots available</p>
             @endif
+            <div class="mt-4 pt-3 border-t border-slate-100">
+              <p class="text-[10px] leading-relaxed text-slate-400 italic">
+                <svg class="w-3 h-3 inline-block mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <strong>Note:</strong> Your priority rank is dynamic and may change as more applications are validated and ranked based on the system's scoring criteria.
+              </p>
+            </div>
           </div>
         @else
           <div class="text-center py-6">
@@ -247,6 +255,14 @@
                   <span class="font-bold text-slate-700">{{ number_format($priorityStatistics['grantees_count']) }}</span>
                 </div>
               @endif
+              <div class="mt-4 pt-3 border-t border-green-200">
+                 <p class="text-[10px] leading-relaxed text-green-700/70 italic">
+                   <svg class="w-3 h-3 inline-block mr-1 text-green-600/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                   </svg>
+                   <strong>Disclaimer:</strong> This percentage is a statistical estimate based on available slots and the current applicant pool. It is for informational purposes only and does not guarantee scholarship approval.
+                 </p>
+               </div>
             </div>
           @endif
           
