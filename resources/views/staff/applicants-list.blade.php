@@ -580,6 +580,13 @@
                 </div>
             </div>
         </div>
+        @if(isset($error))
+            <div class="mb-6">
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                    {{ $error }}
+                </div>
+            </div>
+        @endif
 
         <!-- Filters Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
@@ -1562,17 +1569,27 @@
     }
 
     // Close modal on outside click
-    document.getElementById('granteesReportModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            window.closeGranteesReport();
+    (function() {
+        const gm = document.getElementById('granteesReportModal');
+        if (gm) {
+            gm.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    window.closeGranteesReport();
+                }
+            });
         }
-    });
+    })();
 
-    document.getElementById('pamanaReportModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            window.closePamanaReport();
+    (function() {
+        const pm = document.getElementById('pamanaReportModal');
+        if (pm) {
+            pm.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    window.closePamanaReport();
+                }
+            });
         }
-    });
+    })();
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
