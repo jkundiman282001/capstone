@@ -102,7 +102,7 @@
     }
 
     .form-header {
-        padding: 2rem;
+        padding: 1.5rem;
         border-bottom: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
@@ -110,11 +110,20 @@
     }
 
     .form-body {
-        padding: 2.5rem;
+        padding: 1.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .form-header {
+            padding: 2rem;
+        }
+        .form-body {
+            padding: 2.5rem;
+        }
     }
     
     .form-footer {
-        padding: 1.5rem 2rem;
+        padding: 1.25rem 1.5rem;
         background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
         border-top: 1px solid #f1f5f9;
         border-radius: 0 0 1rem 1rem;
@@ -122,6 +131,74 @@
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .form-footer {
+            padding: 1.5rem 2rem;
+        }
+    }
+
+    @media (max-width: 1023px) {
+        .step-nav {
+            position: relative;
+            top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .steps-wrapper {
+            display: flex;
+            overflow-x: auto;
+            padding: 0.5rem;
+            gap: 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .steps-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .step-item {
+            padding-left: 0;
+            padding-bottom: 0;
+            border-left: none;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 80px;
+        }
+
+        .step-number {
+            position: relative;
+            left: 0;
+            top: 0;
+            width: 1.75rem;
+            height: 1.75rem;
+            font-size: 0.75rem;
+        }
+
+        .step-content {
+            margin-top: 0;
+        }
+
+        .step-desc {
+            display: none;
+        }
+
+        .step-title {
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        .step-item::after {
+            display: none;
+        }
     }
 
     .input-group {
@@ -463,7 +540,7 @@
 
     .guide-overlay.active {
         opacity: 1;
-        pointer-events: auto;
+        pointer-events: none;
     }
 
     .guide-highlight {
@@ -2262,6 +2339,14 @@
             const submitBtn = document.getElementById('submitBtn');
             if (nextBtn) nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
             if (submitBtn) submitBtn.style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+
+            // Auto-advance guide if active
+            if (typeof guideStarted !== 'undefined' && guideStarted) {
+                const matchingStepIndex = guideSteps.findIndex(s => s.waitForStep === currentStep);
+                if (matchingStepIndex !== -1) {
+                    showGuideStep(matchingStepIndex);
+                }
+            }
         }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3555,20 +3640,8 @@
             {
                 target: 'step-6',
                 title: 'Document Requirements',
-                content: 'Upload clear copies of your requirements here. You can simply click on each box to select a file from your device.',
+                content: 'Upload clear copies of your requirements here. Your progress is saved automatically, but you can also use "Save as Draft" at any time.',
                 waitForStep: 6
-            },
-            {
-                target: 'saveDraftBtn',
-                title: 'Auto-Save Enabled',
-                content: 'Your progress is saved automatically as you type! You can also click "Save as Draft" to manually save and exit.',
-                waitForStep: null
-            },
-            {
-                target: 'nextBtn',
-                title: 'Ready to Submit?',
-                content: 'Use the navigation buttons to move between steps. Review your information before submitting!',
-                waitForStep: null
             }
         ];
 
@@ -3700,14 +3773,9 @@
                     ${step.content}
                 </div>
                 <div class="guide-tooltip-footer">
-                    <button class="guide-btn guide-btn-skip" onclick="endFormGuide()">Skip</button>
-                    <div class="flex items-center gap-2">
-                        ${stepIndex > 0 ? '<button class="guide-btn guide-btn-secondary" onclick="window.formGuidePreviousStep()">Back</button>' : ''}
-                        <button class="guide-btn guide-btn-primary" onclick="window.formGuideNextStep()">
-                            ${stepIndex === guideSteps.length - 1 ? 'Finish' : 'Next'}
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
+                    <div class="flex items-center gap-2 w-full justify-end">
+                        <button class="guide-btn guide-btn-primary" onclick="endFormGuide()">
+                            Got it
                         </button>
                     </div>
                 </div>
@@ -3770,16 +3838,6 @@
         }
 
         // Expose functions globally
-        window.formGuideNextStep = function() {
-            showGuideStep(currentGuideStep + 1);
-        };
-
-        window.formGuidePreviousStep = function() {
-            if (currentGuideStep > 0) {
-                showGuideStep(currentGuideStep - 1);
-            }
-        };
-
         window.endFormGuide = endFormGuide;
         window.startFormGuide = startFormGuide;
 

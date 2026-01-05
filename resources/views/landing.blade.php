@@ -82,7 +82,7 @@
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
+    <nav x-data="{ open: false }" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-3">
@@ -93,7 +93,9 @@
                     />
                     <span class="text-xl font-bold text-gray-900">NCIP-EAP</span>
                 </div>
-                <div class="flex items-center space-x-4">
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-4">
                     @auth
                         <a href="{{ route('student.dashboard') }}" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-orange-600 transition">
                             Dashboard
@@ -107,6 +109,41 @@
                         </a>
                     @endauth
                 </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button @click="open = !open" class="text-gray-600 hover:text-orange-600 focus:outline-none p-2 rounded-lg hover:bg-orange-50 transition">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path x-show="open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
+             class="md:hidden bg-white border-t border-gray-100 shadow-xl overflow-hidden">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                @auth
+                    <a href="{{ route('student.dashboard') }}" class="block px-4 py-3 text-base font-semibold text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition">
+                        Dashboard
+                    </a>
+                @else
+                    <a href="{{ url('/auth') }}" class="block px-4 py-3 text-base font-semibold text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition">
+                        Log In
+                    </a>
+                    <a href="{{ url('/auth') }}" class="block px-4 py-3 text-base font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl transition text-center shadow-lg shadow-orange-600/20">
+                        Get Started
+                    </a>
+                @endauth
             </div>
         </div>
     </nav>
@@ -164,10 +201,10 @@
                 </div>
                 
                 <!-- Right Content - Stats -->
-                <div class="grid grid-cols-2 gap-4 slide-in-right">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 slide-in-right">
                     <!-- Slots Left - Prominent -->
-                    <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-2 mb-2 {{ $stats['isFull'] ? 'bg-red-500/20 border-red-500/50' : '' }}" style="animation-delay: 0s">
-                        <div class="text-5xl font-black {{ $stats['isFull'] ? 'text-red-400' : 'text-green-400' }} mb-1">
+                    <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-1 sm:col-span-2 mb-2 {{ $stats['isFull'] ? 'bg-red-500/20 border-red-500/50' : '' }}" style="animation-delay: 0s">
+                        <div class="text-4xl sm:text-5xl font-black {{ $stats['isFull'] ? 'text-red-400' : 'text-green-400' }} mb-1">
                             {{ number_format($stats['slotsLeft']) }}
                         </div>
                         <div class="text-sm text-gray-300 font-medium">Slots Available</div>
@@ -178,16 +215,16 @@
                         @endif
                     </div>
                     <div class="stat-card rounded-2xl p-5 text-center fade-in" style="animation-delay: 0.2s">
-                        <div class="text-4xl font-black text-orange-400 mb-1.5">{{ number_format($stats['applicantsApplied']) }}</div>
+                        <div class="text-3xl sm:text-4xl font-black text-orange-400 mb-1.5">{{ number_format($stats['applicantsApplied']) }}</div>
                         <div class="text-sm text-gray-300 font-medium">Applicants Applied</div>
                     </div>
                     <div class="stat-card rounded-2xl p-5 text-center fade-in" style="animation-delay: 0.4s">
-                        <div class="text-4xl font-black text-amber-400 mb-1.5">{{ number_format($stats['applicantsApproved']) }}</div>
+                        <div class="text-3xl sm:text-4xl font-black text-amber-400 mb-1.5">{{ number_format($stats['applicantsApproved']) }}</div>
                         <div class="text-sm text-gray-300 font-medium">Applicants Approved</div>
                     </div>
                     <!-- Additional Stats Row -->
-                    <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-2 mt-2" style="animation-delay: 0.6s">
-                        <div class="text-3xl font-black text-blue-400 mb-1.5">{{ number_format($stats['applicantsPending']) }}</div>
+                    <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-1 sm:col-span-2 mt-2" style="animation-delay: 0.6s">
+                        <div class="text-2xl sm:text-3xl font-black text-blue-400 mb-1.5">{{ number_format($stats['applicantsPending']) }}</div>
                         <div class="text-sm text-gray-300 font-medium">Pending Review</div>
                     </div>
                 </div>

@@ -427,7 +427,7 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.contact_email || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.batch || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${grantee.no || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${grantee.name || ''}</td>
+                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${grantee.name || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${grantee.age || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
@@ -514,7 +514,7 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.contact_email || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.batch || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${applicant.no || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.name || ''}</td>
+                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${applicant.name || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.age || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>
@@ -845,17 +845,22 @@
             </div>
             <div id="reportContent" class="hidden">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse" style="min-width: 2400px;">
-                            <thead class="bg-gradient-to-r from-emerald-700 to-green-800 sticky top-0 z-10">
-                                <!-- First row with main headers -->
-                                <tr>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
+                        <div class="overflow-x-auto relative">
+                            <!-- Mobile Scroll Hint -->
+                            <div class="lg:hidden flex items-center gap-2 mb-2 px-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest animate-pulse">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                Scroll right to view more info
+                            </div>
+                            <table class="w-full border-collapse" style="min-width: 2400px;">
+                                <thead class="bg-gradient-to-r from-emerald-700 to-green-800 sticky top-0 z-10">
+                                    <!-- First row with main headers -->
+                                    <tr>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
+                                        <th rowspan="2" class="sticky left-0 z-20 bg-emerald-800 border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GENDER</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">NAME OF SCHOOL</th>
@@ -930,17 +935,22 @@
             </div>
             <div id="pamanaReportContent" class="hidden">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse" style="min-width: 2400px;">
-                            <thead class="bg-gradient-to-r from-emerald-700 to-teal-800 sticky top-0 z-10">
-                                <!-- First row with main headers -->
-                                <tr>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
+                        <div class="overflow-x-auto relative">
+                            <!-- Mobile Scroll Hint -->
+                            <div class="lg:hidden flex items-center gap-2 mb-2 px-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest animate-pulse">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                Scroll right to view more info
+                            </div>
+                            <table class="w-full border-collapse" style="min-width: 2400px;">
+                                <thead class="bg-gradient-to-r from-emerald-700 to-teal-800 sticky top-0 z-10">
+                                    <!-- First row with main headers -->
+                                    <tr>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
+                                        <th rowspan="2" class="sticky left-0 z-20 bg-emerald-800 border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
+                                        <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GENDER</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">NAME OF SCHOOL</th>
@@ -1018,16 +1028,21 @@
             </div>
             <div id="waitingReportContent" class="hidden">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <!-- Mobile Scroll Hint -->
+                    <div class="lg:hidden flex items-center gap-2 mb-2 px-4 py-2 bg-purple-50 border-b border-purple-100 text-[10px] font-bold text-purple-600 uppercase tracking-widest animate-pulse">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        Scroll right to view more info
+                    </div>
+                    <div class="overflow-x-auto relative">
                         <table class="w-full border-collapse" style="min-width: 2800px;">
-                            <thead class="bg-gradient-to-r from-purple-700 to-pink-800 sticky top-0 z-10">
+                            <thead class="bg-gradient-to-r from-purple-700 to-pink-800 sticky top-0 z-30">
                                 <!-- First row with main headers -->
                                 <tr>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Province, Municipality, Barangay, AD Reference No.</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Contact Number/Email</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">BATCH</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NO</th>
-                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
+                                    <th rowspan="2" class="sticky left-0 z-20 bg-purple-700 border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">NAME</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">AGE</th>
                                     <th colspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">GENDER</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">IP GROUP</th>
@@ -1669,7 +1684,7 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.contact_email || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.batch || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-medium">${applicant.no || ''}</td>
-                    <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700">${applicant.name || ''}</td>
+                    <td class="sticky left-0 z-10 ${rowClass} border border-slate-300 px-2 py-2 text-xs text-slate-700 font-bold">${applicant.name || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${applicant.age || ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isFemale ? '✓' : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">${isMale ? '✓' : ''}</td>

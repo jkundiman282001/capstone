@@ -14,48 +14,48 @@
         <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
     </div>
     
-    <div class="container mx-auto px-4 py-5 relative z-10">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div class="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
-                <div class="flex items-center space-x-2 bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 shadow-lg">
-                    <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+    <div class="container mx-auto px-4 py-4 md:py-5 relative z-10">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-6">
+                <div class="flex items-center space-x-2 bg-white/15 backdrop-blur-md px-3 py-2 md:px-4 md:py-2 rounded-xl border border-white/20 shadow-lg">
+                    <svg class="w-4 h-4 md:w-5 md:h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                     </svg>
-                    <span class="font-bold text-sm">System Status</span>
+                    <span class="font-bold text-xs md:text-sm whitespace-nowrap">System Status</span>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 text-sm">
-                    <span class="flex items-center space-x-2 bg-emerald-500/20 backdrop-blur-md px-4 py-2 rounded-xl border border-emerald-300/30 shadow-lg">
-                        <div class="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-pulse shadow-lg shadow-emerald-300/50"></div>
+                <div class="flex flex-wrap items-center gap-2 md:gap-3 text-[10px] md:text-sm">
+                    <span class="flex items-center space-x-1.5 md:space-x-2 bg-emerald-500/20 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-emerald-300/30 shadow-lg">
+                        <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-emerald-300 rounded-full animate-pulse shadow-lg shadow-emerald-300/50"></div>
                         <span class="font-semibold">Online</span>
                     </span>
-                    <span class="flex items-center space-x-2 bg-amber-500/20 backdrop-blur-md px-4 py-2 rounded-xl border border-amber-300/30 shadow-lg">
-                        <div class="w-2.5 h-2.5 bg-amber-300 rounded-full shadow-lg shadow-amber-300/50"></div>
+                    <span class="flex items-center space-x-1.5 md:space-x-2 bg-amber-500/20 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-amber-300/30 shadow-lg">
+                        <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-amber-300 rounded-full shadow-lg shadow-amber-300/50"></div>
                         <span class="font-semibold">{{ $newApplicants }} New</span>
                     </span>
-                    <span class="flex items-center space-x-2 bg-rose-500/20 backdrop-blur-md px-4 py-2 rounded-xl border border-rose-300/30 shadow-lg">
-                        <div class="w-2.5 h-2.5 bg-rose-300 rounded-full animate-pulse shadow-lg shadow-rose-300/50"></div>
+                    <span class="flex items-center space-x-1.5 md:space-x-2 bg-rose-500/20 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-rose-300/30 shadow-lg">
+                        <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-rose-300 rounded-full animate-pulse shadow-lg shadow-rose-300/50"></div>
                         <span class="font-semibold">{{ collect($pendingRequirements)->where('is_overdue', true)->count() }} Overdue</span>
                     </span>
                 </div>
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center justify-between lg:justify-end space-x-3">
                 <!-- Notification Bell -->
                 <div class="relative z-[9999]">
-                    <button class="text-white hover:text-white transition-all duration-200 relative p-2.5 rounded-xl hover:bg-white/15 backdrop-blur-sm border border-white/20 shadow-lg" onclick="toggleNotifDropdown()" aria-label="Notifications">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="text-white hover:text-white transition-all duration-200 relative p-2 md:p-2.5 rounded-xl hover:bg-white/15 backdrop-blur-sm border border-white/20 shadow-lg" onclick="toggleNotifDropdown()" aria-label="Notifications">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 15.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v4.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                         @if($notifications->count() > 0)
-                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-white">{{ $notifications->count() }}</span>
+                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center shadow-lg border-2 border-white">{{ $notifications->count() }}</span>
                         @endif
                     </button>
                     <!-- Notification Dropdown -->
-                    <div id="notif-dropdown" class="absolute right-0 mt-3 w-96 bg-white rounded-3xl shadow-2xl border border-slate-100 hidden z-[10000] overflow-hidden transform origin-top-right transition-all duration-200">
-                        <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-amber-50">
+                    <div id="notif-dropdown" class="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-100 hidden z-[10000] overflow-hidden transform origin-top-right transition-all duration-200">
+                        <div class="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-amber-50">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-base font-black text-slate-800 tracking-tight">Recent Notifications</h3>
+                                <h3 class="text-sm md:text-base font-black text-slate-800 tracking-tight">Recent Notifications</h3>
                                 @if($notifications && $notifications->count() > 0)
-                                    <button onclick="markAllRead()" class="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-100/50 px-3 py-1.5 rounded-lg">Mark all as read</button>
+                                    <button onclick="markAllRead()" class="text-[10px] md:text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-100/50 px-2 py-1 md:px-3 md:py-1.5 rounded-lg">Mark all as read</button>
                                 @endif
                             </div>
                         </div>
@@ -69,14 +69,14 @@
                                         $notifUrl = route('staff.announcements.index');
                                     }
                                 @endphp
-                                <li onclick="window.location.href='{{ $notifUrl }}'" class="px-5 py-4 border-b border-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 cursor-pointer transition-all duration-200 group">
+                                <li onclick="window.location.href='{{ $notifUrl }}'" class="px-4 py-3 md:px-5 md:py-4 border-b border-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 cursor-pointer transition-all duration-200 group">
                                     <div class="flex items-start gap-3">
                                         <div class="w-2 h-2 bg-orange-500 rounded-full mt-1.5 group-hover:animate-pulse shadow-lg shadow-orange-500/50"></div>
                                         <div class="flex-1">
-                                            <div class="text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">
+                                            <div class="text-xs md:text-sm text-slate-700 font-semibold leading-relaxed group-hover:text-orange-700 transition-colors">
                                                 {{ $notif->data['message'] ?? ($notif->data['title'] ?? 'Notification') }}
                                             </div>
-                                            <div class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{{ $notif->created_at->diffForHumans() }}</div>
+                                            <div class="text-[9px] md:text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{{ $notif->created_at->diffForHumans() }}</div>
                                         </div>
                                     </div>
                                 </li>
@@ -93,12 +93,12 @@
                             @endforelse
                         </ul>
                         <div class="p-4 border-t border-slate-100 bg-slate-50">
-                             <a href="{{ route('staff.notifications') }}" class="block text-center text-xs font-black text-slate-500 hover:text-orange-600 uppercase tracking-widest transition-colors">View All Notifications</a>
+                             <a href="{{ route('staff.notifications') }}" class="block text-center text-[10px] md:text-xs font-black text-slate-500 hover:text-orange-600 uppercase tracking-widest transition-colors">View All Notifications</a>
                          </div>
                     </div>
                 </div>
                 <!-- End Notification Bell -->
-                <span class="text-xs bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl font-semibold border border-white/20 shadow-lg">{{ now()->format('M d, Y g:i A') }}</span>
+                <span class="text-[10px] md:text-xs bg-white/15 backdrop-blur-md px-3 py-2 md:px-4 md:py-2 rounded-xl font-semibold border border-white/20 shadow-lg">{{ now()->format('M d, Y g:i A') }}</span>
             </div>
         </div>
     </div>
@@ -149,26 +149,26 @@
     </div>
 </div>
 
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
     <!-- Header Section -->
-    <div class="relative bg-gradient-to-r from-orange-700 to-orange-500 rounded-3xl shadow-2xl p-8 mb-8 text-white overflow-hidden">
+    <div class="relative bg-gradient-to-r from-orange-700 to-orange-500 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-8 mb-6 md:mb-8 text-white overflow-hidden">
         <!-- Decorative Pattern -->
         <div class="absolute inset-0 opacity-10">
             <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;%3E%3Cg fill=&quot;%23ffffff&quot; fill-opacity=&quot;1&quot;%3E%3Cpath d=&quot;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z&quot;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'); background-size: 60px 60px;"></div>
         </div>
         
-        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
             <div>
-                <h1 class="text-4xl font-black mb-3 tracking-tight">NCIP Staff Dashboard</h1>
-                <div class="flex items-center gap-3 text-orange-100">
-                    <div class="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <h1 class="text-2xl md:text-4xl font-black mb-2 md:mb-3 tracking-tight">NCIP Staff Dashboard</h1>
+                <div class="flex flex-wrap items-center gap-2 md:gap-3 text-orange-100">
+                    <div class="flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-white/20">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span class="font-bold text-white">{{ $name }}</span>
+                        <span class="font-bold text-xs md:text-sm text-white">{{ $name }}</span>
                     </div>
-                    <div class="bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-                        <span class="font-semibold text-white">{{ $assignedBarangay }}</span>
+                    <div class="bg-white/15 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-white/20">
+                        <span class="font-semibold text-[10px] md:text-xs text-white">{{ $assignedBarangay }}</span>
                     </div>
                 </div>
             </div>
@@ -176,22 +176,22 @@
     </div>
 
     <!-- Geographic Filters -->
-    <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8">
+    <div class="bg-white/70 backdrop-blur-xl rounded-2xl md:rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 mb-6 md:mb-8">
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
             <div>
-                <h3 class="font-black text-slate-900 text-xl">Geographic Filters</h3>
-                <p class="text-sm text-slate-500 font-medium">Filter applicants by location and ethnicity</p>
+                <h3 class="font-black text-slate-900 text-lg md:text-xl">Geographic Filters</h3>
+                <p class="text-[10px] md:text-sm text-slate-500 font-medium">Filter applicants by location and ethnicity</p>
             </div>
         </div>
-        <form id="filter-form" method="GET" action="{{ route('staff.dashboard') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <form id="filter-form" method="GET" action="{{ route('staff.dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">Province</label>
-                <select name="province" id="province-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium hover:bg-white">
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Province</label>
+                <select name="province" id="province-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
                     <option value="">All Provinces</option>
                     @foreach($provinces as $province)
                         <option value="{{ $province }}" {{ $selectedProvince == $province ? 'selected' : '' }}>{{ $province }}</option>
@@ -199,8 +199,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">Municipality</label>
-                <select name="municipality" id="municipality-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium hover:bg-white">
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Municipality</label>
+                <select name="municipality" id="municipality-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
                     <option value="">All Municipalities</option>
                     @foreach($municipalities as $municipality)
                         <option value="{{ $municipality }}" {{ $selectedMunicipality == $municipality ? 'selected' : '' }}>{{ $municipality }}</option>
@@ -208,8 +208,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">Barangay</label>
-                <select name="barangay" id="barangay-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium hover:bg-white">
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Barangay</label>
+                <select name="barangay" id="barangay-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
                     <option value="">All Barangays</option>
                     @foreach($barangays as $barangay)
                         <option value="{{ $barangay }}" {{ $selectedBarangay == $barangay ? 'selected' : '' }}>{{ $barangay }}</option>
@@ -217,8 +217,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">IP Group</label>
-                <select name="ethno" id="ethno-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium hover:bg-white">
+                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">IP Group</label>
+                <select name="ethno" id="ethno-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
                     <option value="">All IP Groups</option>
                     @foreach($ethnicities as $ethno)
                         <option value="{{ $ethno->id }}" {{ $selectedEthno == $ethno->id ? 'selected' : '' }}>{{ $ethno->ethnicity }}</option>

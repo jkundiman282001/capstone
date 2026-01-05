@@ -213,22 +213,22 @@
 <!-- Split Screen Hero Section -->
 <div class="split-hero min-h-screen flex flex-col lg:flex-row">
     <!-- Left Side - Image -->
-    <div class="hero-image-section lg:w-1/2 min-h-screen relative z-0">
-        <div class="absolute inset-0 z-10 flex items-center justify-center p-8">
-            <div class="text-center space-y-6 slide-in-left">
+    <div class="hero-image-section lg:w-1/2 min-h-[50vh] lg:min-h-screen relative z-0">
+        <div class="absolute inset-0 z-10 flex items-center justify-center p-6 lg:p-8">
+            <div class="text-center space-y-4 lg:space-y-6 slide-in-left">
                 <div class="float-animation inline-block">
                     <img 
                         src="{{ asset('images/National_Commission_on_Indigenous_Peoples_(NCIP).png') }}" 
                         alt="NCIP Logo" 
-                        class="h-32 w-32 mx-auto drop-shadow-2xl"
+                        class="h-24 w-24 lg:h-32 lg:w-32 mx-auto drop-shadow-2xl"
                     />
                 </div>
-                <h1 class="text-4xl lg:text-6xl font-black text-white leading-tight">
+                <h1 class="text-3xl lg:text-6xl font-black text-white leading-tight">
                     NCIP<br/>
                     <span>EDUCATIONAL</span><br/>
                     ASSISTANCE PROGRAM
                 </h1>
-                <p class="text-lg text-white/90 max-w-md mx-auto">
+                <p class="text-base lg:text-lg text-white/90 max-w-md mx-auto px-4 lg:px-0">
                     Empowering Indigenous Youth through quality education and scholarship opportunities.
                 </p>
             </div>
@@ -236,60 +236,60 @@
     </div>
 
     <!-- Right Side - Content -->
-    <div class="content-section lg:w-1/2 min-h-screen flex items-center p-8 lg:p-12">
-        <div class="w-full max-w-2xl mx-auto space-y-6 slide-in-right">
+    <div class="content-section lg:w-1/2 min-h-0 py-12 lg:py-0 lg:min-h-screen flex items-center p-6 lg:p-12 bg-white">
+        <div class="w-full max-w-2xl mx-auto space-y-6 lg:space-y-8 slide-in-right">
             <!-- Welcome Section -->
-            <div class="space-y-3 mb-6">
-                <h2 class="text-4xl lg:text-5xl font-black text-slate-900">
+            <div class="space-y-3 lg:space-y-4 mb-6 text-center lg:text-left">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
                     Welcome to<br/>
                     <span class="gradient-text">NCIP-EAP</span>
                 </h2>
-                <p class="text-lg text-slate-600 leading-relaxed">
+                <p class="text-base lg:text-lg text-slate-600 leading-relaxed max-w-xl mx-auto lg:mx-0">
                     Receive personalized recommendations and guidance for your academic journey as an Indigenous Youth. Apply, track, and succeed with the NCIP-EAP.
                 </p>
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <div class="flex flex-col sm:flex-row gap-3 lg:gap-4 mb-8">
                 <button 
                     onclick="window.location.href='{{ url('student/apply') }}'" 
-                    class="btn-modern text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg relative z-10 flex-1"
+                    class="btn-modern text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg relative z-10 flex-1 hover:scale-105 transition-transform"
                 >
                     Apply for Scholarship
                 </button>
                 <button 
                     onclick="document.getElementById('announcements-section')?.scrollIntoView({ behavior: 'smooth' })" 
-                    class="border-2 border-orange-500 text-orange-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-orange-50 transition-all flex-1"
+                    class="border-2 border-orange-500 text-orange-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-orange-50 transition-all flex-1 hover:scale-105 transition-transform"
                 >
                     View Updates
                 </button>
             </div>
 
             <!-- Analytics Section -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Slots Left - Prominent -->
-                <div class="rounded-2xl p-5 text-center fade-in col-span-2 mb-2 {{ $stats['isFull'] ? 'bg-red-500/20 border-2 border-red-500/50' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200' }}" style="animation-delay: 0s">
-                    <div class="text-5xl font-black {{ $stats['isFull'] ? 'text-red-600' : 'text-green-600' }} mb-1">
+                <div class="rounded-2xl p-6 text-center fade-in sm:col-span-2 mb-2 {{ $stats['isFull'] ? 'bg-red-500/10 border-2 border-red-500/30' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200' }}" style="animation-delay: 0s">
+                    <div class="text-5xl lg:text-6xl font-black {{ $stats['isFull'] ? 'text-red-600' : 'text-green-600' }} mb-1">
                         {{ number_format($stats['slotsLeft']) }}
                     </div>
-                    <div class="text-sm text-slate-700 font-medium mb-0.5">Slots Left</div>
-                    <div class="text-xs text-slate-500">of {{ number_format($stats['maxSlots']) }} maximum</div>
+                    <div class="text-sm lg:text-base text-slate-700 font-bold mb-0.5 uppercase tracking-wider">Slots Left</div>
+                    <div class="text-xs text-slate-500">of {{ number_format($stats['maxSlots']) }} maximum capacity</div>
                     @if($stats['isFull'])
-                        <div class="mt-3 px-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl text-white text-sm font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse">
+                        <div class="mt-4 px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl text-white text-sm font-bold shadow-lg flex items-center justify-center gap-2 animate-pulse">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-                            <span>Scholarship Slots Full</span>
+                            <span>Scholarship Slots Currently Full</span>
                         </div>
                     @endif
                 </div>
-                <div class="rounded-2xl p-5 text-center fade-in bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200" style="animation-delay: 0.2s">
-                    <div class="text-4xl font-black text-orange-600 mb-1.5">{{ number_format($stats['applicantsApplied']) }}</div>
-                    <div class="text-sm text-slate-700 font-medium">Applicants Applied</div>
+                <div class="rounded-2xl p-6 text-center fade-in bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 hover:shadow-md transition-shadow" style="animation-delay: 0.2s">
+                    <div class="text-3xl lg:text-4xl font-black text-orange-600 mb-1.5">{{ number_format($stats['applicantsApplied']) }}</div>
+                    <div class="text-sm text-slate-700 font-bold uppercase tracking-wider">Applicants</div>
                 </div>
-                <div class="rounded-2xl p-5 text-center fade-in bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200" style="animation-delay: 0.4s">
-                    <div class="text-4xl font-black text-amber-600 mb-1.5">{{ number_format($stats['applicantsApproved']) }}</div>
-                    <div class="text-sm text-slate-700 font-medium">Applicants Approved</div>
+                <div class="rounded-2xl p-6 text-center fade-in bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200 hover:shadow-md transition-shadow" style="animation-delay: 0.4s">
+                    <div class="text-3xl lg:text-4xl font-black text-amber-600 mb-1.5">{{ number_format($stats['applicantsApproved']) }}</div>
+                    <div class="text-sm text-slate-700 font-bold uppercase tracking-wider">Approved</div>
                 </div>
             </div>
         </div>
@@ -300,64 +300,64 @@
 @if (isset($hasApplied) && ! $hasApplied)
 <div id="performance-lock-overlay" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden animate-fadeIn">
     <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 modal-backdrop animate-fadeIn"></div>
-    <div id="performance-lock-modal" class="relative w-full max-w-2xl modern-card p-10 space-y-8 z-10 transform scale-95 animate-scaleIn shadow-2xl">
-        <button id="performance-lock-close" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition-all duration-300 p-2 rounded-full hover:bg-red-50">
+    <div id="performance-lock-modal" class="relative w-full max-w-2xl modern-card p-6 lg:p-10 space-y-6 lg:space-y-8 z-10 transform scale-95 animate-scaleIn shadow-2xl">
+        <button id="performance-lock-close" class="absolute top-4 right-4 lg:top-6 lg:right-6 text-gray-400 hover:text-red-500 transition-all duration-300 p-2 rounded-full hover:bg-red-50">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
-        <div class="flex items-start gap-6">
+        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-6 text-center lg:text-left">
             <div class="icon-container shadow-xl transform hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 lg:h-10 lg:w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 10-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2zm3-10V9a3 3 0 016 0v2H9z" />
                 </svg>
             </div>
             <div class="flex-1">
-                <p class="text-3xl font-black text-slate-900 mb-2 gradient-text">Performance Dashboard Locked</p>
-                <p class="text-base text-slate-600 leading-relaxed">Submit your NCIP-EAP application to unlock your performance analytics and gain access to comprehensive insights.</p>
+                <p class="text-2xl lg:text-3xl font-black text-slate-900 mb-2 gradient-text">Performance Dashboard Locked</p>
+                <p class="text-sm lg:text-base text-slate-600 leading-relaxed">Submit your NCIP-EAP application to unlock your performance analytics and gain access to comprehensive insights.</p>
             </div>
         </div>
-        <div class="space-y-4 text-base text-slate-700 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl p-6 border-2 border-orange-100 shadow-inner">
-            <p class="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="space-y-4 text-sm lg:text-base text-slate-700 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl p-4 lg:p-6 border-2 border-orange-100 shadow-inner">
+            <p class="font-black text-slate-900 text-base lg:text-lg mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 lg:w-6 lg:h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Once your application is submitted, you'll gain access to:
             </p>
             <ul class="space-y-3">
-                <li class="flex items-start gap-4 p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
-                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li class="flex items-start gap-3 lg:gap-4 p-2 lg:p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
+                    <div class="flex-shrink-0 w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
+                        <svg class="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <span class="font-semibold text-slate-800 pt-1">Real-time performance metrics and scoring insights</span>
+                    <span class="font-semibold text-slate-800 pt-0.5 lg:pt-1">Real-time performance metrics and scoring insights</span>
                 </li>
-                <li class="flex items-start gap-4 p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
-                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li class="flex items-start gap-3 lg:gap-4 p-2 lg:p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
+                    <div class="flex-shrink-0 w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
+                        <svg class="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <span class="font-semibold text-slate-800 pt-1">Document checklist and tracking</span>
+                    <span class="font-semibold text-slate-800 pt-0.5 lg:pt-1">Document checklist and tracking</span>
                 </li>
-                <li class="flex items-start gap-4 p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
-                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li class="flex items-start gap-3 lg:gap-4 p-2 lg:p-3 bg-white/60 rounded-xl hover:bg-white/80 transition-all">
+                    <div class="flex-shrink-0 w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center shadow-md mt-0.5">
+                        <svg class="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <span class="font-semibold text-slate-800 pt-1">Priority status updates</span>
+                    <span class="font-semibold text-slate-800 pt-0.5 lg:pt-1">Priority status updates</span>
                 </li>
             </ul>
         </div>
         <div class="flex flex-col sm:flex-row gap-4">
             <button 
-                onclick="window.location.href='{{ url('student/apply') }}'" 
-                class="flex-1 btn-modern text-white font-bold px-8 py-4 rounded-xl shadow-xl relative z-10 transform hover:scale-105 transition-transform duration-300"
+                onclick="window.location.href='{{ url('student/apply') }}'"
+                class="flex-1 btn-modern text-white font-bold px-6 py-3 lg:px-8 lg:py-4 rounded-xl shadow-xl relative z-10 transform hover:scale-105 transition-transform duration-300"
             >
-                <span class="flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="flex items-center justify-center gap-2 text-sm lg:text-base">
+                    <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Complete Application
@@ -365,7 +365,7 @@
             </button>
             <button 
                 id="performance-lock-later" 
-                class="flex-1 border-2 border-orange-300 text-orange-600 font-bold px-8 py-4 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                class="flex-1 border-2 border-orange-300 text-orange-600 font-bold px-6 py-3 lg:px-8 lg:py-4 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
                 Maybe Later
             </button>

@@ -12,7 +12,84 @@
         border-right: 4px solid #ea580c;
     }
 </style>
-<div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-6 overflow-visible">
+<div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-6 overflow-visible" x-data="{ mobileNavOpen: false }">
+    <!-- Mobile Jump to Section Button -->
+    <div class="lg:hidden fixed bottom-6 right-6 z-50">
+        <button @click="mobileNavOpen = true" class="w-14 h-14 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div x-show="mobileNavOpen" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full"
+         class="fixed inset-0 z-[60] lg:hidden" 
+         style="display: none;">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="mobileNavOpen = false"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-2xl p-6 overflow-y-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-lg font-black text-slate-900 uppercase tracking-wider">Quick Navigation</h3>
+                <button @click="mobileNavOpen = false" class="p-2 text-slate-500 hover:text-slate-900">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="#documents-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    Documents
+                </a>
+                <a href="#personal-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                    Personal Info
+                </a>
+                <a href="#address-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                    </div>
+                    Address
+                </a>
+                <a href="#education-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    Education
+                </a>
+                <a href="#family-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    Family
+                </a>
+                <a href="#siblings-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    Siblings
+                </a>
+                <a href="#school-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-cyan-100 rounded-xl flex items-center justify-center text-cyan-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    School Pref
+                </a>
+                <a href="#essay-section" @click="mobileNavOpen = false" class="flex items-center gap-4 px-5 py-4 rounded-2xl bg-slate-50 text-slate-700 font-bold hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100">
+                    <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    Goals
+                </a>
+            </nav>
+        </div>
+    </div>
     
     <div class="max-w-[1800px] mx-auto overflow-visible">
         <!-- Back Button -->
@@ -24,10 +101,10 @@
         </div>
 
         <!-- Application Header Card -->
-        <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 mb-6">
-            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-slate-200 p-5 sm:p-8 mb-6">
+            <div class="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-6">
                 <!-- Profile Section -->
-                <div class="flex items-center gap-5">
+                <div class="flex flex-col sm:flex-row items-center sm:items-start lg:items-center text-center sm:text-left gap-5">
                     <div class="relative">
                         @if($user->profile_pic)
                             <img src="{{ asset('storage/' . $user->profile_pic) }}" alt="{{ $user->first_name }}" class="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-xl">
@@ -41,9 +118,9 @@
                         </div>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-black text-slate-900 mb-1">{{ $user->first_name }} {{ $user->middle_name }} {{ $user->last_name }}</h1>
+                        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mb-1">{{ $user->first_name }} {{ $user->middle_name }} {{ $user->last_name }}</h1>
                         <p class="text-sm text-slate-500 font-medium mb-3">Application ID: #NCIP-{{ date('Y') }}-{{ str_pad($user->id, 3, '0', pad_type: STR_PAD_LEFT) }}</p>
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap justify-center sm:justify-start gap-2">
                             <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100">
                                 ✅ Active
                             </span>
@@ -60,7 +137,7 @@
                 </div>
 
                 <!-- Status & Action Section -->
-                <div class="flex flex-col items-end gap-4">
+                <div class="flex flex-col items-center lg:items-end gap-4 w-full lg:w-auto">
                     @php
                         $appStatus = $basicInfo->application_status ?? 'pending';
                         $grantStatus = $basicInfo->grant_status ?? null;
@@ -75,7 +152,7 @@
                     @endphp
                     
                     <!-- Status Badge -->
-                    <div class="text-right mb-4">
+                    <div class="text-center lg:text-right mb-4">
                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Application Status</p>
                         <div class="px-6 py-3 rounded-2xl 
                             @if($isRejected) bg-gradient-to-r from-red-500 to-rose-600
@@ -85,7 +162,7 @@
                             @elseif($isValidated) bg-gradient-to-r from-emerald-500 to-green-600
                             @else bg-gradient-to-r from-amber-500 to-orange-600
                             @endif shadow-lg">
-                            <p class="text-2xl font-black text-white">
+                            <p class="text-xl sm:text-2xl font-black text-white">
                                 @if($isRejected) Rejected
                                 @elseif($isGrantee) Grantee
                                 @elseif($isWaiting) Waiting List
@@ -99,7 +176,7 @@
 
                     <!-- Action Buttons -->
                     @if($isRejected)
-                        <div class="flex flex-wrap justify-end gap-3">
+                        <div class="flex flex-wrap justify-center lg:justify-end gap-3">
                             <div class="px-5 py-2.5 bg-red-50 text-red-700 font-bold rounded-xl text-sm text-center border border-red-200 flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 Application Rejected
@@ -114,7 +191,7 @@
                             </button>
                         </div>
                     @elseif($isValidated)
-                        <div class="flex flex-wrap justify-end gap-3">
+                        <div class="flex flex-wrap justify-center lg:justify-end gap-3">
                             <button onclick="updateApplicationStatus('pending')" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 Set to Pending
@@ -347,8 +424,8 @@
                             @endphp
                             
                             @if($status === 'approved')
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl hover:shadow-md transition-all">
-                                    <div class="flex items-center gap-3">
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-0">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto">
                                         <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         </div>
@@ -357,21 +434,21 @@
                                             <p class="text-xs text-emerald-600 font-medium">Approved • {{ $uploaded->created_at->diffForHumans() }}</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
+                                            <button onclick="showManualGPAModal({{ $user->id }})" class="flex-1 sm:flex-none px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GPA
                                             </button>
                                         @endif
-                                        <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
+                                        <button onclick="viewDocument('{{ asset('storage/' . $uploaded->filepath) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="flex-1 sm:flex-none px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
                                             View
                                         </button>
                                     </div>
                                 </div>
                             @elseif($status === 'pending')
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all">
-                                    <div class="flex items-center gap-3">
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-0">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto">
                                         <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         </div>
@@ -380,7 +457,7 @@
                                             <p class="text-xs text-amber-600 font-medium">Pending Review • {{ $uploaded->created_at->diffForHumans() }}</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -393,8 +470,8 @@
                                     </div>
                                 </div>
                             @elseif($status === 'rejected')
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl hover:shadow-md transition-all">
-                                    <div class="flex items-center gap-3 flex-1">
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-0">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto">
                                         <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </div>
@@ -408,7 +485,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGPAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GPA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -423,8 +500,8 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="flex items-center justify-between p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl opacity-60">
-                                    <div class="flex items-center gap-3">
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl opacity-60 gap-4 sm:gap-0">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto">
                                         <div class="w-10 h-10 bg-slate-300 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </div>
@@ -433,7 +510,7 @@
                                             <p class="text-xs text-slate-500 font-medium">Not submitted</p>
                                         </div>
                                     </div>
-                                    <span class="px-3 py-1.5 bg-slate-200 text-slate-600 font-bold rounded-lg text-xs">Missing</span>
+                                    <span class="px-3 py-1.5 bg-slate-200 text-slate-600 font-bold rounded-lg text-xs w-full sm:w-auto text-center">Missing</span>
                                 </div>
                             @endif
                         @endforeach
@@ -448,10 +525,10 @@
                         </div>
                         Personal Information
                     </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</p>
-                            <p class="text-sm font-medium text-slate-900">{{ $user->email }}</p>
+                            <p class="text-sm font-medium text-slate-900 break-all">{{ $user->email }}</p>
                         </div>
                         <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Contact</p>
@@ -530,7 +607,7 @@
                                 @endif
                             </div>
 
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                                 <div class="bg-white rounded-xl p-3 border border-purple-100">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Type</p>
                                     <p class="text-sm font-bold text-slate-900">{{ $edu->school_type ?? 'N/A' }}</p>
@@ -574,7 +651,7 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Name</p>
                                     <p class="text-sm font-bold text-slate-900">{{ $familyFather->name ?? 'N/A' }}</p>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</p>
                                         <p class="text-sm font-medium text-slate-900">{{ $familyFather->status ?? 'N/A' }}</p>
@@ -588,7 +665,7 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Address</p>
                                     <p class="text-xs text-slate-700">{{ $familyFather->address ?? 'N/A' }}</p>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Education</p>
                                         <p class="text-sm font-medium text-slate-900">{{ $familyFather->educational_attainment ?? 'N/A' }}</p>
@@ -631,7 +708,7 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Name</p>
                                     <p class="text-sm font-bold text-slate-900">{{ $familyMother->name ?? 'N/A' }}</p>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</p>
                                         <p class="text-sm font-medium text-slate-900">{{ $familyMother->status ?? 'N/A' }}</p>
@@ -645,7 +722,7 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Address</p>
                                     <p class="text-xs text-slate-700">{{ $familyMother->address ?? 'N/A' }}</p>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Education</p>
                                         <p class="text-sm font-medium text-slate-900">{{ $familyMother->educational_attainment ?? 'N/A' }}</p>
@@ -690,7 +767,7 @@
 
                     @forelse($siblings as $index => $sibling)
                         <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-5 mb-4 border border-orange-100">
-                            <div class="flex items-center justify-between mb-4">
+                            <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 mb-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
                                         <span class="text-white font-black">{{ $index + 1 }}</span>
@@ -701,7 +778,7 @@
                                     </div>
                                 </div>
                                 @if($sibling->present_status)
-                                    <span class="px-3 py-1.5 rounded-lg text-xs font-bold
+                                    <span class="px-3 py-1.5 rounded-lg text-xs font-bold w-full sm:w-auto text-center
                                         @if(str_contains($sibling->present_status, 'Studying')) bg-emerald-100 text-emerald-700 border border-emerald-200
                                         @elseif(str_contains($sibling->present_status, 'Working')) bg-blue-100 text-blue-700 border border-blue-200
                                         @else bg-slate-100 text-slate-700 border border-slate-200
@@ -711,7 +788,7 @@
                                 @endif
                             </div>
 
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                                 <div class="bg-white rounded-xl p-3 border border-orange-100">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Age</p>
                                     <p class="text-sm font-bold text-slate-900">{{ $sibling->age ?? 'N/A' }}</p>
@@ -891,7 +968,7 @@
             </div>
 
             <!-- Quick Navigation Sidebar (3 columns) -->
-            <div class="lg:col-span-3">
+            <div class="lg:col-span-3 hidden lg:block">
                 <div class="sticky top-20 self-start z-[40]">
                     <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
                         <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-4">Quick Navigation</h3>
