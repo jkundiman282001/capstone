@@ -268,17 +268,34 @@ class StudentController extends Controller
         ]);
 
         // 5. Save School Preference
+        $course1 = $request->school1_course1;
+        if ($course1 === 'Other' && $request->has('school1_course1_other')) {
+            $course1 = $request->school1_course1_other;
+        }
+        $course1Alt = $request->school1_course_alt;
+        if ($course1Alt === 'Other' && $request->has('school1_course_alt_other')) {
+            $course1Alt = $request->school1_course_alt_other;
+        }
+        $course2 = $request->school2_course1;
+        if ($course2 === 'Other' && $request->has('school2_course1_other')) {
+            $course2 = $request->school2_course1_other;
+        }
+        $course2Alt = $request->school2_course_alt;
+        if ($course2Alt === 'Other' && $request->has('school2_course_alt_other')) {
+            $course2Alt = $request->school2_course_alt_other;
+        }
+
         $schoolPref = \App\Models\SchoolPref::create([
             'school_name' => $request->school1_name,
             'address' => $request->school1_address,
-            'degree' => $request->school1_course1,
-            'alt_degree' => $request->school1_course_alt,
+            'degree' => $course1,
+            'alt_degree' => $course1Alt,
             'school_type' => $request->school1_type,
             'num_years' => $request->school1_years,
             'school_name2' => $request->school2_name,
             'address2' => $request->school2_address,
-            'degree2' => $request->school2_course1,
-            'alt_degree2' => $request->school2_course_alt,
+            'degree2' => $course2,
+            'alt_degree2' => $course2Alt,
             'school_type2' => $request->school2_type,
             'num_years2' => $request->school2_years,
             'ques_answer1' => $request->contribution,

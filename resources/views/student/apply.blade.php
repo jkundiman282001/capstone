@@ -1484,7 +1484,7 @@
                                     </div>
                                     <div>
                                         <label class="input-label">Course/Degree (Primary)</label>
-                                        <select name="{{ $key }}_course1" class="form-control" required>
+                                        <select name="{{ $key }}_course1" class="form-control" required onchange="toggleOtherCourse(this, '{{ $key }}_course1_other_container')">
                                             <option value="">Select Course</option>
                                             @foreach($courseOptions as $course)
                                                 @php
@@ -1496,16 +1496,22 @@
                                                 <option value="{{ $course }}" {{ $isSelected ? 'selected' : '' }}>{{ $course }}</option>
                                             @endforeach
                                         </select>
-                            </div>
-                            <div>
+                                        <div id="{{ $key }}_course1_other_container" class="mt-2 {{ (old($key.'_course1') == 'Other' || ($userCourse == 'Other' && empty(old($key.'_course1')))) ? '' : 'hidden' }}">
+                                            <input type="text" name="{{ $key }}_course1_other" class="form-control" placeholder="Please specify course" value="{{ old($key.'_course1_other') }}" {{ (old($key.'_course1') == 'Other' || ($userCourse == 'Other' && empty(old($key.'_course1')))) ? 'required' : '' }}>
+                                        </div>
+                                    </div>
+                                    <div>
                                         <label class="input-label">Course/Degree (Alternate)</label>
-                                        <select name="{{ $key }}_course_alt" class="form-control">
+                                        <select name="{{ $key }}_course_alt" class="form-control" onchange="toggleOtherCourse(this, '{{ $key }}_course_alt_other_container')">
                                             <option value="">Select Course</option>
                                             @foreach($courseOptions as $course)
                                                 <option value="{{ $course }}" {{ old($key.'_course_alt') == $course ? 'selected' : '' }}>{{ $course }}</option>
                                             @endforeach
                                         </select>
-                            </div>
+                                        <div id="{{ $key }}_course_alt_other_container" class="mt-2 {{ old($key.'_course_alt') == 'Other' ? '' : 'hidden' }}">
+                                            <input type="text" name="{{ $key }}_course_alt_other" class="form-control" placeholder="Please specify course" value="{{ old($key.'_course_alt_other') }}" {{ old($key.'_course_alt') == 'Other' ? 'required' : '' }}>
+                                        </div>
+                                    </div>
                             <div>
                                         <label class="input-label">Type</label>
                                         <select name="{{ $key }}_type" class="form-control" required>
@@ -2061,6 +2067,19 @@
                 setupFileInputListeners();
             }
         }, 100);
+    };
+
+    window.toggleOtherCourse = function(select, containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            if (select.value === 'Other') {
+                container.classList.remove('hidden');
+                container.querySelector('input').setAttribute('required', 'required');
+            } else {
+                container.classList.add('hidden');
+                container.querySelector('input').removeAttribute('required');
+            }
+        }
     };
 
     window.continueDraft = function(draftId) {
@@ -2932,6 +2951,15 @@
                     field.value = value ?? '';
                 });
             });
+
+            // Trigger course other field toggles
+            ['school1', 'school2'].forEach(key => {
+                const s1 = formEl.querySelector(`select[name="${key}_course1"]`);
+                if (s1) toggleOtherCourse(s1, `${key}_course1_other_container`);
+                const sa = formEl.querySelector(`select[name="${key}_course_alt"]`);
+                if (sa) toggleOtherCourse(sa, `${key}_course_alt_other_container`);
+            });
+
             refreshSiblingState();
         }
 
