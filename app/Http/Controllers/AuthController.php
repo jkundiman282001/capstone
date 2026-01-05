@@ -24,7 +24,7 @@ class AuthController extends Controller
 
     public function showFlipForm()
     {
-        $ethnicities = \App\Models\Ethno::all();
+        $ethnicities = \App\Models\Ethno::orderBy('ethnicity', 'asc')->get();
 
         return view('auth.modern', compact('ethnicities'));
     }
