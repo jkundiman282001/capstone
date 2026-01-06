@@ -1,0 +1,11 @@
+ERROR: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it (Connection: mysql, SQL: select * from `documents` order by `id` desc limit 20)
+#0 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Connection.php(976): Illuminate\Database\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#1 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Connection.php(955): Illuminate\Database\Connection->tryAgainIfCausedByLostConnection(Object(Illuminate\Database\QueryException), 'select * from `...', Array, Object(Closure))
+#2 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Connection.php(778): Illuminate\Database\Connection->handleQueryException(Object(Illuminate\Database\QueryException), 'select * from `...', Array, Object(Closure))
+#3 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Connection.php(395): Illuminate\Database\Connection->run('select * from `...', Array, Object(Closure))
+#4 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php(3131): Illuminate\Database\Connection->select('select * from `...', Array, true)
+#5 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php(3116): Illuminate\Database\Query\Builder->runSelect()
+#6 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php(3706): Illuminate\Database\Query\Builder->Illuminate\Database\Query\{closure}()
+#7 C:\xampp\htdocs\capstone\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php(3115): Illuminate\Database\Query\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\xampp\htdocs\capstone\run_debug.php(14): Illuminate\Database\Query\Builder->get()
+#9 {main}

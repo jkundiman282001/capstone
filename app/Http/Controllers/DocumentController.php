@@ -123,43 +123,103 @@ class DocumentController extends Controller
         return back()->with('success', 'Document uploaded successfully! Please wait for staff review.');
     }
 
-    public function show(Document $document)
+    public function show($id)
     {
+        $document = Document::find($id);
+
+        if (!$document) {
+            \Log::error('Document record not found in database', ['id' => $id]);
+            abort(404, "Document record not found in database for ID: $id");
+        }
+
+        \Log::info('Document viewing attempt', [
+            'id' => $document->id,
+            'filepath' => $document->filepath,
+            'user_id' => $document->user_id,
+            'auth_id' => Auth::id(),
+            'is_staff' => Auth::guard('staff')->check()
+        ]);
+
         // Allow the owner of the document OR any staff member
         if ($document->user_id !== Auth::id() && ! Auth::guard('staff')->check()) {
+            \Log::warning('Unauthorized document access attempt', ['id' => $document->id]);
             abort(403);
         }
 
         $filepath = $document->filepath;
-        $trimmedPath = ltrim($filepath, '/');
+        // Normalize path: replace backslashes with forward slashes
+        $normalizedPath = str_replace('\\', '/', $filepath);
+        
+        // Remove 'public/' or 'storage/' from the beginning if present for search purposes
+        $trimmedPath = preg_replace('/^(public\/|storage\/)/', '', $normalizedPath);
+        $trimmedPath = ltrim($trimmedPath, '/');
+        
+        $path = null;
 
-        // Try Public Disk first
-        if (Storage::disk('public')->exists($filepath)) {
-            $path = Storage::disk('public')->path($filepath);
-        } elseif (Storage::disk('public')->exists($trimmedPath)) {
-            $path = Storage::disk('public')->path($trimmedPath);
-        } elseif (Storage::disk('local')->exists($filepath)) {
-            $path = Storage::disk('local')->path($filepath);
-        } elseif (Storage::disk('local')->exists($trimmedPath)) {
-            $path = Storage::disk('local')->path($trimmedPath);
-        } else {
-            // Final direct check on filesystem
-            $directPath = storage_path('app/public/' . $trimmedPath);
-            if (file_exists($directPath)) {
-                $path = $directPath;
+        // 1. Try the original filepath directly (as absolute or relative to base)
+        if (file_exists($filepath)) {
+            $path = $filepath;
+            \Log::info('Found via direct absolute path', ['path' => $path]);
+        } elseif (file_exists(base_path($filepath))) {
+            $path = base_path($filepath);
+            \Log::info('Found via base_path', ['path' => $path]);
+        }
+
+        // 2. Try relative to storage/app/public
+        if (!$path) {
+            $publicPath = storage_path('app/public/' . $trimmedPath);
+            \Log::info('Checking storage/app/public', ['path' => $publicPath]);
+            if (file_exists($publicPath)) {
+                $path = $publicPath;
+                \Log::info('Found on storage/app/public', ['path' => $path]);
             }
         }
 
-        // Check in storage/app/documents directly
-        $directPath2 = storage_path('app/documents/' . basename($filepath));
-        if (file_exists($directPath2)) {
-            $path = $directPath2;
+        // 3. Try relative to storage/app
+        if (!$path) {
+            $appPath = storage_path('app/' . $trimmedPath);
+            \Log::info('Checking storage/app', ['path' => $appPath]);
+            if (file_exists($appPath)) {
+                $path = $appPath;
+                \Log::info('Found on storage/app', ['path' => $path]);
+            }
         }
 
-        if (isset($path)) {
+        // 4. Try relative to public/storage
+        if (!$path) {
+            $webPath = public_path('storage/' . $trimmedPath);
+            \Log::info('Checking public/storage', ['path' => $webPath]);
+            if (file_exists($webPath)) {
+                $path = $webPath;
+                \Log::info('Found on public/storage', ['path' => $path]);
+            }
+        }
+
+        // 5. Try just the basename in common folders
+        if (!$path) {
+            $baseName = basename($filepath);
+            $searchPaths = [
+                storage_path('app/public/documents/' . $baseName),
+                storage_path('app/documents/' . $baseName),
+                public_path('storage/documents/' . $baseName),
+            ];
+
+            foreach ($searchPaths as $searchPath) {
+                \Log::info('Checking fallback path', ['path' => $searchPath]);
+                if (file_exists($searchPath)) {
+                    $path = $searchPath;
+                    \Log::info('Found on fallback search path', ['path' => $path]);
+                    break;
+                }
+            }
+        }
+
+        if ($path) {
             $mimeType = mime_content_type($path);
             $fileName = $document->filename;
             
+            \Log::info('Serving document', ['path' => $path, 'mime' => $mimeType]);
+
             // Force correct headers for viewing
             return response()->file($path, [
                 'Content-Type' => $mimeType,
@@ -170,7 +230,8 @@ class DocumentController extends Controller
             ]);
         }
 
-        abort(404, 'File not found on server. Path: ' . $filepath . ' (checked public and local disks)');
+        \Log::error('Document not found', ['filepath' => $filepath]);
+        abort(404, 'DEBUG: File not found on server. Database path: ' . $filepath . ' - Checked in storage/app/public/' . $trimmedPath);
     }
 
     public function destroy(Request $request, Document $document)
