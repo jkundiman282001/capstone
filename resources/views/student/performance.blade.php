@@ -42,11 +42,12 @@
     $trackerStatus = strtolower($basicInfo->application_status ?? 'submitted');
     $trackerSteps = [
         'submitted' => ['label' => 'Submitted', 'color' => 'bg-emerald-500'],
-        'review' => ['label' => 'Review', 'color' => 'bg-emerald-500'],
+        'review' => ['label' => 'Review', 'color' => 'bg-orange-500'],
         'validation' => ['label' => 'Validation', 'color' => 'bg-orange-500'],
         'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600']
     ];
     $currentStepIndex = 0;
+    if (in_array($trackerStatus, ['submitted', 'pending'])) $currentStepIndex = 1;
     if ($trackerStatus === 'validated') $currentStepIndex = 2;
     if ($isGrantee) $currentStepIndex = 3;
 
