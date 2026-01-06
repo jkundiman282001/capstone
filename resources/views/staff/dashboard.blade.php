@@ -269,21 +269,42 @@
         </div>
     </div>
 
-    <!-- Application Trends -->
-    <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8 hover:shadow-2xl transition-shadow duration-300">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
+    <!-- Gender & Application Trends -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Gender Distribution -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Gender Distribution</h2>
+                    <p class="text-xs text-slate-500 font-medium">Applicants by gender</p>
+                </div>
             </div>
-            <div>
-                <h2 class="font-black text-slate-900 text-lg">Application Trends</h2>
-                <p class="text-xs text-slate-500 font-medium">New applications over the last 6 months</p>
+            <div class="h-80">
+                <canvas id="genderChart"></canvas>
             </div>
         </div>
-        <div class="h-80">
-            <canvas id="trendsChart"></canvas>
+
+        <!-- Application Trends -->
+        <div class="lg:col-span-2 bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Application Trends</h2>
+                    <p class="text-xs text-slate-500 font-medium">New applications over the last 6 months</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="trendsChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -506,6 +527,35 @@
                     grid: {
                         display: false
                     }
+                }
+            }
+        }
+    });
+
+    // Gender Distribution Chart
+    new Chart(document.getElementById('genderChart'), {
+        type: 'doughnut',
+        data: {!! json_encode($genderChartData) !!},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8
                 }
             }
         }

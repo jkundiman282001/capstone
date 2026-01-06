@@ -373,6 +373,27 @@ class StaffDashboardController extends Controller
             ]],
         ];
 
+        // Gender Distribution Chart Data
+        $genderDistribution = $users->filter(function ($user) {
+            return $user->basicInfo && $user->basicInfo->gender;
+        })->groupBy(function ($user) {
+            return ucfirst(strtolower($user->basicInfo->gender));
+        })->map->count();
+
+        $genderChartData = [
+            'labels' => $genderDistribution->keys()->toArray(),
+            'datasets' => [[
+                'data' => $genderDistribution->values()->toArray(),
+                'backgroundColor' => [
+                    'rgba(59, 130, 246, 0.8)', // Blue for Male
+                    'rgba(236, 72, 153, 0.8)', // Pink for Female
+                    'rgba(156, 163, 175, 0.8)', // Gray for Others/Not Specified
+                ],
+                'borderColor' => ['#ffffff', '#ffffff', '#ffffff'],
+                'borderWidth' => 2,
+            ]],
+        ];
+
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars',
@@ -383,7 +404,7 @@ class StaffDashboardController extends Controller
             'overallCoursePrioritization', 'courseStatistics',
             'prioritizedApplicants', 'applicantPriorityStatistics',
             'barChartLabel', 'barChartDescription',
-            'courseChartData', 'documentChartData', 'provinceChartData', 'trendsChartData'
+            'courseChartData', 'documentChartData', 'provinceChartData', 'trendsChartData', 'genderChartData'
         ));
     }
 
