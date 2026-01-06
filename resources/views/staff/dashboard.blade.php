@@ -15,29 +15,7 @@
     </div>
     
     <div class="container mx-auto px-4 py-4 md:py-5 relative z-10">
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-6">
-                <div class="flex items-center space-x-2 bg-white/15 backdrop-blur-md px-3 py-2 md:px-4 md:py-2 rounded-xl border border-white/20 shadow-lg">
-                    <svg class="w-4 h-4 md:w-5 md:h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="font-bold text-xs md:text-sm whitespace-nowrap">System Status</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 md:gap-3 text-[10px] md:text-sm">
-                    <span class="flex items-center space-x-1.5 md:space-x-2 bg-emerald-500/20 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-emerald-300/30 shadow-lg">
-                        <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-emerald-300 rounded-full animate-pulse shadow-lg shadow-emerald-300/50"></div>
-                        <span class="font-semibold">Online</span>
-                    </span>
-                    <span class="flex items-center space-x-1.5 md:space-x-2 bg-amber-500/20 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-amber-300/30 shadow-lg">
-                        <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-amber-300 rounded-full shadow-lg shadow-amber-300/50"></div>
-                        <span class="font-semibold">{{ $newApplicants }} New</span>
-                    </span>
-                    <span class="flex items-center space-x-1.5 md:space-x-2 bg-rose-500/20 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-rose-300/30 shadow-lg">
-                        <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-rose-300 rounded-full animate-pulse shadow-lg shadow-rose-300/50"></div>
-                        <span class="font-semibold">{{ collect($pendingRequirements)->where('is_overdue', true)->count() }} Overdue</span>
-                    </span>
-                </div>
-            </div>
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-end gap-4">
             <div class="flex items-center justify-between lg:justify-end space-x-3">
                 <!-- Notification Bell -->
                 <div class="relative z-[9999]">

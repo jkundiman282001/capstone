@@ -111,6 +111,7 @@ class DocumentController extends Controller
         /** @var \App\Models\User $student */
         $student = $user;
         $documentType = $request->type;
+        /** @var \App\Models\Staff $staff */
         foreach (Staff::all() as $staff) {
             $staff->notify(new StudentUploadedDocument($student, $documentType));
         }
