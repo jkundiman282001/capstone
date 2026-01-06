@@ -394,6 +394,30 @@ class StaffDashboardController extends Controller
             ]],
         ];
 
+        // Graduation Year Distribution Chart Data
+        $basicInfoIds = $users->pluck('basicInfo.id')->filter()->toArray();
+        $gradYearDistribution = Education::whereIn('basic_info_id', $basicInfoIds)
+            ->whereNotNull('year_grad')
+            ->where('year_grad', '>', 0)
+            ->selectRaw('MAX(year_grad) as latest_year, basic_info_id')
+            ->groupBy('basic_info_id')
+            ->get()
+            ->groupBy('latest_year')
+            ->map->count()
+            ->sortKeys();
+
+        $gradYearChartData = [
+            'labels' => $gradYearDistribution->keys()->toArray(),
+            'datasets' => [[
+                'label' => 'Applicants',
+                'backgroundColor' => 'rgba(139, 92, 246, 0.8)', // Purple
+                'borderColor' => 'rgba(139, 92, 246, 1)',
+                'borderWidth' => 2,
+                'borderRadius' => 6,
+                'data' => $gradYearDistribution->values()->toArray(),
+            ]],
+        ];
+
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars',
@@ -404,7 +428,8 @@ class StaffDashboardController extends Controller
             'overallCoursePrioritization', 'courseStatistics',
             'prioritizedApplicants', 'applicantPriorityStatistics',
             'barChartLabel', 'barChartDescription',
-            'courseChartData', 'documentChartData', 'provinceChartData', 'trendsChartData', 'genderChartData'
+            'courseChartData', 'documentChartData', 'provinceChartData', 'trendsChartData', 'genderChartData',
+            'gradYearChartData'
         ));
     }
 

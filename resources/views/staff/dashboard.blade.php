@@ -269,6 +269,25 @@
         </div>
     </div>
 
+    <!-- Graduation Year Analytics -->
+    <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8 hover:shadow-2xl transition-shadow duration-300">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                </svg>
+            </div>
+            <div>
+                <h2 class="font-black text-slate-900 text-xl">Graduation Year Distribution</h2>
+                <p class="text-sm text-slate-500 font-medium">Applicants by their latest year of graduation</p>
+            </div>
+        </div>
+        <div class="h-80">
+            <canvas id="gradYearChart"></canvas>
+        </div>
+    </div>
+
     <!-- Gender & Application Trends -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- Gender Distribution -->
@@ -526,6 +545,53 @@
                     },
                     grid: {
                         display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Graduation Year Chart
+    new Chart(document.getElementById('gradYearChart'), {
+        type: 'bar',
+        data: {!! json_encode($gradYearChartData) !!},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Applicants',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Graduation Year',
+                        font: {
+                            weight: 'bold'
+                        }
                     }
                 }
             }
