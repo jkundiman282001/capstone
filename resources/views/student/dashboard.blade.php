@@ -239,7 +239,7 @@
     <div class="content-section lg:w-1/2 min-h-0 py-12 lg:py-0 lg:min-h-screen flex items-center p-6 lg:p-12 bg-white">
         <div class="w-full max-w-2xl mx-auto space-y-6 lg:space-y-8 slide-in-right">
             <!-- Welcome Section -->
-            <div class="space-y-3 lg:space-y-4 mb-6 text-center lg:text-left">
+            <div class="space-y-5 lg:space-y-4 mb-6 text-center lg:text-left">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
                     Welcome to<br/>
                     <span class="gradient-text">NCIP-EAP</span>
