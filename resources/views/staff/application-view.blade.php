@@ -185,18 +185,18 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 Application Rejected
                             </div>
-                            <button onclick="updateApplicationStatus('pending')" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                            <button onclick="updateApplicationStatus('pending', event)" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 Set to Pending
                             </button>
-                            <button onclick="updateApplicationStatus('validated')" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                            <button onclick="updateApplicationStatus('validated', event)" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 Approve Application
                             </button>
                         </div>
                     @elseif($isValidated)
                         <div class="flex flex-wrap justify-center lg:justify-end gap-3">
-                            <button onclick="updateApplicationStatus('pending')" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                            <button onclick="updateApplicationStatus('pending', event)" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 Set to Pending
                             </button>
@@ -208,7 +208,7 @@
 
                             @if($basicInfo->type_assist !== 'Pamana')
                                 @if($basicInfo->grant_status !== 'grantee')
-                                    <button onclick="addToGrantees()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <button onclick="addToGrantees(event)" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -222,7 +222,7 @@
                                 @endif
 
                                 @if($basicInfo->grant_status !== 'waiting')
-                                    <button onclick="addToWaiting()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <button onclick="addToWaiting(event)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -235,7 +235,7 @@
                                     </div>
                                 @endif
 
-                                <button onclick="moveToPamana()" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                <button onclick="moveToPamana(event)" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                     </svg>
@@ -267,7 +267,7 @@
                                     Slots Full
                                 </div>
                             @else
-                                <button onclick="updateApplicationStatus('validated')" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                <button onclick="updateApplicationStatus('validated', event)" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     Approve Application
                                 </button>
@@ -1319,6 +1319,27 @@
     </div>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div id="customConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-95 duration-200 border border-slate-800" id="confirmModalContent">
+        <div class="p-8">
+            <div class="mb-6">
+                <h3 id="confirmTitle" class="text-2xl font-black text-white mb-2">Confirm Action</h3>
+                <p id="confirmMessage" class="text-slate-400 font-medium"></p>
+            </div>
+            
+            <div class="flex items-center justify-end gap-3 mt-8">
+                <button id="confirmCancelBtn" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all text-sm border border-slate-700">
+                    Cancel
+                </button>
+                <button id="confirmOkBtn" class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.4)] transition-all flex items-center gap-2 text-sm border border-blue-500">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentDocumentUrl = '';
 let currentDocumentName = '';
@@ -1423,8 +1444,49 @@ function closeDocumentModal() {
     document.body.style.overflow = 'auto';
 }
 
-function updateDocumentStatus(documentId, newStatus) {
-    if (!confirm(`Are you sure you want to ${newStatus} this document?`)) return;
+function showCustomConfirm({ title, message, okText = 'OK', cancelText = 'Cancel' }) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('customConfirmModal');
+        const content = document.getElementById('confirmModalContent');
+        const titleEl = document.getElementById('confirmTitle');
+        const messageEl = document.getElementById('confirmMessage');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        okBtn.textContent = okText;
+        cancelBtn.textContent = cancelText;
+
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+        document.body.style.overflow = 'hidden';
+
+        const closeModal = (result) => {
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                resolve(result);
+            }, 200);
+        };
+
+        okBtn.onclick = () => closeModal(true);
+        cancelBtn.onclick = () => closeModal(false);
+        modal.onclick = (e) => { if (e.target === modal) closeModal(false); };
+    });
+}
+
+async function updateDocumentStatus(documentId, newStatus) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: `Are you sure you want to ${newStatus === 'approved' ? 'approved' : newStatus} this document?`,
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
 
     fetch(`/staff/documents/${documentId}/update-status`, {
         method: 'POST',
@@ -1489,8 +1551,16 @@ function printDocument() {
     }
 }
 
-function recalculateDocumentPriorities() {
-    if (!confirm('Recalculate document priorities for all pending documents?')) return;
+async function recalculateDocumentPriorities(event) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: 'Recalculate document priorities for all pending documents?',
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
 
     const button = event.target;
     const originalText = button.innerHTML;
@@ -1524,10 +1594,18 @@ function recalculateDocumentPriorities() {
     });
 }
 
-function updateApplicationStatus(status) {
-    if (!confirm(`Are you sure you want to ${status === 'validated' ? 'approve' : 'set to pending'} this application?`)) return;
+async function updateApplicationStatus(status, event) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: `Are you sure you want to ${status === 'validated' ? 'approve' : 'set to pending'} this application?`,
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
 
-    const button = event.target;
+    if (!confirmed) return;
+
+    const button = event.target.closest('button');
     const originalText = button.innerHTML;
     button.innerHTML = '<svg class="w-4 h-4 animate-spin inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
     button.disabled = true;
@@ -1560,8 +1638,16 @@ function updateApplicationStatus(status) {
     });
 }
 
-function moveToPamana() {
-    if (!confirm('Are you sure you want to move this application to Pamana? This will change the scholarship type from Regular to Pamana.')) return;
+async function moveToPamana(event) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: 'Are you sure you want to move this application to Pamana? This will change the scholarship type from Regular to Pamana.',
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
 
     const button = event.target.closest('button');
     const originalText = button.innerHTML;
@@ -1595,8 +1681,16 @@ function moveToPamana() {
     });
 }
 
-function addToGrantees() {
-    if (!confirm('Are you sure you want to add this applicant to Grantees? This will mark them as an active grantee.')) return;
+async function addToGrantees(event) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: 'Are you sure you want to add this applicant to Grantees? This will mark them as an active grantee.',
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
 
     const button = event.target.closest('button');
     const originalText = button.innerHTML;
@@ -1630,8 +1724,16 @@ function addToGrantees() {
     });
 }
 
-function addToWaiting() {
-    if (!confirm('Are you sure you want to add this applicant to Waiting List? This will mark them as waiting for grant processing.')) return;
+async function addToWaiting(event) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: 'Are you sure you want to add this applicant to Waiting List? This will mark them as waiting for grant processing.',
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
 
     const button = event.target.closest('button');
     const originalText = button.innerHTML;
@@ -1678,7 +1780,17 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Feedback Modal Functions
-function showFeedbackModal(documentId, documentName) {
+async function showFeedbackModal(documentId, documentName) {
+    const domain = window.location.hostname;
+    const confirmed = await showCustomConfirm({
+        title: `${domain} says`,
+        message: `Are you sure you want to reject this document?`,
+        okText: 'OK',
+        cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
+
     const modal = document.getElementById('feedbackModal');
     const documentIdInput = document.getElementById('feedbackDocumentId');
     const documentNameText = document.getElementById('feedbackDocumentName');
