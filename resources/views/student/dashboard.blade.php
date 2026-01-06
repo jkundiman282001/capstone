@@ -214,7 +214,7 @@
 <div class="split-hero min-h-screen flex flex-col lg:flex-row">
     <!-- Left Side - Image -->
     <div class="hero-image-section lg:w-1/2 min-h-[50vh] lg:min-h-screen relative z-0">
-        <div class="absolute inset-0 z-10 flex items-center justify-center p-6 lg:p-8">
+        <div class="absolute inset-0 z-10 flex items-center justify-center p-6 lg:p-8 pt-32">
             <div class="text-center space-y-4 lg:space-y-6 slide-in-left">
                 <div class="float-animation inline-block">
                     <img 
@@ -236,8 +236,8 @@
     </div>
 
     <!-- Right Side - Content -->
-    <div class="content-section lg:w-1/2 min-h-0 py-12 lg:py-0 lg:min-h-screen flex items-center p-6 lg:p-12 bg-white">
-        <div class="w-full max-w-2xl mx-auto space-y-6 lg:space-y-8 slide-in-right">
+    <div class="content-section lg:w-1/2 min-h-0 pt-40 pb-12 lg:pt-32 lg:pb-0 lg:min-h-screen flex items-center p-6 lg:p-12 bg-white">
+        <div class="w-full max-w-2xl mx-auto space-y-6 lg:space-y-8 slide-in-right mt-16 lg:mt-0">
             <!-- Welcome Section -->
             <div class="space-y-5 lg:space-y-4 mb-6 text-center lg:text-left">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight">

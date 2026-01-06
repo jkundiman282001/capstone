@@ -13,8 +13,7 @@ class SettingsController extends Controller
         $maxSlots = Setting::get('max_slots', 120);
 
         // Get all student users for the deletion management
-        $applicants = User::where('role', 'student')
-            ->orderBy('last_name')
+        $applicants = User::orderBy('last_name')
             ->get();
 
         return view('staff.settings', compact('maxSlots', 'applicants'));
