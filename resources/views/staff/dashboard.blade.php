@@ -76,7 +76,7 @@
                     </div>
                 </div>
                 <!-- End Notification Bell -->
-                <span class="text-[10px] md:text-xs bg-white/15 backdrop-blur-md px-3 py-2 md:px-4 md:py-2 rounded-xl font-semibold border border-white/20 shadow-lg">{{ now()->format('M d, Y g:i A') }}</span>
+                <span id="real-time-clock" class="text-[10px] md:text-xs bg-white/15 backdrop-blur-md px-3 py-2 md:px-4 md:py-2 rounded-xl font-semibold border border-white/20 shadow-lg">{{ now()->format('M d, Y g:i A') }}</span>
             </div>
         </div>
     </div>
@@ -530,6 +530,44 @@
             quickAlerts.classList.add('hidden');
         }
     }, 10000);
+
+    // Real-time clock function
+    function updateClock() {
+        const now = new Date();
+        const options = { 
+            month: 'short', 
+            day: '2-digit', 
+            year: 'numeric', 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: true 
+        };
+        
+        // Use Intl.DateTimeFormat for consistent formatting
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        
+        const parts = formatter.formatToParts(now);
+        const map = new Map(parts.map(p => [p.type, p.value]));
+        
+        // Format: MMM DD, YYYY G:II:SS AM/PM
+        const formatted = `${map.get('month')} ${map.get('day')}, ${map.get('year')} ${map.get('hour')}:${map.get('minute')}:${map.get('second')} ${map.get('dayPeriod')}`;
+        
+        document.getElementById('real-time-clock').textContent = formatted;
+    }
+
+    // Update clock every second
+    setInterval(updateClock, 1000);
+    // Initial call to prevent 1s delay
+    updateClock();
 
     // Notification dropdown toggle
     function toggleNotifDropdown() {
