@@ -47,6 +47,8 @@ class ApplicationStatusUpdated extends Notification
             if ($this->rejectionReason) {
                 $message .= ' Reason: '.$this->rejectionReason;
             }
+        } elseif ($this->status === 'returned') {
+            $message = 'Your scholarship application has been returned by the admin due to document issues. Please review your documents and re-submit if necessary.';
         } else {
             $message = 'Your scholarship application status has been updated to pending.';
         }
@@ -57,7 +59,7 @@ class ApplicationStatusUpdated extends Notification
             'message' => $message,
             'status' => $this->status,
             'rejection_reason' => $this->rejectionReason,
-            'priority' => $this->status === 'rejected' ? 'urgent' : ($this->status === 'validated' ? 'high' : 'normal'),
+            'priority' => in_array($this->status, ['rejected', 'returned']) ? 'urgent' : ($this->status === 'validated' ? 'high' : 'normal'),
         ];
     }
 }

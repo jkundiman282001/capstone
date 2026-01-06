@@ -40,14 +40,26 @@
 
     // Tracker configuration - move up so it can be used in the scholar bar
     $trackerStatus = strtolower($basicInfo->application_status ?? 'submitted');
+    
+    // Determine the label and color for the review step
+    $reviewLabel = 'Review';
+    $reviewColor = 'bg-orange-500';
+    if ($trackerStatus === 'rejected') {
+        $reviewLabel = 'Rejected';
+        $reviewColor = 'bg-red-500';
+    } elseif ($trackerStatus === 'returned') {
+        $reviewLabel = 'Returned';
+        $reviewColor = 'bg-indigo-500';
+    }
+
     $trackerSteps = [
         'submitted' => ['label' => 'Submitted', 'color' => 'bg-emerald-500'],
-        'review' => ['label' => $trackerStatus === 'rejected' ? 'Rejected' : 'Review', 'color' => $trackerStatus === 'rejected' ? 'bg-red-500' : 'bg-orange-500'],
+        'review' => ['label' => $reviewLabel, 'color' => $reviewColor],
         'validation' => ['label' => 'Validation', 'color' => 'bg-orange-500'],
         'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600']
     ];
     $currentStepIndex = 0;
-    if (in_array($trackerStatus, ['submitted', 'pending', 'rejected'])) $currentStepIndex = 1;
+    if (in_array($trackerStatus, ['submitted', 'pending', 'rejected', 'returned'])) $currentStepIndex = 1;
     if ($trackerStatus === 'validated') $currentStepIndex = 2;
     if ($isGrantee) $currentStepIndex = 3;
 
@@ -584,8 +596,22 @@
             <!-- Status Card -->
             <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/40 shadow-2xl overflow-hidden relative group transition-all hover:shadow-orange-200/50">
                 <div class="absolute top-0 right-0 p-6">
-                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full {{ $trackerStatus === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' : ($trackerStatus === 'validated' || $isGrantee ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-orange-100 text-orange-700 border-orange-200') }} text-[10px] font-black uppercase tracking-widest border shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $trackerStatus === 'rejected' ? 'bg-red-500' : ($trackerStatus === 'validated' || $isGrantee ? 'bg-emerald-500' : 'bg-orange-500') }} animate-pulse"></span>
+                    @php
+                        $badgeClasses = 'bg-orange-100 text-orange-700 border-orange-200';
+                        $dotColor = 'bg-orange-500';
+                        if ($trackerStatus === 'rejected') {
+                            $badgeClasses = 'bg-red-100 text-red-700 border-red-200';
+                            $dotColor = 'bg-red-500';
+                        } elseif ($trackerStatus === 'returned') {
+                            $badgeClasses = 'bg-indigo-100 text-indigo-700 border-indigo-200';
+                            $dotColor = 'bg-indigo-500';
+                        } elseif ($trackerStatus === 'validated' || $isGrantee) {
+                            $badgeClasses = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                            $dotColor = 'bg-emerald-500';
+                        }
+                    @endphp
+                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full {{ $badgeClasses }} text-[10px] font-black uppercase tracking-widest border shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $dotColor }} animate-pulse"></span>
                         {{ ucfirst($trackerStatus) }}
                     </span>
                 </div>
@@ -622,6 +648,23 @@
                         <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</h5>
                     </div>
                     
+                    @if($trackerStatus === 'returned')
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Application Returned</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been returned for document revisions."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">Returned</span>
+                        </div>
+                    </div>
+                    @endif
+
                     @if($trackerStatus === 'rejected')
                     <div class="flex gap-4 group/item">
                         <div class="relative flex flex-col items-center">

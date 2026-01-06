@@ -1335,7 +1335,7 @@ class StaffDashboardController extends Controller
             if ($isTermination) {
                 // Termination requires detailed reason
                 $validated = $request->validate([
-                    'status' => 'required|in:pending,validated,rejected',
+                    'status' => 'required|in:pending,validated,rejected,returned',
                     'rejection_reason' => 'required|string|min:10|max:1000',
                 ], [
                     'rejection_reason.required' => 'Please provide a reason for termination.',
@@ -1344,7 +1344,7 @@ class StaffDashboardController extends Controller
             } else {
                 // Regular rejection - disqualification reasons are required (validated in frontend)
                 $validated = $request->validate([
-                    'status' => 'required|in:pending,validated,rejected',
+                    'status' => 'required|in:pending,validated,rejected,returned',
                     'rejection_reason' => 'nullable|string|max:1000',
                     'disqualification_not_ip' => 'nullable|boolean',
                     'disqualification_exceeded_income' => 'nullable|boolean',
@@ -1354,7 +1354,7 @@ class StaffDashboardController extends Controller
             }
         } else {
             $validated = $request->validate([
-                'status' => 'required|in:pending,validated,rejected',
+                'status' => 'required|in:pending,validated,rejected,returned',
                 'rejection_reason' => 'nullable|string|max:1000',
             ]);
         }
@@ -1433,9 +1433,9 @@ class StaffDashboardController extends Controller
             $updateData['disqualification_remarks'] = null;
         }
 
-        // IMPORTANT: If admin moves a scholar back to "pending", ensure they reappear in the applicants list.
-        // The applicants list excludes grant_status='grantee', so we must clear grant_status (and grant flags) on pending.
-        if ($validated['status'] === 'pending') {
+        // IMPORTANT: If admin moves a scholar back to "pending" or "returned", ensure they reappear in the applicants list.
+        // The applicants list excludes grant_status='grantee', so we must clear grant_status (and grant flags) on pending/returned.
+        if (in_array($validated['status'], ['pending', 'returned'])) {
             $updateData['grant_status'] = null;
             if (Schema::hasColumn('basic_info', 'grant_1st_sem')) {
                 $updateData['grant_1st_sem'] = false;
@@ -1450,7 +1450,11 @@ class StaffDashboardController extends Controller
         // Send notification to user
         $user->notify(new ApplicationStatusUpdated($validated['status'], $updateData['application_rejection_reason'] ?? null));
 
-        $message = $isTermination ? 'Scholarship terminated successfully' : 'Application rejected successfully';
+        if ($validated['status'] === 'returned') {
+            $message = 'Application returned to student successfully';
+        } else {
+            $message = $isTermination ? 'Scholarship terminated successfully' : ($validated['status'] === 'validated' ? 'Application approved successfully' : 'Application status updated successfully');
+        }
 
         return response()->json([
             'success' => true,
