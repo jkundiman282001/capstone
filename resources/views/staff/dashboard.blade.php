@@ -170,9 +170,8 @@
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Province</label>
                 <select name="province" id="province-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
-                    <option value="">All Provinces</option>
                     @foreach($provinces as $province)
-                        <option value="{{ $province }}" {{ $selectedProvince == $province ? 'selected' : '' }}>{{ $province }}</option>
+                        <option value="{{ $province }}" selected>{{ $province }}</option>
                     @endforeach
                 </select>
             </div>
