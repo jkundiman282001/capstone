@@ -597,9 +597,11 @@ class StaffDashboardController extends Controller
             $selectedMunicipality = $request->get('municipality');
             $selectedBarangay = $request->get('barangay');
             $selectedEthno = $request->get('ethno');
+            $selectedStatus = $request->get('status');
+            $selectedType = $request->get('type');
 
             $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
-                ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus, $selectedType) {
                     if ($selectedProvince) {
                         $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
                             $q->whereHas('address', function ($aq) use ($selectedProvince) {
@@ -620,6 +622,21 @@ class StaffDashboardController extends Controller
                                 $aq->where('barangay', $selectedBarangay);
                             });
                         });
+                    }
+
+                    if ($selectedStatus) {
+                        $query->where('application_status', $selectedStatus);
+
+                        if ($selectedStatus === 'rejected') {
+                            if ($selectedType === 'terminated') {
+                                $query->where('grant_status', 'grantee');
+                            } else {
+                                $query->where(function($q) {
+                                    $q->where('grant_status', '!=', 'grantee')
+                                      ->orWhereNull('grant_status');
+                                });
+                            }
+                        }
                     }
                 });
 
