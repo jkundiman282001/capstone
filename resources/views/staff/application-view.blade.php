@@ -1444,6 +1444,47 @@ function closeDocumentModal() {
     document.body.style.overflow = 'auto';
 }
 
+function showCustomAlert({ title, message, okText = 'OK' }) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('customConfirmModal');
+        const content = document.getElementById('confirmModalContent');
+        const titleEl = document.getElementById('confirmTitle');
+        const messageEl = document.getElementById('confirmMessage');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        okBtn.textContent = okText;
+        cancelBtn.classList.add('hidden');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+        document.body.style.overflow = 'hidden';
+
+        const closeModal = () => {
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                cancelBtn.classList.remove('hidden');
+                resolve();
+            }, 200);
+        };
+
+        okBtn.onclick = closeModal;
+        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+        
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    });
+}
+
 function showCustomConfirm({ title, message, okText = 'OK', cancelText = 'Cancel' }) {
     return new Promise((resolve) => {
         const modal = document.getElementById('customConfirmModal');
@@ -1457,6 +1498,7 @@ function showCustomConfirm({ title, message, okText = 'OK', cancelText = 'Cancel
         messageEl.textContent = message;
         okBtn.textContent = okText;
         cancelBtn.textContent = cancelText;
+        cancelBtn.classList.remove('hidden');
 
         modal.classList.remove('hidden');
         setTimeout(() => content.classList.remove('scale-95'), 10);
@@ -1474,6 +1516,14 @@ function showCustomConfirm({ title, message, okText = 'OK', cancelText = 'Cancel
         okBtn.onclick = () => closeModal(true);
         cancelBtn.onclick = () => closeModal(false);
         modal.onclick = (e) => { if (e.target === modal) closeModal(false); };
+
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal(false);
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
     });
 }
 
@@ -1497,17 +1547,28 @@ async function updateDocumentStatus(documentId, newStatus) {
         body: JSON.stringify({ status: newStatus })
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
+        const domain = window.location.hostname;
         if (data.success) {
-            alert(`Document ${newStatus} successfully!`);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: `Document ${newStatus} successfully!`
+            });
             location.reload();
         } else {
-            alert('Error updating document status');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error updating document status'
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
+        const domain = window.location.hostname;
         console.error('Error:', error);
-        alert('Error updating document status');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error updating document status'
+        });
     });
 }
 
@@ -1576,18 +1637,29 @@ async function recalculateDocumentPriorities(event) {
         }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Document priorities recalculated successfully!');
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error recalculating priorities');
-    })
+        .then(async (data) => {
+            const domain = window.location.hostname;
+            if (data.success) {
+                await showCustomAlert({
+                    title: `${domain} says`,
+                    message: 'Document priorities recalculated successfully!'
+                });
+                location.reload();
+            } else {
+                await showCustomAlert({
+                    title: `${domain} says`,
+                    message: 'Error: ' + data.message
+                });
+            }
+        })
+        .catch(async (error) => {
+            const domain = window.location.hostname;
+            console.error('Error:', error);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error recalculating priorities'
+            });
+        })
     .finally(() => {
         button.innerHTML = originalText;
         button.disabled = false;
@@ -1620,17 +1692,28 @@ async function updateApplicationStatus(status, event) {
         body: JSON.stringify({ status: status })
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
+        const domain = window.location.hostname;
         if (data.success) {
-            alert('Application status updated successfully!');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Application status updated successfully!'
+            });
             location.reload();
         } else {
-            alert('Error: ' + data.message);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error: ' + data.message
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
+        const domain = window.location.hostname;
         console.error('Error:', error);
-        alert('Error updating application status');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error updating application status'
+        });
     })
     .finally(() => {
         button.innerHTML = originalText;
@@ -1663,17 +1746,28 @@ async function moveToPamana(event) {
         }
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
+        const domain = window.location.hostname;
         if (data.success) {
-            alert('Application moved to Pamana successfully!');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Application moved to Pamana successfully!'
+            });
             location.reload();
         } else {
-            alert('Error: ' + (data.message || 'Failed to move application'));
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error: ' + (data.message || 'Failed to move application')
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
+        const domain = window.location.hostname;
         console.error('Error:', error);
-        alert('Error moving application to Pamana');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error moving application to Pamana'
+        });
     })
     .finally(() => {
         button.innerHTML = originalText;
@@ -1706,17 +1800,28 @@ async function addToGrantees(event) {
         }
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
+        const domain = window.location.hostname;
         if (data.success) {
-            alert('Applicant added to Grantees successfully!');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Applicant added to Grantees successfully!'
+            });
             location.reload();
         } else {
-            alert('Error: ' + (data.message || 'Failed to add to grantees'));
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error: ' + (data.message || 'Failed to add to grantees')
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
+        const domain = window.location.hostname;
         console.error('Error:', error);
-        alert('Error adding applicant to Grantees');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error adding applicant to Grantees'
+        });
     })
     .finally(() => {
         button.innerHTML = originalText;
@@ -1749,17 +1854,28 @@ async function addToWaiting(event) {
         }
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
+        const domain = window.location.hostname;
         if (data.success) {
-            alert('Applicant added to Waiting List successfully!');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Applicant added to Waiting List successfully!'
+            });
             location.reload();
         } else {
-            alert('Error: ' + (data.message || 'Failed to add to waiting list'));
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error: ' + (data.message || 'Failed to add to waiting list')
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
+        const domain = window.location.hostname;
         console.error('Error:', error);
-        alert('Error adding applicant to Waiting List');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error adding applicant to Waiting List'
+        });
     })
     .finally(() => {
         button.innerHTML = originalText;
@@ -1814,14 +1930,18 @@ function closeFeedbackModal() {
     document.getElementById('feedbackForm').reset();
 }
 
-function submitFeedback(event) {
+async function submitFeedback(event) {
     event.preventDefault();
     
     const rejectionReason = document.getElementById('rejectionReason').value.trim();
     
     // Client-side validation
     if (!rejectionReason || rejectionReason.length < 10) {
-        alert('Please provide a detailed rejection reason (at least 10 characters).');
+        const domain = window.location.hostname;
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Please provide a detailed rejection reason (at least 10 characters).'
+        });
         document.getElementById('rejectionReason').focus();
         return;
     }
@@ -1845,19 +1965,30 @@ function submitFeedback(event) {
         })
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
+        const domain = window.location.hostname;
         if (data.success) {
             closeFeedbackModal();
-            alert('Feedback submitted successfully! The student will be notified.');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Feedback submitted successfully! The student will be notified.'
+            });
             location.reload();
         } else {
             const errorMsg = data.message || data.errors?.rejection_reason?.[0] || 'Unknown error';
-            alert('Error submitting feedback: ' + errorMsg);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error submitting feedback: ' + errorMsg
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
+        const domain = window.location.hostname;
         console.error('Error:', error);
-        alert('Error submitting feedback. Please try again.');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error submitting feedback. Please try again.'
+        });
     })
     .finally(() => {
         submitBtn.innerHTML = originalText;
@@ -1893,14 +2024,18 @@ function closeManualGWAModal() {
     document.getElementById('manualGWAForm').reset();
 }
 
-function submitManualGWA(event) {
+async function submitManualGWA(event) {
     event.preventDefault();
     
     const gwaValue = parseFloat(document.getElementById('gwaValue').value);
+    const domain = window.location.hostname;
     
     // Client-side validation
     if (isNaN(gwaValue) || gwaValue < 75 || gwaValue > 100) {
-        alert('Please enter a valid GWA between 75 and 100.');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Please enter a valid GWA between 75 and 100.'
+        });
         document.getElementById('gwaValue').focus();
         return;
     }
@@ -1921,19 +2056,28 @@ function submitManualGWA(event) {
         body: JSON.stringify({ gwa: gwaValue })
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
         if (data.success) {
             closeManualGWAModal();
-            alert(`GWA updated successfully to ${gwaValue}!`);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: `GWA updated successfully to ${gwaValue}!`
+            });
             location.reload();
         } else {
             const errorMsg = data.message || data.errors?.gwa?.[0] || 'Unknown error';
-            alert('Error updating GWA: ' + errorMsg);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Error updating GWA: ' + errorMsg
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
         console.error('Error:', error);
-        alert('Error updating GWA. Please try again.');
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Error updating GWA. Please try again.'
+        });
     })
     .finally(() => {
         submitBtn.innerHTML = originalText;
@@ -2050,12 +2194,13 @@ function closeApplicationRejectionModal() {
     document.getElementById('disqualificationReasonsError').classList.add('hidden');
 }
 
-function submitApplicationRejection(event) {
+async function submitApplicationRejection(event) {
     event.preventDefault();
     
     const submitBtn = document.getElementById('submitApplicationRejectionBtn');
     const submitButtonText = document.getElementById('submitButtonText');
     const isTerminate = submitButtonText.textContent.includes('Terminate');
+    const domain = window.location.hostname;
     
     // For rejection (not termination), validate disqualification reasons
     if (!isTerminate) {
@@ -2073,7 +2218,10 @@ function submitApplicationRejection(event) {
         // For termination, validate detailed reason
         const rejectionReason = document.getElementById('applicationRejectionReason').value.trim();
         if (!rejectionReason || rejectionReason.length < 10) {
-            alert('Please provide a detailed termination reason (at least 10 characters).');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: 'Please provide a detailed termination reason (at least 10 characters).'
+            });
             document.getElementById('applicationRejectionReason').focus();
             return;
         }
@@ -2113,19 +2261,28 @@ function submitApplicationRejection(event) {
         body: JSON.stringify(requestBody)
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
         if (data.success) {
             closeApplicationRejectionModal();
-            alert(isTerminate ? 'Scholarship terminated successfully! The student will be notified.' : 'Application rejected successfully! The student will be notified.');
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: isTerminate ? 'Scholarship terminated successfully! The student will be notified.' : 'Application rejected successfully! The student will be notified.'
+            });
             location.reload();
         } else {
             const errorMsg = data.message || data.errors?.rejection_reason?.[0] || 'Unknown error';
-            alert(`Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}: ` + errorMsg);
+            await showCustomAlert({
+                title: `${domain} says`,
+                message: `Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}: ` + errorMsg
+            });
         }
     })
-    .catch(error => {
+    .catch(async (error) => {
         console.error('Error:', error);
-        alert(`Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}. Please try again.`);
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: `Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}. Please try again.`
+        });
     })
     .finally(() => {
         submitBtn.innerHTML = originalText;
