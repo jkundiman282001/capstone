@@ -1469,37 +1469,60 @@
         'Urban Planning',
         'Other',
     ];
+
+    $userCourse = auth()->user()->course;
+    // Exclude "Undecided" and "None" from auto-filling
+    $isExcluded = in_array(strtolower(trim($userCourse ?? '')), [
+        'undecided', 
+        'none', 
+        '', 
+        'undecided / grade 12 exploring options'
+    ]);
+    // Pre-calculate if the user's course is in the predefined list (excluding 'Other')
+    $courseInPredefined = in_array($userCourse, array_diff($courseOptions, ['Other']));
 @endphp
 @foreach(['school1' => 'First Choice', 'school2' => 'Second Choice'] as $key => $label)
-                            <div class="p-5 border border-slate-200 rounded-lg bg-slate-50/50 mb-6">
-                                <h4 class="font-semibold text-slate-800 mb-4">{{ $label }}</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                        <label class="input-label">School Name</label>
-                                        <input type="text" name="{{ $key }}_name" class="form-control" value="{{ old($key.'_name') }}" required>
-                            </div>
-                            <div>
-                                        <label class="input-label">School Address</label>
-                                        <input type="text" name="{{ $key }}_address" class="form-control" value="{{ old($key.'_address') }}" required>
-                                    </div>
-                                    <div>
-                                        <label class="input-label">Course/Degree (Primary)</label>
-                                        <select name="{{ $key }}_course1" class="form-control" required onchange="toggleOtherCourse(this, '{{ $key }}_course1_other_container')">
-                                            <option value="">Select Course</option>
-                                            @foreach($courseOptions as $course)
-                                                @php
-                                                    $userCourse = auth()->user()->course;
-                                                    $isExcluded = in_array(strtolower($userCourse), ['undecided', 'none']);
-                                                    $isSelected = old($key.'_course1') == $course || 
-                                                                (empty(old($key.'_course1')) && !$isExcluded && $userCourse == $course);
-                                                @endphp
-                                                <option value="{{ $course }}" {{ $isSelected ? 'selected' : '' }}>{{ $course }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div id="{{ $key }}_course1_other_container" class="mt-2 {{ (old($key.'_course1') == 'Other' || ($userCourse == 'Other' && empty(old($key.'_course1')))) ? '' : 'hidden' }}">
-                                            <input type="text" name="{{ $key }}_course1_other" class="form-control" placeholder="Please specify course" value="{{ old($key.'_course1_other') }}" {{ (old($key.'_course1') == 'Other' || ($userCourse == 'Other' && empty(old($key.'_course1')))) ? 'required' : '' }}>
-                                        </div>
-                                    </div>
+    <div class="p-5 border border-slate-200 rounded-lg bg-slate-50/50 mb-6">
+        <h4 class="font-semibold text-slate-800 mb-4">{{ $label }}</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="input-label">School Name</label>
+                <input type="text" name="{{ $key }}_name" class="form-control" value="{{ old($key.'_name') }}" required>
+            </div>
+            <div>
+                <label class="input-label">School Address</label>
+                <input type="text" name="{{ $key }}_address" class="form-control" value="{{ old($key.'_address') }}" required>
+            </div>
+            <div>
+                <label class="input-label">Course/Degree (Primary)</label>
+                <select name="{{ $key }}_course1" class="form-control" required onchange="toggleOtherCourse(this, '{{ $key }}_course1_other_container')">
+                    <option value="">Select Course</option>
+                    @foreach($courseOptions as $course)
+                        @php
+                            $isSelected = old($key.'_course1') == $course;
+                            
+                            // Auto-prefill for school1 if no old input exists
+                            if (empty(old($key.'_course1')) && $key === 'school1' && !$isExcluded && $userCourse) {
+                                if ($course === 'Other') {
+                                    $isSelected = !$courseInPredefined;
+                                } else {
+                                    $isSelected = ($userCourse === $course);
+                                }
+                            }
+                        @endphp
+                        <option value="{{ $course }}" {{ $isSelected ? 'selected' : '' }}>{{ $course }}</option>
+                    @endforeach
+                </select>
+                @php
+                    $showOther = old($key.'_course1') == 'Other' || 
+                                (empty(old($key.'_course1')) && $key === 'school1' && !$isExcluded && $userCourse && !$courseInPredefined);
+                    $otherValue = old($key.'_course1_other') ?: 
+                                ((empty(old($key.'_course1')) && $key === 'school1' && !$isExcluded && $userCourse && !$courseInPredefined) ? $userCourse : '');
+                @endphp
+                <div id="{{ $key }}_course1_other_container" class="mt-2 {{ $showOther ? '' : 'hidden' }}">
+                    <input type="text" name="{{ $key }}_course1_other" class="form-control" placeholder="Please specify course" value="{{ $otherValue }}" {{ $showOther ? 'required' : '' }}>
+                </div>
+            </div>
                                     <div>
                                         <label class="input-label">Course/Degree (Alternate)</label>
                                         <select name="{{ $key }}_course_alt" class="form-control" onchange="toggleOtherCourse(this, '{{ $key }}_course_alt_other_container')">
