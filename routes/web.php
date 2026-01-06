@@ -82,7 +82,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/student/profile-pic/{filename}', [StudentController::class, 'showProfilePic'])->name('profile-pic.show');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
     Route::post('/student/update-gwa', [StudentController::class, 'updateGWA'])->name('student.update-gwa');
-    Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
 
     // Application Draft Routes
     Route::post('/student/drafts', [StudentController::class, 'saveDraft'])->name('student.drafts.save');
@@ -148,6 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::post('/documents/upload', [DocumentController::class, 'store'])->name('documents.upload');
+Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
 Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.delete');
 
 // Staff Auth Routes (Public)

@@ -130,11 +130,40 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        if (! Storage::disk('public')->exists($document->filepath)) {
-            abort(404);
+        $filepath = $document->filepath;
+        $trimmedPath = ltrim($filepath, '/');
+
+        // Try Public Disk first
+        if (Storage::disk('public')->exists($filepath)) {
+            return response()->file(Storage::disk('public')->path($filepath));
+        }
+        
+        if (Storage::disk('public')->exists($trimmedPath)) {
+            return response()->file(Storage::disk('public')->path($trimmedPath));
         }
 
-        return response()->file(Storage::disk('public')->path($document->filepath));
+        // Try Local Disk as fallback
+        if (Storage::disk('local')->exists($filepath)) {
+            return response()->file(Storage::disk('local')->path($filepath));
+        }
+        
+        if (Storage::disk('local')->exists($trimmedPath)) {
+            return response()->file(Storage::disk('local')->path($trimmedPath));
+        }
+
+        // Final direct check on filesystem
+        $directPath = storage_path('app/public/' . $trimmedPath);
+        if (file_exists($directPath)) {
+            return response()->file($directPath);
+        }
+
+        // Check in storage/app/documents directly
+        $directPath2 = storage_path('app/documents/' . basename($filepath));
+        if (file_exists($directPath2)) {
+            return response()->file($directPath2);
+        }
+
+        abort(404, 'File not found on server. Path: ' . $filepath . ' (checked public and local disks)');
     }
 
     public function destroy(Request $request, Document $document)
