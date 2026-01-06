@@ -3,10 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\Staff;
+use App\Models\BasicInfo;
 use App\Notifications\TransactionNotification;
+use App\Notifications\StudentUploadedDocument;
+use App\Services\DocumentPriorityService;
+use App\Services\ApplicantPriorityService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class DocumentController extends Controller
 {
@@ -32,7 +40,7 @@ class DocumentController extends Controller
                 'type.required' => 'Document type is required.',
                 'type.in' => 'Invalid document type.',
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -95,14 +103,14 @@ class DocumentController extends Controller
         }
 
         // Calculate document priority (First Come, First Serve)
-        $priorityService = new \App\Services\DocumentPriorityService;
+        $priorityService = new DocumentPriorityService;
         $priorityService->onDocumentUploaded($document);
 
         // Notify all staff
         $student = $user;
         $documentType = $request->type;
-        foreach (\App\Models\Staff::all() as $staff) {
-            $staff->notify(new \App\Notifications\StudentUploadedDocument($student, $documentType));
+        foreach (Staff::all() as $staff) {
+            $staff->notify(new StudentUploadedDocument($student, $documentType));
         }
 
         // Notify the student
@@ -125,14 +133,20 @@ class DocumentController extends Controller
 
     public function show($id)
     {
-        $document = Document::find($id);
-
-        if (!$document) {
-            \Log::error('Document record not found in database', ['id' => $id]);
-            abort(404, "Document record not found in database for ID: $id");
+        try {
+            $document = Document::find($id);
+        } catch (Exception $e) {
+            Log::error('Database connection error while viewing document', ['error' => $e->getMessage()]);
+            abort(500, "Database connection error. Please ensure your XAMPP MySQL is running.");
         }
 
-        \Log::info('Document viewing attempt', [
+        if (!$document) {
+            Log::error('Document record not found in database', ['id' => $id]);
+            // If the record is missing, it's a 404
+            abort(404, "Document record not found in database. If you just pushed your code, remember that uploaded files are NOT saved to Git.");
+        }
+
+        Log::info('Document viewing attempt', [
             'id' => $document->id,
             'filepath' => $document->filepath,
             'user_id' => $document->user_id,
@@ -142,7 +156,7 @@ class DocumentController extends Controller
 
         // Allow the owner of the document OR any staff member
         if ($document->user_id !== Auth::id() && ! Auth::guard('staff')->check()) {
-            \Log::warning('Unauthorized document access attempt', ['id' => $document->id]);
+            Log::warning('Unauthorized document access attempt', ['id' => $document->id]);
             abort(403);
         }
 
@@ -159,39 +173,39 @@ class DocumentController extends Controller
         // 1. Try the original filepath directly (as absolute or relative to base)
         if (file_exists($filepath)) {
             $path = $filepath;
-            \Log::info('Found via direct absolute path', ['path' => $path]);
+            Log::info('Found via direct absolute path', ['path' => $path]);
         } elseif (file_exists(base_path($filepath))) {
             $path = base_path($filepath);
-            \Log::info('Found via base_path', ['path' => $path]);
+            Log::info('Found via base_path', ['path' => $path]);
         }
 
         // 2. Try relative to storage/app/public
         if (!$path) {
             $publicPath = storage_path('app/public/' . $trimmedPath);
-            \Log::info('Checking storage/app/public', ['path' => $publicPath]);
+            Log::info('Checking storage/app/public', ['path' => $publicPath]);
             if (file_exists($publicPath)) {
                 $path = $publicPath;
-                \Log::info('Found on storage/app/public', ['path' => $path]);
+                Log::info('Found on storage/app/public', ['path' => $path]);
             }
         }
 
         // 3. Try relative to storage/app
         if (!$path) {
             $appPath = storage_path('app/' . $trimmedPath);
-            \Log::info('Checking storage/app', ['path' => $appPath]);
+            Log::info('Checking storage/app', ['path' => $appPath]);
             if (file_exists($appPath)) {
                 $path = $appPath;
-                \Log::info('Found on storage/app', ['path' => $path]);
+                Log::info('Found on storage/app', ['path' => $path]);
             }
         }
 
         // 4. Try relative to public/storage
         if (!$path) {
             $webPath = public_path('storage/' . $trimmedPath);
-            \Log::info('Checking public/storage', ['path' => $webPath]);
+            Log::info('Checking public/storage', ['path' => $webPath]);
             if (file_exists($webPath)) {
                 $path = $webPath;
-                \Log::info('Found on public/storage', ['path' => $path]);
+                Log::info('Found on public/storage', ['path' => $path]);
             }
         }
 
@@ -205,10 +219,10 @@ class DocumentController extends Controller
             ];
 
             foreach ($searchPaths as $searchPath) {
-                \Log::info('Checking fallback path', ['path' => $searchPath]);
+                Log::info('Checking fallback path', ['path' => $searchPath]);
                 if (file_exists($searchPath)) {
                     $path = $searchPath;
-                    \Log::info('Found on fallback search path', ['path' => $path]);
+                    Log::info('Found on fallback search path', ['path' => $path]);
                     break;
                 }
             }
@@ -218,7 +232,7 @@ class DocumentController extends Controller
             $mimeType = mime_content_type($path);
             $fileName = $document->filename;
             
-            \Log::info('Serving document', ['path' => $path, 'mime' => $mimeType]);
+            Log::info('Serving document', ['path' => $path, 'mime' => $mimeType]);
 
             // Force correct headers for viewing
             return response()->file($path, [
@@ -230,7 +244,7 @@ class DocumentController extends Controller
             ]);
         }
 
-        \Log::error('Document not found', ['filepath' => $filepath]);
+        Log::error('Document not found', ['filepath' => $filepath]);
         abort(404, 'DEBUG: File not found on server. Database path: ' . $filepath . ' - Checked in storage/app/public/' . $trimmedPath);
     }
 
@@ -270,7 +284,7 @@ class DocumentController extends Controller
     {
         $user = Auth::user();
         $documents = Document::where('user_id', $user->id)->latest()->get();
-        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->first();
+        $basicInfo = BasicInfo::where('user_id', $user->id)->first();
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
             'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
@@ -284,7 +298,7 @@ class DocumentController extends Controller
         $priorityRank = null;
         $acceptancePercent = null;
         $priorityFactors = [];
-        $priorityService = new \App\Services\ApplicantPriorityService;
+        $priorityService = new ApplicantPriorityService;
         $prioritizedApplicants = $priorityService->getPrioritizedApplicants();
         $priorityStatistics = $priorityService->getPriorityStatistics();
 
@@ -310,7 +324,7 @@ class DocumentController extends Controller
         }
 
         // Count validated applicants who are not grantees yet
-        $validatedNonGranteesCount = \App\Models\BasicInfo::where('application_status', 'validated')
+        $validatedNonGranteesCount = BasicInfo::where('application_status', 'validated')
             ->where(function ($q) {
                 $q->whereNull('grant_status')
                     ->orWhere('grant_status', '!=', 'grantee')
