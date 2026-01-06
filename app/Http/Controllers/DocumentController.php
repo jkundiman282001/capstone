@@ -135,32 +135,39 @@ class DocumentController extends Controller
 
         // Try Public Disk first
         if (Storage::disk('public')->exists($filepath)) {
-            return response()->file(Storage::disk('public')->path($filepath));
-        }
-        
-        if (Storage::disk('public')->exists($trimmedPath)) {
-            return response()->file(Storage::disk('public')->path($trimmedPath));
-        }
-
-        // Try Local Disk as fallback
-        if (Storage::disk('local')->exists($filepath)) {
-            return response()->file(Storage::disk('local')->path($filepath));
-        }
-        
-        if (Storage::disk('local')->exists($trimmedPath)) {
-            return response()->file(Storage::disk('local')->path($trimmedPath));
-        }
-
-        // Final direct check on filesystem
-        $directPath = storage_path('app/public/' . $trimmedPath);
-        if (file_exists($directPath)) {
-            return response()->file($directPath);
+            $path = Storage::disk('public')->path($filepath);
+        } elseif (Storage::disk('public')->exists($trimmedPath)) {
+            $path = Storage::disk('public')->path($trimmedPath);
+        } elseif (Storage::disk('local')->exists($filepath)) {
+            $path = Storage::disk('local')->path($filepath);
+        } elseif (Storage::disk('local')->exists($trimmedPath)) {
+            $path = Storage::disk('local')->path($trimmedPath);
+        } else {
+            // Final direct check on filesystem
+            $directPath = storage_path('app/public/' . $trimmedPath);
+            if (file_exists($directPath)) {
+                $path = $directPath;
+            }
         }
 
         // Check in storage/app/documents directly
         $directPath2 = storage_path('app/documents/' . basename($filepath));
         if (file_exists($directPath2)) {
-            return response()->file($directPath2);
+            $path = $directPath2;
+        }
+
+        if (isset($path)) {
+            $mimeType = mime_content_type($path);
+            $fileName = $document->filename;
+            
+            // Force correct headers for viewing
+            return response()->file($path, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ]);
         }
 
         abort(404, 'File not found on server. Path: ' . $filepath . ' (checked public and local disks)');
