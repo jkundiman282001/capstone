@@ -430,59 +430,59 @@
                             @endphp
                             
                             @if($status === 'approved')
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-0">
-                                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-4">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
                                         <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         </div>
-                                        <div>
-                                            <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
+                                        <div class="min-w-0">
+                                            <h4 class="font-bold text-slate-900 text-sm truncate sm:whitespace-normal">{{ $typeLabel }}</h4>
                                             <p class="text-xs text-emerald-600 font-medium">Approved • {{ $uploaded->created_at->diffForHumans() }}</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGWAModal({{ $user->id }})" class="flex-1 sm:flex-none px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1" title="Enter GWA Manually">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GWA
-                                            </button>
-                                        @endif
-                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="flex-1 sm:flex-none px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
-                                            View
-                                        </button>
-                                    </div>
-                                </div>
-                            @elseif($status === 'pending')
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-0">
-                                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
-                                            <p class="text-xs text-amber-600 font-medium">Pending Review • {{ $uploaded->created_at->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GWA
                                             </button>
                                         @endif
-                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
-                                        <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
-                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
+                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
+                                            View
+                                        </button>
+                                    </div>
+                                </div>
+                            @elseif($status === 'pending')
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-4">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
+                                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="font-bold text-slate-900 text-sm truncate sm:whitespace-normal">{{ $typeLabel }}</h4>
+                                            <p class="text-xs text-amber-600 font-medium">Pending Review • {{ $uploaded->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
+                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
+                                            <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                Enter GWA
+                                            </button>
+                                        @endif
+                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                        <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
+                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
                                     </div>
                                 </div>
                             @elseif($status === 'rejected')
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-0">
-                                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-4">
+                                    <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
                                         <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </div>
-                                        <div class="flex-1">
-                                            <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
+                                        <div class="min-w-0">
+                                            <h4 class="font-bold text-slate-900 text-sm truncate sm:whitespace-normal">{{ $typeLabel }}</h4>
                                             <p class="text-xs text-red-600 font-medium">Rejected • {{ $uploaded->created_at->diffForHumans() }}</p>
                                             @if($uploaded->rejection_reason)
                                                 <div class="mt-2 p-2 bg-white rounded-lg border border-red-100">
@@ -491,15 +491,15 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
                                         @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                             <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Enter GWA
                                             </button>
                                         @endif
-                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
-                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
+                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
                                             Feedback
                                         </button>
