@@ -17,20 +17,6 @@
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <button id="openGranteesReportBtn" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-orange-500 hover:text-orange-600 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2 group">
-                    <svg class="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Grantees Report
-                </button>
-                <button id="openWaitingListReportBtn" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2 group">
-                    <svg class="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Waiting List
-                </button>
-                <button id="openPamanaReportBtn" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2 group">
-                    <svg class="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                    Pamana Report
-                </button>
-            </div>
         </div>
         @if(isset($error) || session('error'))
             <div class="mb-6">
