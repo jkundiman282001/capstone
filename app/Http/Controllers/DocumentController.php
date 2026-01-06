@@ -52,6 +52,7 @@ class DocumentController extends Controller
         }
 
         $file = $request->file('upload-file');
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Check if there's an existing document of this type for this user
@@ -107,6 +108,7 @@ class DocumentController extends Controller
         $priorityService->onDocumentUploaded($document);
 
         // Notify all staff
+        /** @var \App\Models\User $student */
         $student = $user;
         $documentType = $request->type;
         foreach (Staff::all() as $staff) {
@@ -263,7 +265,9 @@ class DocumentController extends Controller
         $document->delete();
 
         // Notify the student
-        Auth::user()->notify(new TransactionNotification(
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->notify(new TransactionNotification(
             'transaction',
             'Document Deleted',
             'You have successfully deleted the '.str_replace('_', ' ', $document->type).' document.',
