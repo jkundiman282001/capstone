@@ -42,12 +42,12 @@
     $trackerStatus = strtolower($basicInfo->application_status ?? 'submitted');
     $trackerSteps = [
         'submitted' => ['label' => 'Submitted', 'color' => 'bg-emerald-500'],
-        'review' => ['label' => 'Review', 'color' => 'bg-orange-500'],
+        'review' => ['label' => $trackerStatus === 'rejected' ? 'Rejected' : 'Review', 'color' => $trackerStatus === 'rejected' ? 'bg-red-500' : 'bg-orange-500'],
         'validation' => ['label' => 'Validation', 'color' => 'bg-orange-500'],
         'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600']
     ];
     $currentStepIndex = 0;
-    if (in_array($trackerStatus, ['submitted', 'pending'])) $currentStepIndex = 1;
+    if (in_array($trackerStatus, ['submitted', 'pending', 'rejected'])) $currentStepIndex = 1;
     if ($trackerStatus === 'validated') $currentStepIndex = 2;
     if ($isGrantee) $currentStepIndex = 3;
 
@@ -584,9 +584,9 @@
             <!-- Status Card -->
             <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/40 shadow-2xl overflow-hidden relative group transition-all hover:shadow-orange-200/50">
                 <div class="absolute top-0 right-0 p-6">
-                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest border border-green-200 shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                        {{ $basicInfo->application_status ?? 'Pending' }}
+                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full {{ $trackerStatus === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' : ($trackerStatus === 'validated' || $isGrantee ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-orange-100 text-orange-700 border-orange-200') }} text-[10px] font-black uppercase tracking-widest border shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $trackerStatus === 'rejected' ? 'bg-red-500' : ($trackerStatus === 'validated' || $isGrantee ? 'bg-emerald-500' : 'bg-orange-500') }} animate-pulse"></span>
+                        {{ ucfirst($trackerStatus) }}
                     </span>
                 </div>
 
@@ -622,6 +622,23 @@
                         <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</h5>
                     </div>
                     
+                    @if($trackerStatus === 'rejected')
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Application Rejected</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been reviewed and rejected."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-red-600 text-[9px] font-black uppercase tracking-wider border border-red-100 shadow-sm">Rejected</span>
+                        </div>
+                    </div>
+                    @endif
+
                     @if($isGrantee)
                     <div class="flex gap-4 group/item">
                         <div class="relative flex flex-col items-center">
@@ -656,24 +673,31 @@
                     </div>
                     @endif
 
-                    @foreach($documents->where('status', 'approved')->sortByDesc('updated_at')->take(4) as $doc)
+                    @foreach($documents->whereIn('status', ['approved', 'rejected'])->sortByDesc('updated_at')->take(5) as $doc)
                     <div class="flex gap-4 group/item">
                         <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/50 group-hover/item:bg-emerald-500 transition-colors z-10"></div>
+                            <div class="w-2.5 h-2.5 rounded-full {{ $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 'bg-red-500/50 group-hover/item:bg-red-500' }} transition-colors z-10"></div>
                             @if(!$loop->last) <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div> @endif
                         </div>
                         <div class="flex-1 {{ !$loop->last ? 'pb-8' : '' }}">
                             <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">Document Approved</span>
+                                <span class="text-sm font-black text-slate-900 leading-none">Document {{ ucfirst($doc->status) }}</span>
                                 <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $doc->updated_at->format('M d, h:i A') }}</span>
                             </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-1 italic">"{{ $requiredTypes[$doc->type] ?? $doc->type }} has been verified."</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">Success</span>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-1 italic">
+                                "{{ $requiredTypes[$doc->type] ?? $doc->type }}" {{ $doc->status === 'approved' ? 'has been verified.' : 'requires revision.' }}
+                                @if($doc->status === 'rejected' && $doc->rejection_reason)
+                                    <span class="block text-[10px] text-red-400 font-bold mt-0.5">Reason: {{ $doc->rejection_reason }}</span>
+                                @endif
+                            </p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded {{ $doc->status === 'approved' ? 'bg-emerald-50' : 'bg-red-50' }} {{ $doc->status === 'approved' ? 'text-emerald-600' : 'text-red-600' }} text-[9px] font-black uppercase tracking-wider border {{ $doc->status === 'approved' ? 'border-emerald-100' : 'border-red-100' }} shadow-sm">
+                                {{ $doc->status === 'approved' ? 'Success' : 'Revision' }}
+                            </span>
                         </div>
                     </div>
                     @endforeach
 
-                    @if($documents->where('status', 'approved')->count() == 0 && !$isStudentValidated)
+                    @if($documents->whereIn('status', ['approved', 'rejected'])->count() == 0 && !$isStudentValidated && !$isGrantee && $trackerStatus !== 'rejected')
                         <div class="text-center py-8">
                             <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
                                 <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
