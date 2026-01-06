@@ -72,32 +72,32 @@ class BasicInfo extends Model
         });
     }
 
-    public function user()
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function fullAddress()
+    public function fullAddress(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\FullAddress::class, 'full_address_id');
     }
 
-    public function schoolPref()
+    public function schoolPref(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\SchoolPref::class, 'school_pref_id');
     }
 
-    public function education()
+    public function education(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\Education::class, 'basic_info_id');
     }
 
-    public function family()
+    public function family(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\Family::class, 'basic_info_id');
     }
 
-    public function siblings()
+    public function siblings(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\FamSiblings::class, 'basic_info_id');
     }

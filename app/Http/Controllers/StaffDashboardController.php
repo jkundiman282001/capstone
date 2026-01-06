@@ -4,24 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\Address;
 use App\Models\Announcement;
+use App\Models\ApplicationDraft;
 use App\Models\BasicInfo;
 use App\Models\Document;
+use App\Models\Education;
 use App\Models\Ethno;
+use App\Models\Family;
+use App\Models\FamSiblings;
+use App\Models\FullAddress;
+use App\Models\MailingAddress;
+use App\Models\Origin;
+use App\Models\PermanentAddress;
+use App\Models\Replacement;
+use App\Models\SchoolPref;
+use App\Models\Staff;
 use App\Models\User;
 use App\Notifications\AnnouncementNotification;
+use App\Notifications\ApplicationStatusUpdated;
 use App\Notifications\DocumentStatusUpdated;
 use App\Notifications\TransactionNotification;
+use App\Models\Setting;
+use App\Services\ApplicantPriorityService;
+use App\Services\CoursePriorityService;
+use App\Services\DocumentPriorityService;
+use App\Services\GradeExtractionService;
+use App\Services\GeminiService;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class StaffDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -94,7 +118,7 @@ class StaffDashboardController extends Controller
             ->count();
 
         // Calculate Slots Left: MAX_SLOTS - current grantees (system-wide, not filtered)
-        $maxSlots = \App\Models\Setting::get('max_slots', 120);
+        $maxSlots = Setting::get('max_slots', 120);
         $currentGrantees = BasicInfo::where('application_status', 'validated')
             ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
             ->count();
@@ -226,10 +250,10 @@ class StaffDashboardController extends Controller
         $notifications = $user->unreadNotifications()->take(10)->get();
 
         // Get prioritized documents (First Come, First Serve)
-        $priorityService = new \App\Services\DocumentPriorityService;
+        $priorityService = new DocumentPriorityService;
 
         // Initialize submitted_at and priorities for existing documents that don't have them
-        $uninitializedDocs = \App\Models\Document::where('status', 'pending')
+        $uninitializedDocs = Document::where('status', 'pending')
             ->where(function ($query) {
                 $query->whereNull('submitted_at')
                     ->orWhereNull('priority_score');
@@ -253,12 +277,12 @@ class StaffDashboardController extends Controller
         $priorityStatistics = $priorityService->getPriorityStatistics();
 
         // Get overall course prioritization
-        $coursePriorityService = new \App\Services\CoursePriorityService;
+        $coursePriorityService = new CoursePriorityService;
         $overallCoursePrioritization = $coursePriorityService->getOverallCoursePrioritization();
         $courseStatistics = $coursePriorityService->getCourseStatistics();
 
         // Get prioritized applicants (weighted scoring + FCFS tiebreaker)
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $prioritizedApplicants = $applicantPriorityService->getTopPriorityApplicants(50);
         $applicantPriorityStatistics = $applicantPriorityService->getPriorityStatistics();
 
@@ -282,7 +306,7 @@ class StaffDashboardController extends Controller
         ];
 
         // Document Status Chart Data
-        $documentStatus = \App\Models\Document::selectRaw('status, COUNT(*) as count')
+        $documentStatus = Document::selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
 
@@ -442,7 +466,8 @@ class StaffDashboardController extends Controller
 
     public function notifications(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         if (! $user) {
             return redirect()->route('staff.login');
         }
@@ -474,7 +499,8 @@ class StaffDashboardController extends Controller
 
     public function markNotificationsRead(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         if ($user) {
             $user->unreadNotifications->markAsRead();
         }
@@ -484,7 +510,8 @@ class StaffDashboardController extends Controller
 
     public function markAllNotificationsRead(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         if ($user) {
             $user->unreadNotifications->markAsRead();
         }
@@ -494,7 +521,8 @@ class StaffDashboardController extends Controller
 
     public function deleteNotification($id)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         if ($user) {
             $notification = $user->notifications()->where('id', $id)->first();
             if ($notification) {
@@ -568,12 +596,12 @@ class StaffDashboardController extends Controller
         $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
 
         // Get course prioritization for this specific applicant
-        $coursePriorityService = new \App\Services\CoursePriorityService;
+        $coursePriorityService = new CoursePriorityService;
         $coursePrioritization = $coursePriorityService->getApplicantCoursePrioritization($user);
 
         // Calculate slot availability
-        $maxSlots = \App\Models\Setting::get('max_slots', 120);
-        $currentValidated = \App\Models\BasicInfo::where('application_status', 'validated')->count();
+        $maxSlots = Setting::get('max_slots', 120);
+        $currentValidated = BasicInfo::where('application_status', 'validated')->count();
         // If this application is already validated, don't count it in available slots
         if ($basicInfo && $basicInfo->application_status === 'validated') {
             $currentValidated = max(0, $currentValidated - 1);
@@ -592,7 +620,8 @@ class StaffDashboardController extends Controller
     public function applicantsList(Request $request)
     {
         try {
-            $user = \Auth::guard('staff')->user();
+            /** @var Staff $user */
+            $user = Auth::guard('staff')->user();
             $selectedProvince = $request->get('province');
             $selectedMunicipality = $request->get('municipality');
             $selectedBarangay = $request->get('barangay');
@@ -654,8 +683,8 @@ class StaffDashboardController extends Controller
                 'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
                 'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
             ));
-        } catch (\Throwable $e) {
-            $applicants = new \Illuminate\Pagination\LengthAwarePaginator(
+        } catch (Throwable $e) {
+            $applicants = new LengthAwarePaginator(
                 collect([]),
                 0,
                 20,
@@ -681,11 +710,12 @@ class StaffDashboardController extends Controller
 
     public function applicantPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $prioritizedApplicants = $applicantPriorityService->getTopPriorityApplicants(50);
         $applicantPriorityStatistics = $applicantPriorityService->getPriorityStatistics();
 
@@ -702,13 +732,13 @@ class StaffDashboardController extends Controller
 
     public function documentPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
-        $priorityService = new \App\Services\DocumentPriorityService;
-
-        $uninitializedDocs = \App\Models\Document::where('status', 'pending')
+        $priorityService = new DocumentPriorityService;
+        $uninitializedDocs = Document::where('status', 'pending')
             ->where(function ($query) {
                 $query->whereNull('submitted_at')
                     ->orWhereNull('priority_score');
@@ -743,7 +773,8 @@ class StaffDashboardController extends Controller
 
     public function ipPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -762,7 +793,7 @@ class StaffDashboardController extends Controller
         $users = $usersQuery->get();
 
         // Calculate IP Group scores for all applicants
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $applicantsWithIpScores = [];
 
         foreach ($users as $user) {
@@ -794,11 +825,12 @@ class StaffDashboardController extends Controller
 
     public function coursePriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
-        $coursePriorityService = new \App\Services\CoursePriorityService;
+        $coursePriorityService = new CoursePriorityService;
         $overallCoursePrioritization = $coursePriorityService->getOverallCoursePrioritization();
         $courseStatistics = $coursePriorityService->getCourseStatistics();
 
@@ -815,7 +847,8 @@ class StaffDashboardController extends Controller
 
     public function tribalCertificatePriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -867,7 +900,8 @@ class StaffDashboardController extends Controller
 
     public function incomeTaxPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -886,7 +920,7 @@ class StaffDashboardController extends Controller
         $users = $usersQuery->get();
 
         // Calculate ITR status for all applicants
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $applicantsWithItrStatus = [];
 
         foreach ($users as $user) {
@@ -925,7 +959,8 @@ class StaffDashboardController extends Controller
 
     public function academicPerformancePriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -944,7 +979,7 @@ class StaffDashboardController extends Controller
         $users = $usersQuery->get();
 
         // Calculate GWA/Academic scores for all applicants
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $applicantsWithGwaScores = [];
 
         foreach ($users as $user) {
@@ -976,7 +1011,8 @@ class StaffDashboardController extends Controller
 
     public function citationAwardsPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -995,7 +1031,7 @@ class StaffDashboardController extends Controller
         $users = $usersQuery->get();
 
         // Calculate Citation/Awards scores for all applicants
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $applicantsWithAwardsScores = [];
 
         foreach ($users as $user) {
@@ -1059,7 +1095,8 @@ class StaffDashboardController extends Controller
 
     public function socialResponsibilityPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -1078,7 +1115,7 @@ class StaffDashboardController extends Controller
         $users = $usersQuery->get();
 
         // Calculate Social Responsibility scores for all applicants
-        $applicantPriorityService = new \App\Services\ApplicantPriorityService;
+        $applicantPriorityService = new ApplicantPriorityService;
         $applicantsWithSocialScores = [];
 
         foreach ($users as $user) {
@@ -1117,7 +1154,8 @@ class StaffDashboardController extends Controller
 
     public function otherRequirementsPriority()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -1239,7 +1277,7 @@ class StaffDashboardController extends Controller
     public function updateApplicationStatus(Request $request, $userId)
     {
         $user = User::findOrFail($userId);
-        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        $basicInfo = BasicInfo::where('user_id', $user->id)->firstOrFail();
 
         // Validate based on status
         $status = $request->input('status');
@@ -1277,8 +1315,8 @@ class StaffDashboardController extends Controller
 
         // Check slot availability when validating
         if ($validated['status'] === 'validated') {
-            $maxSlots = \App\Models\Setting::get('max_slots', 120);
-            $currentValidated = \App\Models\BasicInfo::where('application_status', 'validated')->count();
+            $maxSlots = Setting::get('max_slots', 120);
+            $currentValidated = BasicInfo::where('application_status', 'validated')->count();
 
             // If this application is already validated, we're just keeping it validated (no change)
             // If it's not validated yet, we need to check if we can add one more
@@ -1364,7 +1402,7 @@ class StaffDashboardController extends Controller
         $basicInfo->update($updateData);
 
         // Send notification to user
-        $user->notify(new \App\Notifications\ApplicationStatusUpdated($validated['status'], $updateData['application_rejection_reason'] ?? null));
+        $user->notify(new ApplicationStatusUpdated($validated['status'], $updateData['application_rejection_reason'] ?? null));
 
         $message = $isTermination ? 'Scholarship terminated successfully' : 'Application rejected successfully';
 
@@ -1377,7 +1415,7 @@ class StaffDashboardController extends Controller
     public function moveToPamana(Request $request, $userId)
     {
         $user = User::findOrFail($userId);
-        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        $basicInfo = BasicInfo::where('user_id', $user->id)->firstOrFail();
 
         // Check if application is validated
         if ($basicInfo->application_status !== 'validated') {
@@ -1409,7 +1447,7 @@ class StaffDashboardController extends Controller
     public function addToGrantees(Request $request, $userId)
     {
         $user = User::findOrFail($userId);
-        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        $basicInfo = BasicInfo::where('user_id', $user->id)->firstOrFail();
 
         // Check if application is validated
         if ($basicInfo->application_status !== 'validated') {
@@ -1449,7 +1487,7 @@ class StaffDashboardController extends Controller
     public function addToWaiting(Request $request, $userId)
     {
         $user = User::findOrFail($userId);
-        $basicInfo = \App\Models\BasicInfo::where('user_id', $user->id)->firstOrFail();
+        $basicInfo = BasicInfo::where('user_id', $user->id)->firstOrFail();
 
         // Check if application is validated
         if ($basicInfo->application_status !== 'validated') {
@@ -1511,31 +1549,31 @@ class StaffDashboardController extends Controller
             if ($basicInfo) {
                 // 2. Delete related model records
                 // Education
-                \App\Models\Education::where('basic_info_id', $basicInfo->id)->delete();
+                Education::where('basic_info_id', $basicInfo->id)->delete();
 
                 // Family
-                \App\Models\Family::where('basic_info_id', $basicInfo->id)->delete();
+                Family::where('basic_info_id', $basicInfo->id)->delete();
 
                 // Siblings
-                \App\Models\FamSiblings::where('basic_info_id', $basicInfo->id)->delete();
+                FamSiblings::where('basic_info_id', $basicInfo->id)->delete();
 
                 // School Preference
                 if ($basicInfo->school_pref_id) {
-                    \App\Models\SchoolPref::where('id', $basicInfo->school_pref_id)->delete();
+                    SchoolPref::where('id', $basicInfo->school_pref_id)->delete();
                 }
 
                 // Full Address and its components (Mailing, Permanent, Origin)
                 if ($basicInfo->full_address_id) {
-                    $fullAddress = \App\Models\FullAddress::find($basicInfo->full_address_id);
+                    $fullAddress = FullAddress::find($basicInfo->full_address_id);
                     if ($fullAddress) {
                         if ($fullAddress->mailing_address_id) {
-                            \App\Models\MailingAddress::where('id', $fullAddress->mailing_address_id)->delete();
+                            MailingAddress::where('id', $fullAddress->mailing_address_id)->delete();
                         }
                         if ($fullAddress->permanent_address_id) {
-                            \App\Models\PermanentAddress::where('id', $fullAddress->permanent_address_id)->delete();
+                            PermanentAddress::where('id', $fullAddress->permanent_address_id)->delete();
                         }
                         if ($fullAddress->origin_id) {
-                            \App\Models\Origin::where('id', $fullAddress->origin_id)->delete();
+                            Origin::where('id', $fullAddress->origin_id)->delete();
                         }
                         $fullAddress->delete();
                     }
@@ -1547,10 +1585,10 @@ class StaffDashboardController extends Controller
 
             // 4. Finally delete the user
             // Delete application drafts
-            \App\Models\ApplicationDraft::where('user_id', $user->id)->delete();
+            ApplicationDraft::where('user_id', $user->id)->delete();
 
             // Delete replacement records
-            \App\Models\Replacement::where('replacement_user_id', $user->id)
+            Replacement::where('replacement_user_id', $user->id)
                 ->orWhere('replaced_user_id', $user->id)
                 ->delete();
 
@@ -1566,7 +1604,7 @@ class StaffDashboardController extends Controller
                 'message' => 'Applicant account and all associated data have been deleted successfully.',
             ]);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return response()->json([
@@ -1578,7 +1616,7 @@ class StaffDashboardController extends Controller
 
     public function extractGrades($userId)
     {
-        $user = \App\Models\User::with('documents')->findOrFail($userId);
+        $user = User::with('documents')->findOrFail($userId);
         $gradesDoc = $user->documents->where('type', 'grades')->first();
         if ($gradesDoc) {
             // Use public storage path
@@ -1598,23 +1636,23 @@ class StaffDashboardController extends Controller
             $isImage = $storedFileType && strpos($storedFileType, 'image/') === 0;
 
             // Try non-AI extraction service first (OCR + regex parsing)
-            $extractionService = new \App\Services\GradeExtractionService;
+            $extractionService = new GradeExtractionService;
             $gwa = $extractionService->extractGWA($filePath);
             $extractionMethod = 'ocr';
 
             // If OCR extraction fails, fallback to AI service (Gemini)
             if ($gwa === null) {
-                \Log::info('OCR extraction failed, trying AI fallback', [
+                Log::info('OCR extraction failed, trying AI fallback', [
                     'file_path' => $filePath,
                     'stored_filetype' => $storedFileType,
                 ]);
 
                 try {
-                    $geminiService = new \App\Services\GeminiService;
+                    $geminiService = new GeminiService;
                     $gwa = $geminiService->extractGWA($filePath);
                     $extractionMethod = 'ai';
-                } catch (\Exception $e) {
-                    \Log::error('AI extraction also failed', [
+                } catch (Exception $e) {
+                    Log::error('AI extraction also failed', [
                         'file_path' => $filePath,
                         'error' => $e->getMessage(),
                     ]);
@@ -1690,7 +1728,7 @@ class StaffDashboardController extends Controller
     public function recalculateDocumentPriorities()
     {
         try {
-            $priorityService = new \App\Services\DocumentPriorityService;
+            $priorityService = new DocumentPriorityService;
             $results = $priorityService->recalculateAllPriorities();
 
             return response()->json([
@@ -1699,7 +1737,7 @@ class StaffDashboardController extends Controller
                 'total_documents' => $results['total_documents'],
                 'documents' => $results['documents'],
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error recalculating priorities: '.$e->getMessage(),
@@ -1715,7 +1753,7 @@ class StaffDashboardController extends Controller
         $status = $request->get('status', 'pending');
         $limit = $request->get('limit', 20);
 
-        $priorityService = new \App\Services\DocumentPriorityService;
+        $priorityService = new DocumentPriorityService;
         $documents = $priorityService->getPrioritizedDocuments($status, $limit);
 
         return response()->json([
@@ -1743,7 +1781,7 @@ class StaffDashboardController extends Controller
      */
     public function getDocumentPriorityStatistics()
     {
-        $priorityService = new \App\Services\DocumentPriorityService;
+        $priorityService = new DocumentPriorityService;
         $statistics = $priorityService->getPriorityStatistics();
 
         return response()->json([
@@ -1757,7 +1795,8 @@ class StaffDashboardController extends Controller
      */
     public function masterlistRegular(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
 
         // Get filters from request
         $selectedProvince = $request->get('province');
@@ -1825,7 +1864,8 @@ class StaffDashboardController extends Controller
      */
     public function masterlistRegularGrantees(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
 
         // Get filters from request
         $selectedProvince = $request->get('province');
@@ -1887,7 +1927,8 @@ class StaffDashboardController extends Controller
     public function granteesReport(Request $request)
     {
         try {
-            $user = \Auth::guard('staff')->user();
+            /** @var Staff $user */
+            $user = Auth::guard('staff')->user();
 
             // Get filters from request
             $selectedProvince = $request->get('province');
@@ -1940,7 +1981,7 @@ class StaffDashboardController extends Controller
             // Get all grantees without pagination
             $grantees = $applicantsQuery->orderBy('created_at', 'desc')->get();
 
-            \Log::info('Grantees Report Query', [
+            Log::info('Grantees Report Query', [
                 'count' => $grantees->count(),
                 'filters' => [
                     'province' => $selectedProvince,
@@ -1965,7 +2006,7 @@ class StaffDashboardController extends Controller
                         try {
                             $birthdate = Carbon::parse($basicInfo->birthdate);
                             $age = $birthdate->age;
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $age = '';
                         }
                     }
@@ -2049,8 +2090,8 @@ class StaffDashboardController extends Controller
                     ];
                 }),
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error in granteesReport', [
+        } catch (Exception $e) {
+            Log::error('Error in granteesReport', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -2070,7 +2111,8 @@ class StaffDashboardController extends Controller
     public function pamanaReport(Request $request)
     {
         try {
-            $user = \Auth::guard('staff')->user();
+            /** @var Staff $user */
+            $user = Auth::guard('staff')->user();
 
             // Get filters from request
             $selectedProvince = $request->get('province');
@@ -2124,7 +2166,7 @@ class StaffDashboardController extends Controller
             // Get all Pamana applicants without pagination
             $pamanaApplicants = $applicantsQuery->orderBy('created_at', 'desc')->get();
 
-            \Log::info('Pamana Report Query', [
+            Log::info('Pamana Report Query', [
                 'count' => $pamanaApplicants->count(),
                 'filters' => [
                     'province' => $selectedProvince,
@@ -2149,7 +2191,7 @@ class StaffDashboardController extends Controller
                         try {
                             $birthdate = Carbon::parse($basicInfo->birthdate);
                             $age = $birthdate->age;
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $age = '';
                         }
                     }
@@ -2233,8 +2275,8 @@ class StaffDashboardController extends Controller
                     ];
                 }),
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error in pamanaReport', [
+        } catch (Exception $e) {
+            Log::error('Error in pamanaReport', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -2253,7 +2295,8 @@ class StaffDashboardController extends Controller
     public function waitingListReport(Request $request)
     {
         try {
-            $user = \Auth::guard('staff')->user();
+            /** @var Staff $user */
+            $user = Auth::guard('staff')->user();
 
             // Get filters from request
             $selectedProvince = $request->get('province');
@@ -2299,7 +2342,7 @@ class StaffDashboardController extends Controller
             $waitingList = $applicantsQuery->orderBy('created_at', 'desc')->get();
 
             // Calculate priority scores and ranks using ApplicantPriorityService
-            $priorityService = app(\App\Services\ApplicantPriorityService::class);
+            $priorityService = app(ApplicantPriorityService::class);
             $prioritizedApplicants = $priorityService->getPrioritizedApplicants();
 
             // Create a map of user_id => priority data
@@ -2328,7 +2371,7 @@ class StaffDashboardController extends Controller
                         try {
                             $birthdate = Carbon::parse($basicInfo->birthdate);
                             $age = $birthdate->age;
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $age = '';
                         }
                     }
@@ -2423,8 +2466,8 @@ class StaffDashboardController extends Controller
                     return $applicant;
                 }),
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Waiting list report error: '.$e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Waiting list report error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -2439,7 +2482,8 @@ class StaffDashboardController extends Controller
      */
     public function disqualifiedApplicantsReport(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
         // Get all rejected applicants (not terminated grantees)
@@ -2501,9 +2545,9 @@ class StaffDashboardController extends Controller
                     $age = $basicInfo->age;
                 } elseif ($basicInfo->birthdate) {
                     try {
-                        $birthdate = \Carbon\Carbon::parse($basicInfo->birthdate);
+                        $birthdate = Carbon::parse($basicInfo->birthdate);
                         $age = $birthdate->age;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $age = '';
                     }
                 }
@@ -2622,7 +2666,7 @@ class StaffDashboardController extends Controller
 
     public function replacementsReport(Request $request)
     {
-        $rows = \App\Models\Replacement::with([
+        $rows = Replacement::with([
             'replacementUser.basicInfo.fullAddress.address',
             'replacementUser.ethno',
             'replacementUser.basicInfo.schoolPref',
@@ -2644,7 +2688,7 @@ class StaffDashboardController extends Controller
                     try {
                         $birthdate = Carbon::parse($basicInfo->birthdate);
                         $age = $birthdate->age;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $age = '';
                     }
                 }
@@ -2796,10 +2840,11 @@ class StaffDashboardController extends Controller
             'school_year' => 'nullable|string|max:50',
         ]);
 
-        $staff = \Auth::guard('staff')->user();
+        /** @var Staff $staff */
+        $staff = Auth::guard('staff')->user();
 
         try {
-            $result = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $staff) {
+            $result = DB::transaction(function () use ($validated, $staff) {
                 // Enforce: replacement must come from waiting list (validated + waiting)
                 $replacementUser = User::with('basicInfo')->findOrFail($validated['replacement_user_id']);
                 $replacementBasic = $replacementUser->basicInfo;
@@ -2838,7 +2883,7 @@ class StaffDashboardController extends Controller
                 ]);
 
                 // Notify terminated student
-                $replacedUser->notify(new \App\Notifications\ApplicationStatusUpdated('rejected', trim($validated['replacement_reason'])));
+                $replacedUser->notify(new ApplicationStatusUpdated('rejected', trim($validated['replacement_reason'])));
 
                 // 2) Promote the waiting applicant to grantee
                 $promoteData = [
@@ -2863,7 +2908,7 @@ class StaffDashboardController extends Controller
                 ));
 
                 // 3) Record the replacement event
-                $replacement = \App\Models\Replacement::create([
+                $replacement = Replacement::create([
                     'replacement_user_id' => $validated['replacement_user_id'],
                     'replaced_user_id' => $validated['replaced_user_id'],
                     'replaced_name' => null,
@@ -2877,9 +2922,9 @@ class StaffDashboardController extends Controller
                     'replacement_id' => $replacement->id,
                 ];
             });
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Keep a useful server-side record, but return a user-friendly message.
-            \Log::error('storeReplacement failed', [
+            Log::error('storeReplacement failed', [
                 'exception' => $e,
                 'replacement_user_id' => $validated['replacement_user_id'] ?? null,
                 'replaced_user_id' => $validated['replaced_user_id'] ?? null,
@@ -2970,8 +3015,8 @@ class StaffDashboardController extends Controller
                 'message' => "Successfully updated {$updated} applicant(s).",
                 'updated' => $updated,
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Update waiting list error: '.$e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Update waiting list error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -3010,8 +3055,8 @@ class StaffDashboardController extends Controller
                 'message' => "Successfully updated grants for {$updated} grantee(s).",
                 'updated' => $updated,
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Update grants error: '.$e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Update grants error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -3025,7 +3070,8 @@ class StaffDashboardController extends Controller
      */
     public function masterlistRegularWaiting(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
 
         // Get filters from request
         $selectedProvince = $request->get('province');
@@ -3086,7 +3132,8 @@ class StaffDashboardController extends Controller
      */
     public function masterlistPamana(Request $request)
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
 
         // Get filters from request
         $selectedProvince = $request->get('province');
@@ -3154,7 +3201,8 @@ class StaffDashboardController extends Controller
      */
     public function announcements()
     {
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
         $name = $user->name;
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
@@ -3180,7 +3228,8 @@ class StaffDashboardController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
         ]);
 
-        $user = \Auth::guard('staff')->user();
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
 
         $imagePath = null;
         if ($request->hasFile('image')) {

@@ -10,6 +10,10 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * @method void notify($notification)
+ * @method bool hasVerifiedEmail()
+ * @method bool markEmailAsVerified()
+ * @method bool sendEmailVerificationNotification()
+ * @method string getEmailForVerification()
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -56,17 +60,17 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    public function basicInfo()
+    public function basicInfo(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(\App\Models\BasicInfo::class, 'user_id');
     }
 
-    public function ethno()
+    public function ethno(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Ethno::class, 'ethno_id');
     }
 
-    public function documents()
+    public function documents(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\Document::class, 'user_id');
     }

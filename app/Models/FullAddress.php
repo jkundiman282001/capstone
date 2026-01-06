@@ -21,22 +21,22 @@ class FullAddress extends Model
         'origin_id',
     ];
 
-    public function mailingAddress()
+    public function mailingAddress(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\MailingAddress::class, 'mailing_address_id');
     }
 
-    public function permanentAddress()
+    public function permanentAddress(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\PermanentAddress::class, 'permanent_address_id');
     }
 
-    public function origin()
+    public function origin(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Origin::class, 'origin_id');
     }
 
-    public function address()
+    public function address(): \Illuminate\Database\Eloquent\Relations\HasOneThrough
     {
         // Assuming mailing address is the primary address
         return $this->hasOneThrough(

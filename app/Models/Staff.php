@@ -8,6 +8,15 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * @method void notify($notification)
+ * @method \Illuminate\Notifications\DatabaseNotificationCollection notifications()
+ * @method \Illuminate\Notifications\DatabaseNotificationCollection unreadNotifications()
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $unreadNotifications
+ * @property string $name
+ * @property string $assigned_barangay
+ * @property string $first_name
+ * @property string $last_name
+ * @property string $email
  */
 class Staff extends Authenticatable
 {

@@ -51,7 +51,8 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-
+            
+            /** @var \App\Models\User $user */
             $user = Auth::user();
             if ($user && ! $user->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice');
