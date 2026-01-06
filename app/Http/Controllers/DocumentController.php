@@ -125,7 +125,8 @@ class DocumentController extends Controller
 
     public function show(Document $document)
     {
-        if ($document->user_id !== Auth::id()) {
+        // Allow the owner of the document OR any staff member
+        if ($document->user_id !== Auth::id() && ! Auth::guard('staff')->check()) {
             abort(403);
         }
 
