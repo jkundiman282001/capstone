@@ -716,31 +716,47 @@
                     </div>
                     @endif
 
-                    @foreach($documents->whereIn('status', ['approved', 'rejected'])->sortByDesc('updated_at')->take(5) as $doc)
+                    @foreach($documents->whereIn('status', ['approved', 'rejected', 'pending'])->sortByDesc('submitted_at') as $doc)
                     <div class="flex gap-4 group/item">
                         <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full {{ $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 'bg-red-500/50 group-hover/item:bg-red-500' }} transition-colors z-10"></div>
+                            <div class="w-2.5 h-2.5 rounded-full {{ 
+                                $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 
+                                ($doc->status === 'rejected' ? 'bg-red-500/50 group-hover/item:bg-red-500' : 'bg-amber-500/50 group-hover/item:bg-amber-500') 
+                            }} transition-colors z-10"></div>
                             @if(!$loop->last) <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div> @endif
                         </div>
                         <div class="flex-1 {{ !$loop->last ? 'pb-8' : '' }}">
                             <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">Document {{ ucfirst($doc->status) }}</span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $doc->updated_at->format('M d, h:i A') }}</span>
+                                <span class="text-sm font-black text-slate-900 leading-none">
+                                    Document {{ $doc->status === 'pending' ? 'Submitted' : ucfirst($doc->status) }}
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ ($doc->submitted_at ?? $doc->updated_at)->format('M d, h:i A') }}</span>
                             </div>
                             <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-1 italic">
-                                "{{ $requiredTypes[$doc->type] ?? $doc->type }}" {{ $doc->status === 'approved' ? 'has been verified.' : 'requires revision.' }}
+                                "{{ $requiredTypes[$doc->type] ?? $doc->type }}" 
+                                @if($doc->status === 'approved')
+                                    has been verified.
+                                @elseif($doc->status === 'rejected')
+                                    requires revision.
+                                @else
+                                    is now pending review.
+                                @endif
+
                                 @if($doc->status === 'rejected' && $doc->rejection_reason)
                                     <span class="block text-[10px] text-red-400 font-bold mt-0.5">Reason: {{ $doc->rejection_reason }}</span>
                                 @endif
                             </p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded {{ $doc->status === 'approved' ? 'bg-emerald-50' : 'bg-red-50' }} {{ $doc->status === 'approved' ? 'text-emerald-600' : 'text-red-600' }} text-[9px] font-black uppercase tracking-wider border {{ $doc->status === 'approved' ? 'border-emerald-100' : 'border-red-100' }} shadow-sm">
-                                {{ $doc->status === 'approved' ? 'Success' : 'Revision' }}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded {{ 
+                                $doc->status === 'approved' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 
+                                ($doc->status === 'rejected' ? 'bg-red-50 border-red-100 text-red-600' : 'bg-amber-50 border-amber-100 text-amber-600') 
+                            }} text-[9px] font-black uppercase tracking-wider border shadow-sm">
+                                @if($doc->status === 'approved') Success @elseif($doc->status === 'rejected') Revision @else Pending @endif
                             </span>
                         </div>
                     </div>
                     @endforeach
 
-                    @if($documents->whereIn('status', ['approved', 'rejected'])->count() == 0 && !$isStudentValidated && !$isGrantee && $trackerStatus !== 'rejected')
+                    @if($documents->whereIn('status', ['approved', 'rejected', 'pending'])->count() == 0 && !$isStudentValidated && !$isGrantee && $trackerStatus !== 'rejected')
                         <div class="text-center py-8">
                             <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
                                 <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

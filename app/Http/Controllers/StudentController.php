@@ -147,43 +147,18 @@ class StudentController extends Controller
 
                     $path = $file->store('documents', 'public');
 
-                    // Check if document already exists for this user and type
-                    $existingDocument = Document::where('user_id', $user->id)
-                        ->where('type', $type)
-                        ->orderBy('created_at', 'desc')
-                        ->first();
-
-                    if ($existingDocument) {
-                        // Update existing document
-                        if (Storage::disk('public')->exists($existingDocument->filepath)) {
-                            Storage::disk('public')->delete($existingDocument->filepath);
-                        }
-
-                        $existingDocument->filename = $file->getClientOriginalName();
-                        $existingDocument->filepath = $path;
-                        $existingDocument->filetype = $file->getClientMimeType();
-                        $existingDocument->filesize = $file->getSize();
-                        $existingDocument->status = 'pending';
-                        $existingDocument->rejection_reason = null;
-                        $existingDocument->priority_rank = null;
-                        $existingDocument->priority_score = 0;
-                        $existingDocument->submitted_at = now();
-                        $existingDocument->save();
-
-                        $document = $existingDocument;
-                    } else {
-                        // Create new document
-                        $document = new Document;
-                        $document->user_id = $user->id;
-                        $document->filename = $file->getClientOriginalName();
-                        $document->filepath = $path;
-                        $document->filetype = $file->getClientMimeType();
-                        $document->filesize = $file->getSize();
-                        $document->description = null;
-                        $document->status = 'pending';
-                        $document->type = $type;
-                        $document->save();
-                    }
+                    // Create new document instead of updating existing one to maintain history
+                    $document = new Document;
+                    $document->user_id = $user->id;
+                    $document->filename = $file->getClientOriginalName();
+                    $document->filepath = $path;
+                    $document->filetype = $file->getClientMimeType();
+                    $document->filesize = $file->getSize();
+                    $document->description = null;
+                    $document->status = 'pending';
+                    $document->type = $type;
+                    $document->submitted_at = now();
+                    $document->save();
 
                     $priorityService = new \App\Services\DocumentPriorityService;
                     $priorityService->onDocumentUploaded($document);

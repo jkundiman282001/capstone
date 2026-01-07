@@ -638,7 +638,13 @@ class StaffDashboardController extends Controller
 
         // Calculate progress variables
         $totalRequired = count($requiredTypes);
-        $approvedCount = $documents->whereIn('type', array_keys($requiredTypes))->where('status', 'approved')->count();
+        
+        // Count only unique document types where the latest submission is approved
+        $approvedCount = collect($requiredTypes)->keys()->filter(function($type) use ($documents) {
+            $latest = $documents->where('type', $type)->sortByDesc('submitted_at')->first();
+            return $latest && $latest->status === 'approved';
+        })->count();
+        
         $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
 
         // Get course prioritization for this specific applicant

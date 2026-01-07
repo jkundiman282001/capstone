@@ -55,53 +55,21 @@ class DocumentController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Check if there's an existing document of this type for this user
-        // Get the most recent one in case there are duplicates
-        $existingDocument = Document::where('user_id', $user->id)
-            ->where('type', $request->type)
-            ->orderBy('updated_at', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->first();
+        // Store new file
+        $path = $file->store('documents', 'public');
 
-        if ($existingDocument) {
-            // If document exists, update it (resubmission case)
-            // Delete old file from storage
-            if (Storage::disk('public')->exists($existingDocument->filepath)) {
-                Storage::disk('public')->delete($existingDocument->filepath);
-            }
-
-            // Store new file
-            $path = $file->store('documents', 'public');
-
-            // Update existing document
-            $existingDocument->filename = $file->getClientOriginalName();
-            $existingDocument->filepath = $path;
-            $existingDocument->filetype = $file->getClientMimeType();
-            $existingDocument->filesize = $file->getSize();
-            $existingDocument->status = 'pending'; // Reset to pending when resubmitted
-            $existingDocument->rejection_reason = null; // Clear rejection reason
-            $existingDocument->priority_rank = null; // Reset priority rank
-            $existingDocument->priority_score = 0; // Reset priority score (default value, not null)
-            $existingDocument->submitted_at = now(); // Update submission timestamp
-            $existingDocument->touch(); // Update timestamps
-            $existingDocument->save();
-
-            $document = $existingDocument;
-        } else {
-            // Create new document if it doesn't exist
-            $path = $file->store('documents', 'public');
-
-            $document = new Document;
-            $document->user_id = $user->id;
-            $document->filename = $file->getClientOriginalName();
-            $document->filepath = $path;
-            $document->filetype = $file->getClientMimeType();
-            $document->filesize = $file->getSize();
-            $document->description = null;
-            $document->status = 'pending';
-            $document->type = $request->type;
-            $document->save();
-        }
+        // Create new document record (always create new instead of updating to maintain history)
+        $document = new Document;
+        $document->user_id = $user->id;
+        $document->filename = $file->getClientOriginalName();
+        $document->filepath = $path;
+        $document->filetype = $file->getClientMimeType();
+        $document->filesize = $file->getSize();
+        $document->description = null;
+        $document->status = 'pending';
+        $document->type = $request->type;
+        $document->submitted_at = now();
+        $document->save();
 
         // Calculate document priority (First Come, First Serve)
         $priorityService = new DocumentPriorityService;

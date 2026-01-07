@@ -452,101 +452,95 @@
                     <div class="space-y-3">
                         @foreach($requiredTypes as $typeKey => $typeLabel)
                             @php
-                                // Get the latest document of this type (most recent submission)
-                                // Sort by updated_at (when resubmitted) or created_at (new uploads)
-                                $typeDocuments = $documents->where('type', $typeKey);
-                                $uploaded = $typeDocuments->sortByDesc(function($doc) {
-                                    return $doc->updated_at ?? $doc->created_at;
-                                })->first();
-                                $status = $uploaded ? $uploaded->status : 'missing';
+                                $typeDocuments = $documents->where('type', $typeKey)->sortByDesc('submitted_at');
+                                $latestDoc = $typeDocuments->first();
+                                $status = $latestDoc ? $latestDoc->status : 'missing';
                             @endphp
                             
-                            @if($status === 'approved')
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-4">
+                            <div class="space-y-2 p-4 rounded-2xl border-2 {{ 
+                                $status === 'approved' ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200' : 
+                                ($status === 'pending' ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200' : 
+                                ($status === 'rejected' ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200' : 'bg-slate-50 border-slate-200 opacity-60')) 
+                            }}">
+                                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
-                                        <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 {{
+                                            $status === 'approved' ? 'bg-emerald-500' : 
+                                            ($status === 'pending' ? 'bg-amber-500' : 
+                                            ($status === 'rejected' ? 'bg-red-500' : 'bg-slate-300'))
+                                        }}">
+                                            @if($status === 'approved')
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            @elseif($status === 'pending')
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            @else
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            @endif
                                         </div>
                                         <div class="min-w-0">
-                                            <h4 class="font-bold text-slate-900 text-sm truncate sm:whitespace-normal">{{ $typeLabel }}</h4>
-                                            <p class="text-xs text-emerald-600 font-medium">Approved • {{ $uploaded->created_at->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
-                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GWA
-                                            </button>
-                                        @endif
-                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">
-                                            View
-                                        </button>
-                                    </div>
-                                </div>
-                            @elseif($status === 'pending')
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-4">
-                                    <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
-                                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-bold text-slate-900 text-sm truncate sm:whitespace-normal">{{ $typeLabel }}</h4>
-                                            <p class="text-xs text-amber-600 font-medium">Pending Review • {{ $uploaded->created_at->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
-                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GWA
-                                            </button>
-                                        @endif
-                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
-                                        <button onclick="updateDocumentStatus({{ $uploaded->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
-                                        <button onclick="showFeedbackModal({{ $uploaded->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
-                                    </div>
-                                </div>
-                            @elseif($status === 'rejected')
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl hover:shadow-md transition-all gap-4 sm:gap-4">
-                                    <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
-                                        <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-bold text-slate-900 text-sm truncate sm:whitespace-normal">{{ $typeLabel }}</h4>
-                                            <p class="text-xs text-red-600 font-medium">Rejected • {{ $uploaded->created_at->diffForHumans() }}</p>
-                                            @if($uploaded->rejection_reason)
-                                                <div class="mt-2 p-2 bg-white rounded-lg border border-red-100">
-                                                    <p class="text-xs text-slate-700"><strong class="text-red-700">Reason:</strong> {{ $uploaded->rejection_reason }}</p>
-                                                </div>
+                                            <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
+                                            @if($latestDoc)
+                                                <p class="text-xs font-medium {{
+                                                    $status === 'approved' ? 'text-emerald-600' : 
+                                                    ($status === 'pending' ? 'text-amber-600' : 'text-red-600')
+                                                }}">
+                                                    {{ ucfirst($status) }} • {{ $latestDoc->submitted_at ? $latestDoc->submitted_at->diffForHumans() : $latestDoc->created_at->diffForHumans() }}
+                                                </p>
+                                            @else
+                                                <p class="text-xs text-slate-500 font-medium">Not submitted</p>
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
-                                        @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
-                                            <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1" title="Enter GWA Manually">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                Enter GWA
-                                            </button>
-                                        @endif
-                                        <button onclick="viewDocument('{{ route('documents.view', $uploaded->id) }}', '{{ $uploaded->filename }}', '{{ $uploaded->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl opacity-60 gap-4 sm:gap-0">
-                                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                                        <div class="w-10 h-10 bg-slate-300 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+
+                                    @if($latestDoc)
+                                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
+                                            @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
+                                                <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                    Enter GWA
+                                                </button>
+                                            @endif
+                                            
+                                            <button onclick="viewDocument('{{ route('documents.view', $latestDoc->id) }}', '{{ $latestDoc->filename }}', '{{ $latestDoc->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                            
+                                            @if($status === 'pending')
+                                                <button onclick="updateDocumentStatus({{ $latestDoc->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
+                                                <button onclick="showFeedbackModal({{ $latestDoc->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
+                                            @endif
                                         </div>
-                                        <div>
-                                            <h4 class="font-bold text-slate-700 text-sm">{{ $typeLabel }}</h4>
-                                            <p class="text-xs text-slate-500 font-medium">Not submitted</p>
+                                    @else
+                                        <span class="px-3 py-1.5 bg-slate-200 text-slate-600 font-bold rounded-lg text-xs">Missing</span>
+                                    @endif
+                                </div>
+
+                                @if($typeDocuments->count() > 1)
+                                    <div class="mt-3 pt-3 border-t border-slate-200/50">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Previous Submissions</p>
+                                        <div class="space-y-1.5">
+                                            @foreach($typeDocuments->skip(1) as $prevDoc)
+                                                <div class="flex items-center justify-between py-1.5 px-3 bg-white/50 rounded-xl border border-slate-100">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-1.5 h-1.5 rounded-full {{ 
+                                                            $prevDoc->status === 'approved' ? 'bg-emerald-500' : 
+                                                            ($prevDoc->status === 'rejected' ? 'bg-red-500' : 'bg-amber-500') 
+                                                        }}"></div>
+                                                        <span class="text-xs font-medium text-slate-600">{{ ucfirst($prevDoc->status) }}</span>
+                                                        <span class="text-[10px] text-slate-400">• {{ $prevDoc->submitted_at ? $prevDoc->submitted_at->diffForHumans() : $prevDoc->created_at->diffForHumans() }}</span>
+                                                    </div>
+                                                    <button onclick="viewDocument('{{ route('documents.view', $prevDoc->id) }}', '{{ $prevDoc->filename }}', '{{ $prevDoc->filetype }}')" class="text-[10px] font-bold text-blue-600 hover:text-blue-700">View History</button>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
-                                    <span class="px-3 py-1.5 bg-slate-200 text-slate-600 font-bold rounded-lg text-xs w-full sm:w-auto text-center">Missing</span>
-                                </div>
-                            @endif
+                                @endif
+
+                                @if($latestDoc && $latestDoc->status === 'rejected' && $latestDoc->rejection_reason)
+                                    <div class="mt-2 p-2 bg-white/80 rounded-lg border border-red-100">
+                                        <p class="text-xs text-slate-700"><strong class="text-red-700">Latest Rejection Reason:</strong> {{ $latestDoc->rejection_reason }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
                         @endforeach
                     </div>
                 </div>
