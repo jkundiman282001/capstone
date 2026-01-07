@@ -83,8 +83,12 @@ class DocumentController extends Controller
         $student = $user;
         $documentType = $request->type;
         /** @var \App\Models\Staff $staff */
-        foreach (Staff::all() as $staff) {
-            $staff->notify(new StudentUploadedDocument($student, $documentType));
+        try {
+            foreach (Staff::all() as $staff) {
+                $staff->notify(new StudentUploadedDocument($student, $documentType));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to notify staff about document upload in DocumentController: ' . $e->getMessage());
         }
 
         // Notify the student

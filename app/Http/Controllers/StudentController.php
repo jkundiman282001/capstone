@@ -10,6 +10,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+use Illuminate\Support\Facades\DB;
+use App\Models\Address;
+use App\Models\FullAddress;
+use App\Models\SchoolPref;
+use App\Models\Education;
+use App\Models\Family;
+use App\Models\FamSiblings;
+use App\Models\Staff;
+use App\Notifications\StudentSubmittedApplication;
+use App\Notifications\StudentUploadedDocument;
+use App\Services\DocumentPriorityService;
+
 class StudentController extends Controller
 {
     public function dashboard(Request $request)
@@ -134,7 +146,20 @@ class StudentController extends Controller
 
             'contribution' => 'required_if:is_renewal,0|string',
             'plans_after_grad' => 'required_if:is_renewal,0|string',
+
+            // Parent Info (Optional but must be strings if provided)
+            'father_name' => 'nullable|string|max:255',
+            'father_address' => 'nullable|string|max:255',
+            'father_education' => 'nullable|string|max:255',
+            'father_income' => 'nullable|string|max:255',
+            'mother_name' => 'nullable|string|max:255',
+            'mother_address' => 'nullable|string|max:255',
+            'mother_education' => 'nullable|string|max:255',
+            'mother_income' => 'nullable|string|max:255',
         ]);
+
+        try {
+            DB::beginTransaction();
 
         // For renewals, only process document uploads and skip form data
         if ($isRenewal) {
@@ -166,15 +191,24 @@ class StudentController extends Controller
                     $priorityService = new \App\Services\DocumentPriorityService;
                     $priorityService->onDocumentUploaded($document);
 
-                    foreach (\App\Models\Staff::all() as $staff) {
-                        $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                    // Notify staff (handle missing table gracefully)
+                    try {
+                        foreach (\App\Models\Staff::all() as $staff) {
+                            $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to notify staff about document upload: ' . $e->getMessage());
                     }
                 }
             }
 
             // Notify all staff about renewal submission
-            foreach (\App\Models\Staff::all() as $staff) {
-                $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+            try {
+                foreach (\App\Models\Staff::all() as $staff) {
+                    $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to notify staff about renewal submission: ' . $e->getMessage());
             }
 
             // Notify the student
@@ -185,6 +219,7 @@ class StudentController extends Controller
                 'normal'
             ));
 
+            DB::commit();
             $message = 'Your scholarship renewal application has been submitted!';
             $request->session()->flash('status', $message);
 
@@ -426,15 +461,24 @@ class StudentController extends Controller
                 $priorityService = new \App\Services\DocumentPriorityService;
                 $priorityService->onDocumentUploaded($document);
 
-                foreach (\App\Models\Staff::all() as $staff) {
-                    $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                // Notify staff (handle missing table gracefully)
+                try {
+                    foreach (\App\Models\Staff::all() as $staff) {
+                        $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to notify staff about document upload: ' . $e->getMessage());
                 }
             }
         }
 
         // Notify all staff
-        foreach (\App\Models\Staff::all() as $staff) {
-            $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+        try {
+            foreach (\App\Models\Staff::all() as $staff) {
+                $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to notify staff about application submission: ' . $e->getMessage());
         }
 
         // Notify the student
@@ -445,8 +489,21 @@ class StudentController extends Controller
             'normal'
         ));
 
+        DB::commit();
+
         return redirect()->route('student.dashboard');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Scholarship application submission failed: ' . $e->getMessage(), [
+            'user_id' => $user->id,
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'An error occurred while submitting your application: ' . $e->getMessage());
     }
+}
 
     /**
      * Save application draft
