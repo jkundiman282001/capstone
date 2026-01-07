@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('office_address')->nullable()->change();
             $table->string('educational_attainment')->nullable()->change();
             $table->integer('income')->nullable()->change();
-            $table->unsignedInteger('ethno_id')->nullable()->change();
+            $table->unsignedBigInteger('ethno_id')->nullable()->change();
         });
 
         Schema::table('fam_siblings', function (Blueprint $table) {
@@ -41,7 +41,7 @@ return new class extends Migration
             $table->text('office_address')->nullable(false)->change();
             $table->string('educational_attainment')->nullable(false)->change();
             $table->integer('income')->nullable(false)->change();
-            $table->unsignedInteger('ethno_id')->nullable(false)->change();
+            $table->unsignedBigInteger('ethno_id')->nullable(false)->change();
         });
 
         Schema::table('fam_siblings', function (Blueprint $table) {
