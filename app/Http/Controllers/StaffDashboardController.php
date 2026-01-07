@@ -640,10 +640,7 @@ class StaffDashboardController extends Controller
         $totalRequired = count($requiredTypes);
         
         // Count only unique document types where the latest submission is approved
-        $approvedCount = collect($requiredTypes)->keys()->filter(function($type) use ($documents) {
-            $latest = $documents->where('type', $type)->sortByDesc('submitted_at')->first();
-            return $latest && $latest->status === 'approved';
-        })->count();
+        $approvedCount = $documents->where('status', 'approved')->count();
         
         $progressPercent = $totalRequired > 0 ? round(($approvedCount / $totalRequired) * 100) : 0;
 

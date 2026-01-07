@@ -58,18 +58,21 @@ class DocumentController extends Controller
         // Store new file
         $path = $file->store('documents', 'public');
 
-        // Create new document record (always create new instead of updating to maintain history)
-        $document = new Document;
-        $document->user_id = $user->id;
-        $document->filename = $file->getClientOriginalName();
-        $document->filepath = $path;
-        $document->filetype = $file->getClientMimeType();
-        $document->filesize = $file->getSize();
-        $document->description = null;
-        $document->status = 'pending';
-        $document->type = $request->type;
-        $document->submitted_at = now();
-        $document->save();
+        // Update or create document record
+        $document = Document::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'type' => $request->type,
+            ],
+            [
+                'filename' => $file->getClientOriginalName(),
+                'filepath' => $path,
+                'filetype' => $file->getClientMimeType(),
+                'filesize' => $file->getSize(),
+                'status' => 'pending',
+                'submitted_at' => now(),
+            ]
+        );
 
         // Calculate document priority (First Come, First Serve)
         $priorityService = new DocumentPriorityService;

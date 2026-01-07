@@ -452,9 +452,8 @@
                     <div class="space-y-3">
                         @foreach($requiredTypes as $typeKey => $typeLabel)
                             @php
-                                $typeDocuments = $documents->where('type', $typeKey)->sortByDesc('submitted_at');
-                                $latestDoc = $typeDocuments->first();
-                                $status = $latestDoc ? $latestDoc->status : 'missing';
+                                $doc = $documents->where('type', $typeKey)->first();
+                                $status = $doc ? $doc->status : 'missing';
                             @endphp
                             
                             <div class="space-y-2 p-4 rounded-2xl border-2 {{ 
@@ -479,12 +478,12 @@
                                         </div>
                                         <div class="min-w-0">
                                             <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
-                                            @if($latestDoc)
+                                            @if($doc)
                                                 <p class="text-xs font-medium {{
                                                     $status === 'approved' ? 'text-emerald-600' : 
                                                     ($status === 'pending' ? 'text-amber-600' : 'text-red-600')
                                                 }}">
-                                                    {{ ucfirst($status) }} • {{ $latestDoc->submitted_at ? $latestDoc->submitted_at->diffForHumans() : $latestDoc->created_at->diffForHumans() }}
+                                                    {{ ucfirst($status) }} • {{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}
                                                 </p>
                                             @else
                                                 <p class="text-xs text-slate-500 font-medium">Not submitted</p>
@@ -492,7 +491,7 @@
                                         </div>
                                     </div>
 
-                                    @if($latestDoc)
+                                    @if($doc)
                                         <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
                                             @if($typeKey === 'grades' && !($basicInfo->gpa ?? null))
                                                 <button onclick="showManualGWAModal({{ $user->id }})" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
@@ -501,11 +500,11 @@
                                                 </button>
                                             @endif
                                             
-                                            <button onclick="viewDocument('{{ route('documents.view', $latestDoc->id) }}', '{{ $latestDoc->filename }}', '{{ $latestDoc->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                            <button onclick="viewDocument('{{ route('documents.view', $doc->id) }}', '{{ $doc->filename }}', '{{ $doc->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
                                             
                                             @if($status === 'pending')
-                                                <button onclick="updateDocumentStatus({{ $latestDoc->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
-                                                <button onclick="showFeedbackModal({{ $latestDoc->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
+                                                <button onclick="updateDocumentStatus({{ $doc->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
+                                                <button onclick="showFeedbackModal({{ $doc->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
                                             @endif
                                         </div>
                                     @else
@@ -513,34 +512,12 @@
                                     @endif
                                 </div>
 
-                                @if($typeDocuments->count() > 1)
-                                    <div class="mt-3 pt-3 border-t border-slate-200/50">
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Previous Submissions</p>
-                                        <div class="space-y-1.5">
-                                            @foreach($typeDocuments->skip(1) as $prevDoc)
-                                                <div class="flex items-center justify-between py-1.5 px-3 bg-white/50 rounded-xl border border-slate-100">
-                                                    <div class="flex items-center gap-2">
-                                                        <div class="w-1.5 h-1.5 rounded-full {{ 
-                                                            $prevDoc->status === 'approved' ? 'bg-emerald-500' : 
-                                                            ($prevDoc->status === 'rejected' ? 'bg-red-500' : 'bg-amber-500') 
-                                                        }}"></div>
-                                                        <span class="text-xs font-medium text-slate-600">{{ ucfirst($prevDoc->status) }}</span>
-                                                        <span class="text-[10px] text-slate-400">• {{ $prevDoc->submitted_at ? $prevDoc->submitted_at->diffForHumans() : $prevDoc->created_at->diffForHumans() }}</span>
-                                                    </div>
-                                                    <button onclick="viewDocument('{{ route('documents.view', $prevDoc->id) }}', '{{ $prevDoc->filename }}', '{{ $prevDoc->filetype }}')" class="text-[10px] font-bold text-blue-600 hover:text-blue-700">View History</button>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                @if($latestDoc && $latestDoc->status === 'rejected' && $latestDoc->rejection_reason)
+                                @if($doc && $doc->status === 'rejected' && $doc->rejection_reason)
                                     <div class="mt-2 p-2 bg-white/80 rounded-lg border border-red-100">
-                                        <p class="text-xs text-slate-700"><strong class="text-red-700">Latest Rejection Reason:</strong> {{ $latestDoc->rejection_reason }}</p>
+                                        <p class="text-xs text-slate-700"><strong class="text-red-700">Rejection Reason:</strong> {{ $doc->rejection_reason }}</p>
                                     </div>
                                 @endif
                             </div>
-                        @endforeach
                         @endforeach
                     </div>
                 </div>

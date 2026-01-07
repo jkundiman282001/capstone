@@ -716,42 +716,25 @@
                     </div>
                     @endif
 
-                    @foreach($documents->whereIn('status', ['approved', 'rejected', 'pending'])->sortByDesc('submitted_at') as $doc)
+                    @foreach($documents->whereIn('status', ['approved', 'rejected'])->sortByDesc('submitted_at')->take(5) as $doc)
                     <div class="flex gap-4 group/item">
                         <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full {{ 
-                                $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 
-                                ($doc->status === 'rejected' ? 'bg-red-500/50 group-hover/item:bg-red-500' : 'bg-amber-500/50 group-hover/item:bg-amber-500') 
-                            }} transition-colors z-10"></div>
-                            @if(!$loop->last) <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div> @endif
+                            <div class="w-2.5 h-2.5 rounded-full {{ $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 'bg-red-500/50 group-hover/item:bg-red-500' }} transition-colors z-10"></div>
+                            @if(!$loop->last)
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                            @endif
                         </div>
-                        <div class="flex-1 {{ !$loop->last ? 'pb-8' : '' }}">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">
-                                    Document {{ $doc->status === 'pending' ? 'Submitted' : ucfirst($doc->status) }}
-                                </span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ ($doc->submitted_at ?? $doc->updated_at)->format('M d, h:i A') }}</span>
+                        <div class="flex-1 pb-6">
+                            <div class="flex items-center justify-between mb-1">
+                                <p class="text-sm font-bold text-slate-800">{{ $doc->filename }}</p>
+                                <span class="text-[10px] font-medium text-slate-400">{{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}</span>
                             </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-1 italic">
-                                "{{ $requiredTypes[$doc->type] ?? $doc->type }}" 
-                                @if($doc->status === 'approved')
-                                    has been verified.
-                                @elseif($doc->status === 'rejected')
-                                    requires revision.
-                                @else
-                                    is now pending review.
-                                @endif
-
-                                @if($doc->status === 'rejected' && $doc->rejection_reason)
-                                    <span class="block text-[10px] text-red-400 font-bold mt-0.5">Reason: {{ $doc->rejection_reason }}</span>
-                                @endif
-                            </p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded {{ 
-                                $doc->status === 'approved' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 
-                                ($doc->status === 'rejected' ? 'bg-red-50 border-red-100 text-red-600' : 'bg-amber-50 border-amber-100 text-amber-600') 
-                            }} text-[9px] font-black uppercase tracking-wider border shadow-sm">
-                                @if($doc->status === 'approved') Success @elseif($doc->status === 'rejected') Revision @else Pending @endif
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $doc->status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
+                                    {{ strtoupper($doc->status) }}
+                                </span>
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">{{ str_replace('_', ' ', $doc->type) }}</span>
+                            </div>
                         </div>
                     </div>
                     @endforeach

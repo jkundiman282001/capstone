@@ -147,18 +147,21 @@ class StudentController extends Controller
 
                     $path = $file->store('documents', 'public');
 
-                    // Create new document instead of updating existing one to maintain history
-                    $document = new Document;
-                    $document->user_id = $user->id;
-                    $document->filename = $file->getClientOriginalName();
-                    $document->filepath = $path;
-                    $document->filetype = $file->getClientMimeType();
-                    $document->filesize = $file->getSize();
-                    $document->description = null;
-                    $document->status = 'pending';
-                    $document->type = $type;
-                    $document->submitted_at = now();
-                    $document->save();
+                    // Update or create document record
+        $document = Document::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'type' => $type,
+            ],
+            [
+                'filename' => $file->getClientOriginalName(),
+                'filepath' => $path,
+                'filetype' => $file->getClientMimeType(),
+                'filesize' => $file->getSize(),
+                'status' => 'pending',
+                'submitted_at' => now(),
+            ]
+        );
 
                     $priorityService = new \App\Services\DocumentPriorityService;
                     $priorityService->onDocumentUploaded($document);

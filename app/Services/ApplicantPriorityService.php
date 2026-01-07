@@ -164,9 +164,9 @@ class ApplicantPriorityService
         // 2. endorsement - Endorsement of the IPS/IP Traditional Leaders
         // 3. birth_certificate - Can show birthplace/indigenous origin
         $ipDocuments = [
-            'tribal_certificate' => $documents->where('type', 'tribal_certificate')->sortByDesc('created_at')->first(),
-            'endorsement' => $documents->where('type', 'endorsement')->sortByDesc('created_at')->first(),
-            'birth_certificate' => $documents->where('type', 'birth_certificate')->sortByDesc('created_at')->first(),
+            'tribal_certificate' => $documents->where('type', 'tribal_certificate')->first(),
+            'endorsement' => $documents->where('type', 'endorsement')->first(),
+            'birth_certificate' => $documents->where('type', 'birth_certificate')->first(),
         ];
 
         // Count document statuses
@@ -413,13 +413,10 @@ class ApplicantPriorityService
      */
     private function hasApprovedTribalCertificate(User $applicant): bool
     {
-        $latest = $applicant->documents()
+        return $applicant->documents()
             ->where('type', 'tribal_certificate')
-            ->orderByDesc('submitted_at')
-            ->orderByDesc('created_at')
-            ->first();
-            
-        return $latest && $latest->status === 'approved';
+            ->where('status', 'approved')
+            ->exists();
     }
 
     /**
@@ -427,13 +424,10 @@ class ApplicantPriorityService
      */
     private function hasApprovedIncomeTax(User $applicant): bool
     {
-        $latest = $applicant->documents()
+        return $applicant->documents()
             ->where('type', 'income_document')
-            ->orderByDesc('submitted_at')
-            ->orderByDesc('created_at')
-            ->first();
-            
-        return $latest && $latest->status === 'approved';
+            ->where('status', 'approved')
+            ->exists();
     }
 
     /**
@@ -441,13 +435,10 @@ class ApplicantPriorityService
      */
     private function hasApprovedGrades(User $applicant): bool
     {
-        $latest = $applicant->documents()
+        return $applicant->documents()
             ->where('type', 'grades')
-            ->orderByDesc('submitted_at')
-            ->orderByDesc('created_at')
-            ->first();
-            
-        return $latest && $latest->status === 'approved';
+            ->where('status', 'approved')
+            ->exists();
     }
 
     /**
@@ -456,22 +447,18 @@ class ApplicantPriorityService
     private function hasAllOtherRequirements(User $applicant): bool
     {
         $otherRequiredTypes = ['birth_certificate', 'endorsement', 'good_moral'];
-        
-        $allApproved = true;
-        foreach ($otherRequiredTypes as $type) {
-            $latest = $applicant->documents()
-                ->where('type', $type)
-                ->orderByDesc('submitted_at')
-                ->orderByDesc('created_at')
-                ->first();
-                
-            if (!$latest || $latest->status !== 'approved') {
-                $allApproved = false;
-                break;
-            }
-        }
 
-        return $allApproved;
+        $approvedDocs = $applicant->documents()
+            ->whereIn('type', $otherRequiredTypes)
+            ->where('status', 'approved')
+            ->get();
+
+        // Check if all three documents are approved
+        $hasBirthCert = $approvedDocs->where('type', 'birth_certificate')->isNotEmpty();
+        $hasEndorsement = $approvedDocs->where('type', 'endorsement')->isNotEmpty();
+        $hasGoodMoral = $approvedDocs->where('type', 'good_moral')->isNotEmpty();
+
+        return $hasBirthCert && $hasEndorsement && $hasGoodMoral;
     }
 
     /**
