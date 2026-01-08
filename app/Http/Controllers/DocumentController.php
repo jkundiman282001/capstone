@@ -133,9 +133,14 @@ class DocumentController extends Controller
         ]);
 
         // Allow the owner of the document OR any staff member
+        if (!Auth::check() && !Auth::guard('staff')->check()) {
+            Log::warning('Unauthenticated document access attempt', ['id' => $id]);
+            return redirect()->route('login')->with('error', 'Your session has expired. Please log in again to view the document.');
+        }
+
         if ($document->user_id !== Auth::id() && ! Auth::guard('staff')->check()) {
-            Log::warning('Unauthorized document access attempt', ['id' => $document->id]);
-            abort(403);
+            Log::warning('Unauthorized document access attempt', ['id' => $document->id, 'owner' => $document->user_id, 'current_user' => Auth::id()]);
+            abort(403, 'You do not have permission to view this document.');
         }
 
         $filepath = $document->filepath;
