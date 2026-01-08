@@ -623,7 +623,7 @@
                   <option value="Biochemistry">Biochemistry</option>
                   <option value="Biology">Biology</option>
                   <option value="Biotechnology">Biotechnology</option>
-                  <option value="Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)">Business Administration (Accounting, Marketing, Management, Economics, Entrepreneurship)</option>
+                  <option value="Business Administration">Business Administration</option>
                   <option value="Business Management">Business Management</option>
                   <option value="Chemical Engineering">Chemical Engineering</option>
                   <option value="Chemistry">Chemistry</option>
@@ -665,7 +665,7 @@
                   <option value="Food Technology">Food Technology</option>
                   <option value="Foreign Service">Foreign Service</option>
                   <option value="Forensic Science">Forensic Science</option>
-                  <option value="Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)">Forestry and Environment Studies (Forestry, Environmental Science, Agro-Forestry)</option>
+                  <option value="Forestry and Environment Studies">Forestry and Environment Studies</option>
                   <option value="Geodetic Engineering">Geodetic Engineering</option>
                   <option value="Geographic Information Systems">Geographic Information Systems</option>
                   <option value="Geological Engineering">Geological Engineering</option>
@@ -697,7 +697,7 @@
                   <option value="Mathematics">Mathematics</option>
                   <option value="Mechanical Engineering">Mechanical Engineering</option>
                   <option value="Medical Laboratory Science">Medical Laboratory Science</option>
-                  <option value="Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)">Medicine and Allied Health Sciences (Nursing, Midwifery, Medical Technology, etc.)</option>
+                  <option value="Medicine and Allied Health Sciences">Medicine and Allied Health Sciences</option>
                   <option value="Mineral Processing">Mineral Processing</option>
                   <option value="Mining Engineering">Mining Engineering</option>
                   <option value="Mining Technology">Mining Technology</option>
@@ -720,7 +720,7 @@
                   <option value="Rural Development">Rural Development</option>
                   <option value="Secondary Education">Secondary Education</option>
                   <option value="Security Management">Security Management</option>
-                  <option value="Social Sciences (AB courses)">Social Sciences (AB courses)</option>
+                  <option value="Social Sciences">Social Sciences</option>
                   <option value="Social Welfare">Social Welfare</option>
                   <option value="Social Work">Social Work</option>
                   <option value="Sociology">Sociology</option>
