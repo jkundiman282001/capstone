@@ -41,38 +41,6 @@
     // Tracker configuration - move up so it can be used in the scholar bar
     $trackerStatus = strtolower($basicInfo->application_status ?? 'submitted');
     
-    // Milestone Dates extraction from notifications
-    $milestoneDates = [
-        'submitted' => $basicInfo->created_at ?? null,
-        'review' => null,
-        'validation' => null,
-        'scholar' => null
-    ];
-
-    if (isset($notifications)) {
-        foreach ($notifications as $notif) {
-            // Validation Date
-            if (isset($notif['type']) && $notif['type'] === 'application_status' && ($notif['status'] ?? '') === 'validated') {
-                $milestoneDates['validation'] = $notif['created_at'];
-            }
-            // Scholar Date
-            if (str_contains($notif['title'] ?? '', 'Scholarship Grant Confirmed')) {
-                $milestoneDates['scholar'] = $notif['created_at'];
-            }
-            // Review Date (first status update or return/reject)
-            if (isset($notif['type']) && $notif['type'] === 'application_status' && in_array($notif['status'] ?? '', ['pending', 'returned', 'rejected'])) {
-                if (!$milestoneDates['review'] || $notif['created_at']->gt($milestoneDates['review'])) {
-                    $milestoneDates['review'] = $notif['created_at'];
-                }
-            }
-        }
-    }
-    
-    // Fallbacks if no notification found but status matches
-    if (!$milestoneDates['validation'] && $isStudentValidated) $milestoneDates['validation'] = $basicInfo->updated_at;
-    if (!$milestoneDates['scholar'] && $isGrantee) $milestoneDates['scholar'] = $basicInfo->updated_at;
-    if (!$milestoneDates['review'] && in_array($trackerStatus, ['pending', 'returned', 'rejected'])) $milestoneDates['review'] = $basicInfo->updated_at;
-
     // Determine the label and color for the review step
     $reviewLabel = 'Review';
     $reviewColor = 'bg-orange-500';
@@ -85,10 +53,10 @@
     }
 
     $trackerSteps = [
-        'submitted' => ['label' => 'Submitted', 'color' => 'bg-emerald-500', 'date' => $milestoneDates['submitted']],
-        'review' => ['label' => $reviewLabel, 'color' => $reviewColor, 'date' => $milestoneDates['review']],
-        'validation' => ['label' => 'Validation', 'color' => 'bg-orange-500', 'date' => $milestoneDates['validation']],
-        'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600', 'date' => $milestoneDates['scholar']]
+        'submitted' => ['label' => 'Submitted', 'color' => 'bg-emerald-500'],
+        'review' => ['label' => $reviewLabel, 'color' => $reviewColor],
+        'validation' => ['label' => 'Validation', 'color' => 'bg-orange-500'],
+        'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600']
     ];
     $currentStepIndex = 0;
     if (in_array($trackerStatus, ['submitted', 'pending', 'rejected', 'returned'])) $currentStepIndex = 1;
@@ -142,82 +110,6 @@
     }
     
     $chancePercentage = $acceptanceChance;
-
-    // Prepare Application History (merged and sorted)
-    $applicationHistory = collect();
-
-    // 1. Add milestones from basicInfo
-    if ($basicInfo->created_at) {
-        $applicationHistory->push([
-            'type' => 'milestone',
-            'status' => 'submitted',
-            'title' => 'Application Submitted',
-            'message' => 'Your application has been successfully submitted for review.',
-            'date' => $basicInfo->created_at,
-            'color' => 'bg-emerald-500',
-            'icon' => 'submitted'
-        ]);
-    }
-
-    // 2. Add from notifications
-    if (isset($notifications)) {
-        foreach ($notifications as $notif) {
-            $type = $notif['type'] ?? 'general';
-            $notifStatus = $notif['status'] ?? '';
-            
-            // Map notification types to history items
-            $historyItem = [
-                'type' => 'notification',
-                'title' => $notif['title'],
-                'message' => $notif['message'],
-                'date' => $notif['created_at'],
-                'color' => 'bg-slate-500',
-                'icon' => 'bell'
-            ];
-
-            if ($type === 'application_status') {
-                $historyItem['type'] = 'milestone';
-                if ($notifStatus === 'validated') {
-                    $historyItem['color'] = 'bg-emerald-500';
-                    $historyItem['icon'] = 'check';
-                } elseif ($notifStatus === 'rejected') {
-                    $historyItem['color'] = 'bg-red-500';
-                    $historyItem['icon'] = 'x';
-                } elseif ($notifStatus === 'returned') {
-                    $historyItem['color'] = 'bg-indigo-500';
-                    $historyItem['icon'] = 'return';
-                }
-            } elseif ($type === 'update' && str_contains($notif['title'], 'Scholarship Grant Confirmed')) {
-                $historyItem['type'] = 'milestone';
-                $historyItem['color'] = 'bg-blue-600';
-                $historyItem['icon'] = 'award';
-            } elseif ($type === 'profile_update') {
-                $historyItem['color'] = 'bg-amber-500';
-                $historyItem['icon'] = 'user';
-            }
-
-            $applicationHistory->push($historyItem);
-        }
-    }
-
-    // 3. Add document actions
-    foreach ($documents->whereIn('status', ['approved', 'rejected']) as $doc) {
-        $applicationHistory->push([
-            'type' => 'document',
-            'status' => $doc->status,
-            'title' => 'Document ' . ucfirst($doc->status),
-            'message' => $doc->filename . ' has been ' . $doc->status . '.',
-            'date' => $doc->submitted_at ?? $doc->updated_at,
-            'color' => $doc->status === 'approved' ? 'bg-emerald-500' : 'bg-red-500',
-            'icon' => 'file',
-            'doc_type' => $doc->type
-        ]);
-    }
-
-    // Sort by date descending and remove duplicates based on title and date
-    $applicationHistory = $applicationHistory->sortByDesc('date')->unique(function ($item) {
-        return $item['title'] . $item['date']->format('Y-m-d H:i');
-    });
 @endphp
 
 <!-- Performance Dashboard -->
@@ -746,56 +638,117 @@
                                 @endif
                             </div>
                             <span class="text-[10px] font-black uppercase tracking-tighter {{ $loop->index <= $currentStepIndex ? 'text-slate-900' : 'text-slate-400' }}">{{ $step['label'] }}</span>
-                            @if(isset($step['date']) && $step['date'])
-                                <span class="text-[8px] font-bold text-slate-400 -mt-1">{{ \Carbon\Carbon::parse($step['date'])->format('M d') }}</span>
-                            @endif
                         </div>
                     @endforeach
                 </div>
 
-                <!-- Application History -->
+                <!-- Recent Activity -->
                 <div class="space-y-6">
                     <div class="flex items-center justify-between mb-2">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Application History</h5>
+                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</h5>
                     </div>
                     
-                    @forelse($applicationHistory as $item)
+                    @if($trackerStatus === 'returned')
                     <div class="flex gap-4 group/item">
                         <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full {{ $item['color'] }} shadow-[0_0_10px_rgba(0,0,0,0.1)] z-10 transition-transform group-hover/item:scale-125"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Application Returned</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been returned for document revisions."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">Returned</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($trackerStatus === 'rejected')
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Application Rejected</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been reviewed and rejected."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-red-600 text-[9px] font-black uppercase tracking-wider border border-red-100 shadow-sm">Rejected</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($isGrantee)
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Scholarship Granted</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Congratulations! You are now an official scholarship grantee."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">Official</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($isStudentValidated)
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] z-10"></div>
+                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                        </div>
+                        <div class="flex-1 pb-8">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm font-black text-slate-900 leading-none">Application Validated</span>
+                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been reviewed and validated."</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">Success</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @foreach($documents->whereIn('status', ['approved', 'rejected'])->sortByDesc('submitted_at')->take(5) as $doc)
+                    <div class="flex gap-4 group/item">
+                        <div class="relative flex flex-col items-center">
+                            <div class="w-2.5 h-2.5 rounded-full {{ $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 'bg-red-500/50 group-hover/item:bg-red-500' }} transition-colors z-10"></div>
                             @if(!$loop->last)
                             <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
                             @endif
                         </div>
-                        <div class="flex-1 {{ !$loop->last ? 'pb-8' : '' }}">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">{{ $item['title'] }}</span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $item['date'] ? $item['date']->format('M d, h:i A') : 'N/A' }}</span>
+                        <div class="flex-1 pb-6">
+                            <div class="flex items-center justify-between mb-1">
+                                <p class="text-sm font-bold text-slate-800">{{ $doc->filename }}</p>
+                                <span class="text-[10px] font-medium text-slate-400">{{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}</span>
                             </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 italic">"{{ $item['message'] }}"</p>
-                            
-                            @if($item['type'] === 'milestone')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded {{ str_replace('bg-', 'bg-', str_replace('500', '50', $item['color'])) }} {{ str_replace('bg-', 'text-', $item['color']) }} text-[9px] font-black uppercase tracking-wider border border-current shadow-sm opacity-80">{{ str_replace('Application ', '', $item['title']) }}</span>
-                            @elseif($item['type'] === 'document')
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase {{ $item['status'] === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100' }} border shadow-sm">
-                                        {{ $item['status'] }}
-                                    </span>
-                                    <span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">{{ str_replace('_', ' ', $item['doc_type'] ?? 'File') }}</span>
-                                </div>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $doc->status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
+                                    {{ strtoupper($doc->status) }}
+                                </span>
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">{{ str_replace('_', ' ', $doc->type) }}</span>
+                            </div>
                         </div>
                     </div>
-                    @empty
+                    @endforeach
+
+                    @if($documents->whereIn('status', ['approved', 'rejected', 'pending'])->count() == 0 && !$isStudentValidated && !$isGrantee && $trackerStatus !== 'rejected')
                         <div class="text-center py-8">
                             <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
                                 <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <p class="text-xs font-bold text-slate-400">No application history yet</p>
+                            <p class="text-xs font-bold text-slate-400">No recent activity</p>
                         </div>
-                    @endforelse
+                    @endif
                 </div>
             </div>
         </aside>
