@@ -1159,32 +1159,46 @@ class StudentController extends Controller
             'profile_pic' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // Delete old profile picture if exists
-        if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
-            Storage::disk('public')->delete($user->profile_pic);
+            // Delete old profile picture if exists
+            if ($user->profile_pic) {
+                try {
+                    if (Storage::disk('public')->exists($user->profile_pic)) {
+                        Storage::disk('public')->delete($user->profile_pic);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning("Could not delete old profile picture: " . $e->getMessage());
+                }
+            }
+
+            // Store new profile picture
+            $path = $request->file('profile_pic')->store('profile-pics', 'public');
+
+            // Update user profile
+            $user->update(['profile_pic' => $path]);
+
+            // Notify the student
+            $user->notify(new \App\Notifications\TransactionNotification(
+                'profile_update',
+                'Profile Picture Updated',
+                'Your profile picture has been successfully updated in your account settings.',
+                'normal'
+            ));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture updated successfully',
+                'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)]),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Failed to update profile picture: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile picture. Please try again later.',
+            ], 500);
         }
-
-        // Store new profile picture
-        $path = $request->file('profile_pic')->store('profile-pics', 'public');
-
-        // Update user profile
-        $user->update(['profile_pic' => $path]);
-
-        // Notify the student
-        $user->notify(new \App\Notifications\TransactionNotification(
-            'profile_update',
-            'Profile Picture Updated',
-            'Your profile picture has been successfully updated in your account settings.',
-            'normal'
-        ));
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile picture updated successfully',
-            'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)]),
-        ]);
     }
 
     /**
@@ -1193,14 +1207,31 @@ class StudentController extends Controller
      */
     public function showProfilePic($filename)
     {
-        $path = 'profile-pics/'.$filename;
+        try {
+            $path = 'profile-pics/'.$filename;
 
-        if (! Storage::disk('public')->exists($path)) {
-            // Check if it's the default profile pic or if we should fallback
-            abort(404);
+            if (! Storage::disk('public')->exists($path)) {
+                // Return a default transparent pixel or a generic avatar if file doesn't exist
+                return response()->file(public_path('images/default-avatar.png'), [
+                    'Content-Type' => 'image/png',
+                    'Cache-Control' => 'public, max-age=3600'
+                ]);
+            }
+
+            return Storage::disk('public')->response($path);
+        } catch (\Throwable $e) {
+            Log::error("Error serving profile picture: " . $e->getMessage());
+            
+            // Fallback to default avatar on any storage error
+            $defaultPath = public_path('images/default-avatar.png');
+            if (file_exists($defaultPath)) {
+                return response()->file($defaultPath);
+            }
+            
+            // Absolute fallback: 1x1 transparent GIF
+            return response(base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'), 200)
+                ->header('Content-Type', 'image/gif');
         }
-
-        return Storage::disk('public')->response($path);
     }
 
     public function updateProfile(Request $request)

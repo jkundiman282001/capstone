@@ -7,6 +7,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @method void notify($notification)
@@ -81,21 +83,28 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getProfilePicUrlAttribute()
     {
         if ($this->profile_pic) {
-            // Check if it's a full URL (already on S3/external)
-            if (filter_var($this->profile_pic, FILTER_VALIDATE_URL)) {
-                return $this->profile_pic;
-            }
+            try {
+                // Check if it's a full URL (already on S3/external)
+                if (filter_var($this->profile_pic, FILTER_VALIDATE_URL)) {
+                    return $this->profile_pic;
+                }
 
-            // Otherwise, use the Storage facade which handles S3/Local automatically
-            // If the disk is 's3', it returns the S3 URL. If 'public', it returns the local URL.
-            $disk = config('filesystems.default');
-            
-            // If using local/public disk, we might still want to use our custom route for better compatibility
-            if ($disk === 'local' || $disk === 'public') {
+                // Get the default disk
+                $disk = config('filesystems.default');
+                
+                // If using local/public disk, use our custom route for better compatibility
+                // We use this route because it handles storage availability issues gracefully now
+                if ($disk === 'local' || $disk === 'public') {
+                    return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
+                }
+
+                // For S3/Cloud, try to get the URL
+                return Storage::disk($disk)->url($this->profile_pic);
+            } catch (\Throwable $e) {
+                Log::warning("Failed to generate profile pic URL for user {$this->id}: " . $e->getMessage());
+                // Fallback to the local route which has its own error handling
                 return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
             }
-
-            return Storage::disk($disk)->url($this->profile_pic);
         }
 
         return null;
