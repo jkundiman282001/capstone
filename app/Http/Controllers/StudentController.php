@@ -170,23 +170,24 @@ class StudentController extends Controller
                         continue;
                     }
 
-                    $path = $file->store('documents', 'public');
+                    $disk = config('filesystems.default');
+                    $path = $file->store('documents', $disk);
 
                     // Update or create document record
-        $document = Document::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'type' => $type,
-            ],
-            [
-                'filename' => $file->getClientOriginalName(),
-                'filepath' => $path,
-                'filetype' => $file->getClientMimeType(),
-                'filesize' => $file->getSize(),
-                'status' => 'pending',
-                'submitted_at' => now(),
-            ]
-        );
+                    $document = Document::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'type' => $type,
+                        ],
+                        [
+                            'filename' => $file->getClientOriginalName(),
+                            'filepath' => $path,
+                            'filetype' => $file->getClientMimeType(),
+                            'filesize' => $file->getSize(),
+                            'status' => 'pending',
+                            'submitted_at' => now(),
+                        ]
+                    );
 
                     $priorityService = new \App\Services\DocumentPriorityService;
                     $priorityService->onDocumentUploaded($document);
@@ -445,18 +446,24 @@ class StudentController extends Controller
                     continue;
                 }
 
-                $path = $file->store('documents', 'public');
+                $disk = config('filesystems.default');
+                $path = $file->store('documents', $disk);
 
-                $document = new Document;
-                $document->user_id = $user->id;
-                $document->filename = $file->getClientOriginalName();
-                $document->filepath = $path;
-                $document->filetype = $file->getClientMimeType();
-                $document->filesize = $file->getSize();
-                $document->description = null;
-                $document->status = 'pending';
-                $document->type = $type;
-                $document->save();
+                // Update or create document record
+                $document = Document::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'type' => $type,
+                    ],
+                    [
+                        'filename' => $file->getClientOriginalName(),
+                        'filepath' => $path,
+                        'filetype' => $file->getClientMimeType(),
+                        'filesize' => $file->getSize(),
+                        'status' => 'pending',
+                        'submitted_at' => now(),
+                    ]
+                );
 
                 $priorityService = new \App\Services\DocumentPriorityService;
                 $priorityService->onDocumentUploaded($document);
@@ -1162,10 +1169,13 @@ class StudentController extends Controller
         try {
             $user = Auth::user();
 
+            $disk = config('filesystems.default');
             // Delete old profile picture if exists
             if ($user->profile_pic) {
                 try {
-                    if (Storage::disk('public')->exists($user->profile_pic)) {
+                    if (Storage::disk($disk)->exists($user->profile_pic)) {
+                        Storage::disk($disk)->delete($user->profile_pic);
+                    } elseif (Storage::disk('public')->exists($user->profile_pic)) {
                         Storage::disk('public')->delete($user->profile_pic);
                     }
                 } catch (\Throwable $e) {
@@ -1174,7 +1184,7 @@ class StudentController extends Controller
             }
 
             // Store new profile picture
-            $path = $request->file('profile_pic')->store('profile-pics', 'public');
+            $path = $request->file('profile_pic')->store('profile-pics', $disk);
 
             // Update user profile
             $user->update(['profile_pic' => $path]);
@@ -1209,16 +1219,30 @@ class StudentController extends Controller
     {
         try {
             $path = 'profile-pics/'.$filename;
+            $disk = config('filesystems.default');
 
-            if (! Storage::disk('public')->exists($path)) {
-                // Return a default transparent pixel or a generic avatar if file doesn't exist
-                return response()->file(public_path('images/default-avatar.png'), [
+            // 1. Check default disk
+            if (Storage::disk($disk)->exists($path)) {
+                return Storage::disk($disk)->response($path);
+            }
+
+            // 2. Fallback to public disk
+            if ($disk !== 'public' && Storage::disk('public')->exists($path)) {
+                return Storage::disk('public')->response($path);
+            }
+
+            // 3. Fallback to default avatar
+            $defaultPath = public_path('images/default-avatar.png');
+            if (file_exists($defaultPath)) {
+                return response()->file($defaultPath, [
                     'Content-Type' => 'image/png',
                     'Cache-Control' => 'public, max-age=3600'
                 ]);
             }
 
-            return Storage::disk('public')->response($path);
+            // Absolute fallback: 1x1 transparent GIF
+            return response(base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'), 200)
+                ->header('Content-Type', 'image/gif');
         } catch (\Throwable $e) {
             Log::error("Error serving profile picture: " . $e->getMessage());
             

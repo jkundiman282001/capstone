@@ -3286,7 +3286,8 @@ class StaffDashboardController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('announcements', 'public');
+            $disk = config('filesystems.default');
+            $imagePath = $request->file('image')->store('announcements', $disk);
         }
 
         $announcement = Announcement::create([
