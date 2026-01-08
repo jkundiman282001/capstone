@@ -55,8 +55,9 @@ class DocumentController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Store new file
-        $path = $file->store('documents', 'public');
+        // Store new file using the default disk (S3 in cloud, public locally)
+        $disk = config('filesystems.default');
+        $path = $file->store('documents', $disk);
 
         // Update or create document record
         $document = Document::updateOrCreate(
@@ -99,14 +100,6 @@ class DocumentController extends Controller
             'normal'
         ));
 
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $student->id,
-            'action' => 'Document Uploaded',
-            'description' => 'You have successfully uploaded the '.str_replace('_', ' ', $documentType).' document.',
-            'status' => 'info',
-        ]);
-
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -120,16 +113,10 @@ class DocumentController extends Controller
     public function show($id)
     {
         try {
-            $document = Document::find($id);
+            $document = Document::findOrFail($id);
         } catch (Exception $e) {
-            Log::error('Database connection error while viewing document', ['error' => $e->getMessage()]);
-            abort(500, "Database connection error. Please ensure your XAMPP MySQL is running.");
-        }
-
-        if (!$document) {
-            Log::error('Document record not found in database', ['id' => $id]);
-            // If the record is missing, it's a 404
-            abort(404, "Document record not found in database. If you just pushed your code, remember that uploaded files are NOT saved to Git.");
+            Log::error('Document record not found in database', ['id' => $id, 'error' => $e->getMessage()]);
+            abort(404, "Document record not found in database.");
         }
 
         Log::info('Document viewing attempt', [
@@ -152,91 +139,82 @@ class DocumentController extends Controller
         }
 
         $filepath = $document->filepath;
-        // Normalize path: replace backslashes with forward slashes
-        $normalizedPath = str_replace('\\', '/', $filepath);
         
-        // Remove 'public/' or 'storage/' from the beginning if present for search purposes
-        $trimmedPath = preg_replace('/^(public\/|storage\/)/', '', $normalizedPath);
-        $trimmedPath = ltrim($trimmedPath, '/');
+        // Use Laravel's Storage facade which is more robust for cloud environments
+        // It handles both local and cloud storage drivers seamlessly
         
-        $path = null;
-
-        // 1. Try the original filepath directly (as absolute or relative to base)
-        if (file_exists($filepath)) {
-            $path = $filepath;
-            Log::info('Found via direct absolute path', ['path' => $path]);
-        } elseif (file_exists(base_path($filepath))) {
-            $path = base_path($filepath);
-            Log::info('Found via base_path', ['path' => $path]);
+        // 1. Check the default disk first (configured via FILESYSTEM_DISK)
+        $defaultDisk = config('filesystems.default');
+        if (Storage::disk($defaultDisk)->exists($filepath)) {
+            Log::info("Found document via Storage default disk ({$defaultDisk})", ['path' => $filepath]);
+            return Storage::disk($defaultDisk)->response($filepath);
         }
 
-        // 2. Try relative to storage/app/public
-        if (!$path) {
-            $publicPath = storage_path('app/public/' . $trimmedPath);
-            Log::info('Checking storage/app/public', ['path' => $publicPath]);
-            if (file_exists($publicPath)) {
-                $path = $publicPath;
-                Log::info('Found on storage/app/public', ['path' => $path]);
+        // 2. Explicitly check S3 if it's not the default but is configured
+        if ($defaultDisk !== 's3' && config('filesystems.disks.s3.bucket')) {
+            if (Storage::disk('s3')->exists($filepath)) {
+                Log::info('Found document via Storage S3 disk', ['path' => $filepath]);
+                return Storage::disk('s3')->response($filepath);
             }
         }
 
-        // 3. Try relative to storage/app
-        if (!$path) {
-            $appPath = storage_path('app/' . $trimmedPath);
-            Log::info('Checking storage/app', ['path' => $appPath]);
-            if (file_exists($appPath)) {
-                $path = $appPath;
-                Log::info('Found on storage/app', ['path' => $path]);
+        // 3. Check public disk
+        if ($defaultDisk !== 'public' && Storage::disk('public')->exists($filepath)) {
+            Log::info('Found document via Storage public disk', ['path' => $filepath]);
+            return Storage::disk('public')->response($filepath);
+        }
+
+        // 4. Check local disk
+        if ($defaultDisk !== 'local' && Storage::disk('local')->exists($filepath)) {
+            Log::info('Found document via Storage local disk', ['path' => $filepath]);
+            return Storage::disk('local')->response($filepath);
+        }
+
+        // Fallback: try to see if it's stored without the 'documents/' prefix or with a different prefix
+        $trimmedPath = ltrim(str_replace(['public/', 'storage/', 'documents/'], '', $filepath), '/');
+        $possiblePaths = [
+            $trimmedPath,
+            'documents/' . $trimmedPath,
+            'public/documents/' . $trimmedPath,
+            'storage/documents/' . $trimmedPath
+        ];
+
+        foreach ($possiblePaths as $path) {
+            // Check cloud first in fallback
+            if (config('filesystems.disks.s3.bucket') && Storage::disk('s3')->exists($path)) {
+                Log::info('Found via fallback search on S3 disk', ['path' => $path]);
+                return Storage::disk('s3')->response($path);
+            }
+            if (Storage::disk('public')->exists($path)) {
+                Log::info('Found via fallback search on public disk', ['path' => $path]);
+                return Storage::disk('public')->response($path);
+            }
+            if (Storage::disk('local')->exists($path)) {
+                Log::info('Found via fallback search on local disk', ['path' => $path]);
+                return Storage::disk('local')->response($path);
             }
         }
 
-        // 4. Try relative to public/storage
-        if (!$path) {
-            $webPath = public_path('storage/' . $trimmedPath);
-            Log::info('Checking public/storage', ['path' => $webPath]);
-            if (file_exists($webPath)) {
-                $path = $webPath;
-                Log::info('Found on public/storage', ['path' => $path]);
-            }
+        // Final fallback: try direct filesystem access if Storage facade fails (legacy support)
+        $absolutePath = storage_path('app/public/' . $trimmedPath);
+        if (file_exists($absolutePath)) {
+            Log::info('Found via direct filesystem fallback', ['path' => $absolutePath]);
+            return response()->file($absolutePath);
         }
 
-        // 5. Try just the basename in common folders
-        if (!$path) {
-            $baseName = basename($filepath);
-            $searchPaths = [
-                storage_path('app/public/documents/' . $baseName),
-                storage_path('app/documents/' . $baseName),
-                public_path('storage/documents/' . $baseName),
-            ];
-
-            foreach ($searchPaths as $searchPath) {
-                Log::info('Checking fallback path', ['path' => $searchPath]);
-                if (file_exists($searchPath)) {
-                    $path = $searchPath;
-                    Log::info('Found on fallback search path', ['path' => $path]);
-                    break;
-                }
-            }
+        $baseAbsolutePath = storage_path('app/' . $trimmedPath);
+        if (file_exists($baseAbsolutePath)) {
+            Log::info('Found via direct base storage fallback', ['path' => $baseAbsolutePath]);
+            return response()->file($baseAbsolutePath);
         }
 
-        if ($path) {
-            $mimeType = mime_content_type($path);
-            $fileName = $document->filename;
-            
-            Log::info('Serving document', ['path' => $path, 'mime' => $mimeType]);
+        Log::error('Document not found on any path', [
+            'database_path' => $filepath,
+            'trimmed_path' => $trimmedPath,
+            'absolute_path' => $absolutePath
+        ]);
 
-            // Force correct headers for viewing
-            return response()->file($path, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                'Pragma' => 'no-cache',
-                'Expires' => '0',
-            ]);
-        }
-
-        Log::error('Document not found', ['filepath' => $filepath]);
-        abort(404, 'DEBUG: File not found on server. Database path: ' . $filepath . ' - Checked in storage/app/public/' . $trimmedPath);
+        abort(404, 'File not found on server. If you are using Laravel Cloud, please ensure your storage is persistent or use a cloud disk like S3.');
     }
 
     public function destroy(Request $request, Document $document)
@@ -246,9 +224,17 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        // Delete file from storage
-        if (Storage::disk('public')->exists($document->filepath)) {
-            Storage::disk('public')->delete($document->filepath);
+        // Delete file from storage (check all possible disks)
+        $disks = ['s3', 'public', 'local'];
+        foreach ($disks as $diskName) {
+            try {
+                if (Storage::disk($diskName)->exists($document->filepath)) {
+                    Storage::disk($diskName)->delete($document->filepath);
+                    Log::info("Deleted document from {$diskName} disk", ['path' => $document->filepath]);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Failed to check/delete from {$diskName} disk", ['error' => $e->getMessage()]);
+            }
         }
 
         $document->delete();
@@ -262,14 +248,6 @@ class DocumentController extends Controller
             'You have successfully deleted the '.str_replace('_', ' ', $document->type).' document.',
             'normal'
         ));
-
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $user->id,
-            'action' => 'Document Deleted',
-            'description' => 'You have successfully deleted the '.str_replace('_', ' ', $document->type).' document.',
-            'status' => 'warning',
-        ]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

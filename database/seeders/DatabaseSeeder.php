@@ -22,6 +22,5 @@ class DatabaseSeeder extends Seeder
 
         $this->call(TypeAssistSeeder::class);
         $this->call(ApplicantSeeder::class);
-        $this->call(ApplicationHistoryBackfillSeeder::class);
     }
 }

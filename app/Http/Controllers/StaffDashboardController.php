@@ -1316,14 +1316,6 @@ class StaffDashboardController extends Controller
         // Notify the student
         $document->user->notify(new DocumentStatusUpdated($document, $validated['status']));
 
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $document->user_id,
-            'action' => 'Document Status Updated',
-            'description' => 'Your '.str_replace('_', ' ', $document->type).' document status has been updated to '.ucfirst($validated['status']).($updateData['rejection_reason'] ? ' Reason: '.$updateData['rejection_reason'] : ''),
-            'status' => $validated['status'] === 'rejected' ? 'danger' : ($validated['status'] === 'approved' ? 'success' : 'info'),
-        ]);
-
         return response()->json([
             'success' => true,
             'message' => 'Document status updated successfully',
@@ -1467,14 +1459,6 @@ class StaffDashboardController extends Controller
             $message = $isTermination ? 'Scholarship terminated successfully' : ($validated['status'] === 'validated' ? 'Application approved successfully' : 'Application status updated successfully');
         }
 
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $user->id,
-            'action' => 'Application Status Updated',
-            'description' => $message . ($updateData['application_rejection_reason'] ? ' Reason: ' . $updateData['application_rejection_reason'] : ''),
-            'status' => $validated['status'] === 'rejected' ? 'danger' : ($validated['status'] === 'validated' ? 'success' : 'info'),
-        ]);
-
         return response()->json([
             'success' => true,
             'message' => $message,
@@ -1506,14 +1490,6 @@ class StaffDashboardController extends Controller
             'Your scholarship application has been successfully updated to the Pamana category.',
             'normal'
         ));
-
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $user->id,
-            'action' => 'Application Moved to Pamana',
-            'description' => 'Your scholarship application has been successfully updated to the Pamana category.',
-            'status' => 'info',
-        ]);
 
         return response()->json([
             'success' => true,
@@ -1555,14 +1531,6 @@ class StaffDashboardController extends Controller
             'high'
         ));
 
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $user->id,
-            'action' => 'Scholarship Grant Confirmed',
-            'description' => 'Congratulations! Your scholarship grant has been officially confirmed, and you are now part of our scholarship grantees.',
-            'status' => 'success',
-        ]);
-
         return response()->json([
             'success' => true,
             'message' => 'Applicant added to Grantees successfully',
@@ -1602,14 +1570,6 @@ class StaffDashboardController extends Controller
             'Your application has been placed on the waiting list. We will notify you if a slot becomes available.',
             'normal'
         ));
-
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $user->id,
-            'action' => 'Added to Waiting List',
-            'description' => 'Your application has been placed on the waiting list. We will notify you if a slot becomes available.',
-            'status' => 'info',
-        ]);
 
         return response()->json([
             'success' => true,

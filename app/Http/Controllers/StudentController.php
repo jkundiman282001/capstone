@@ -219,14 +219,6 @@ class StudentController extends Controller
                 'normal'
             ));
 
-            // Log to permanent history
-            \App\Models\ApplicationHistory::create([
-                'user_id' => $user->id,
-                'action' => 'Renewal Submitted',
-                'description' => 'Your scholarship renewal application has been successfully submitted and is now pending review.',
-                'status' => 'info',
-            ]);
-
             DB::commit();
             $message = 'Your scholarship renewal application has been submitted!';
             $request->session()->flash('status', $message);
@@ -496,14 +488,6 @@ class StudentController extends Controller
             'Your scholarship application has been successfully submitted and is now pending review.',
             'normal'
         ));
-
-        // Log to permanent history
-        \App\Models\ApplicationHistory::create([
-            'user_id' => $user->id,
-            'action' => 'Application Submitted',
-            'description' => 'Your scholarship application has been successfully submitted and is now pending review.',
-            'status' => 'info',
-        ]);
 
         DB::commit();
 
@@ -937,9 +921,6 @@ class StudentController extends Controller
 
         // Get documents for the view
         $documents = $student->documents ?? collect();
-        $applicationHistory = $student->applicationHistory()
-            ->orderBy('created_at', 'desc')
-            ->get();
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
             'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
@@ -956,8 +937,7 @@ class StudentController extends Controller
             'priorityFactors',
             'priorityStatistics',
             'documents',
-            'requiredTypes',
-            'applicationHistory'
+            'requiredTypes'
         ));
     }
 

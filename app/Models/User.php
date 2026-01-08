@@ -75,19 +75,27 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(\App\Models\Document::class, 'user_id');
     }
 
-    public function applicationHistory(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\App\Models\ApplicationHistory::class, 'user_id');
-    }
-
     /**
      * Get the profile picture URL.
      */
     public function getProfilePicUrlAttribute()
     {
         if ($this->profile_pic) {
-            // Use the direct route to serve images, bypasses symlink issues on Cloud
-            return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
+            // Check if it's a full URL (already on S3/external)
+            if (filter_var($this->profile_pic, FILTER_VALIDATE_URL)) {
+                return $this->profile_pic;
+            }
+
+            // Otherwise, use the Storage facade which handles S3/Local automatically
+            // If the disk is 's3', it returns the S3 URL. If 'public', it returns the local URL.
+            $disk = config('filesystems.default');
+            
+            // If using local/public disk, we might still want to use our custom route for better compatibility
+            if ($disk === 'local' || $disk === 'public') {
+                return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
+            }
+
+            return Storage::disk($disk)->url($this->profile_pic);
         }
 
         return null;
