@@ -78,10 +78,24 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's initials.
+     */
+    public function getInitialsAttribute()
+    {
+        $first = substr($this->first_name ?? 'U', 0, 1);
+        $last = substr($this->last_name ?? 'S', 0, 1);
+        return strtoupper($first . $last);
+    }
+
+    /**
      * Get the profile picture URL.
      */
     public function getProfilePicUrlAttribute()
     {
+        // TEMPORARY: Always return null to force initials-based profile pictures
+        // This avoids all storage-related 500 errors while configuration is being fixed.
+        return null;
+
         if ($this->profile_pic) {
             try {
                 // Check if it's a full URL (already on S3/external)

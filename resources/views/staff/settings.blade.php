@@ -132,12 +132,12 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             @if($applicant->profile_pic_url)
-                                                <img src="{{ $applicant->profile_pic_url }}" class="w-10 h-10 rounded-xl object-cover shadow-sm">
-                                            @else
-                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">
-                                                    {{ substr($applicant->first_name ?? 'U', 0, 1) }}
-                                                </div>
-                                            @endif
+                                        <img src="{{ $applicant->profile_pic_url }}" class="w-10 h-10 rounded-xl object-cover shadow-sm">
+                                    @else
+                                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                            {{ $applicant->initials }}
+                                        </div>
+                                    @endif
                                             <div>
                                                 <div class="font-bold text-slate-900">{{ $fullName }}</div>
                                                 <div class="text-xs text-slate-500">ID: #{{ $applicant->id }}</div>

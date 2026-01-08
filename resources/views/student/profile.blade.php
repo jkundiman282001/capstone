@@ -103,8 +103,8 @@
                                     class="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110 {{ $student->profile_pic_url ? '' : 'hidden' }}"
                                     onerror="this.style.display='none'; document.getElementById('profile-pic-placeholder').classList.remove('hidden'); document.getElementById('profile-pic-placeholder').classList.add('flex');"
                                 >
-                                <div id="profile-pic-placeholder" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 text-orange-300 {{ $student->profile_pic ? 'hidden' : 'flex' }}">
-                                    <i data-lucide="user" class="w-16 h-16"></i>
+                                <div id="profile-pic-placeholder" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-500 to-amber-600 text-white font-black text-4xl {{ $student->profile_pic_url ? 'hidden' : 'flex' }}">
+                                    {{ $student->initials }}
                                 </div>
                                 
                                 <!-- Overlay -->

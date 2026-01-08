@@ -273,11 +273,11 @@
                         <div class="mt-5 flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
                                 <div class="h-12 w-12 overflow-hidden rounded-2xl border border-slate-200/70 bg-white/60 shadow-sm">
-                                    @if($topUser->profile_pic)
-                                        <img src="{{ asset('storage/' . $topUser->profile_pic) }}" alt="Profile" class="h-full w-full object-cover">
+                                    @if($topUser->profile_pic_url)
+                                        <img src="{{ $topUser->profile_pic_url }}" alt="Profile" class="h-full w-full object-cover">
                                     @else
-                                        <div class="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-600">
-                                            {{ substr($topUser->first_name, 0, 1) }}{{ substr($topUser->last_name, 0, 1) }}
+                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500 to-amber-600 text-white text-sm font-black">
+                                            {{ $topUser->initials }}
                                         </div>
                                     @endif
                                 </div>
@@ -475,11 +475,11 @@
                                     <td class="px-5 py-4">
                                         <div class="flex items-center gap-3">
                                                 <div class="h-10 w-10 overflow-hidden rounded-full border border-slate-200/70 bg-white/60 shadow-sm">
-                                                @if($user->profile_pic)
-                                                    <img src="{{ asset('storage/' . $user->profile_pic) }}" alt="Profile" class="h-full w-full object-cover">
+                                                @if($user->profile_pic_url)
+                                                    <img src="{{ $user->profile_pic_url }}" alt="Profile" class="h-full w-full object-cover">
                                                 @else
-                                                        <div class="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-600">
-                                                        {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
+                                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500 to-amber-600 text-white text-[10px] font-black">
+                                                        {{ $user->initials }}
                                                     </div>
                                                 @endif
                                             </div>
@@ -594,11 +594,11 @@
 
                             <div class="mt-4 flex items-center gap-3">
                                 <div class="h-12 w-12 overflow-hidden rounded-full border border-slate-200 bg-slate-50">
-                                    @if($user->profile_pic)
-                                        <img src="{{ asset('storage/' . $user->profile_pic) }}" alt="Profile" class="h-full w-full object-cover">
+                                    @if($user->profile_pic_url)
+                                        <img src="{{ $user->profile_pic_url }}" alt="Profile" class="h-full w-full object-cover">
                                     @else
-                                        <div class="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-600">
-                                            {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
+                                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500 to-amber-600 text-white text-sm font-black">
+                                            {{ $user->initials }}
                                         </div>
                                     @endif
                                 </div>

@@ -146,12 +146,12 @@
                         <div class="relative hidden md:block" x-data="{ open: false }" @click.away="open = false">
                             <button @click="open = !open" class="flex items-center focus:outline-none">
                                 @if($user->profile_pic_url)
-                                    <img src="{{ $user->profile_pic_url }}" alt="Profile" class="w-10 h-10 rounded-full border-2 border-orange-400 hover:border-orange-300 transition-colors object-cover">
-                                @else
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-orange-400 hover:border-orange-300 transition-colors">
-                                        {{ strtoupper(substr($user->first_name ?? 'U', 0, 1) . substr($user->last_name ?? 'S', 0, 1)) }}
-                                    </div>
-                                @endif
+                        <img src="{{ $user->profile_pic_url }}" alt="Profile" class="w-10 h-10 rounded-full border-2 border-orange-400 hover:border-orange-300 transition-colors object-cover">
+                    @else
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-black text-sm border-2 border-orange-400 hover:border-orange-300 transition-colors">
+                            {{ $user->initials }}
+                        </div>
+                    @endif
                             </button>
                             
                             <!-- Dropdown Menu -->
