@@ -937,7 +937,7 @@ class StudentController extends Controller
 
         // Get documents for the view
         $documents = $student->documents ?? collect();
-        $applicationHistory = \App\Models\ApplicationHistory::where('user_id', $student->id)
+        $applicationHistory = $student->applicationHistory()
             ->orderBy('created_at', 'desc')
             ->get();
         $requiredTypes = [
