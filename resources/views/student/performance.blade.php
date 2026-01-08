@@ -646,71 +646,76 @@
                 <div class="space-y-6">
                     <div class="flex items-center justify-between mb-2">
                         <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Permanent History Log</h5>
+                        @if(config('app.debug'))
+                            <span class="text-[9px] text-slate-300">User ID: {{ Auth::id() }}</span>
+                        @endif
                     </div>
                     
-                    @if(isset($applicationHistory) && $applicationHistory->count() > 0)
-                        @foreach($applicationHistory as $history)
-                        <div class="flex gap-4 group/item">
-                            <div class="relative flex flex-col items-center">
-                                @php
-                                    $dotBg = 'bg-blue-500';
-                                    $shadowColor = 'rgba(59,130,246,0.5)';
-                                    if ($history->status === 'success') {
-                                        $dotBg = 'bg-emerald-500';
-                                        $shadowColor = 'rgba(16,185,129,0.5)';
-                                    } elseif ($history->status === 'danger') {
-                                        $dotBg = 'bg-red-500';
-                                        $shadowColor = 'rgba(239,68,68,0.5)';
-                                    } elseif ($history->status === 'warning') {
-                                        $dotBg = 'bg-amber-500';
-                                        $shadowColor = 'rgba(245,158,11,0.5)';
-                                    }
-                                @endphp
-                                <div class="w-2.5 h-2.5 rounded-full {{ $dotBg }} shadow-[0_0_10px_{{ $shadowColor }}] z-10"></div>
-                                @if(!$loop->last)
-                                <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                                @endif
-                            </div>
-                            <div class="flex-1 pb-8">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $history->action }}</span>
-                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $history->created_at->format('M d, Y h:i A') }}</span>
+                    <div class="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        @if(isset($applicationHistory) && $applicationHistory->count() > 0)
+                            @foreach($applicationHistory as $history)
+                            <div class="flex gap-4 group/item">
+                                <div class="relative flex flex-col items-center">
+                                    @php
+                                        $dotBg = 'bg-blue-500';
+                                        $shadowColor = 'rgba(59,130,246,0.5)';
+                                        if ($history->status === 'success') {
+                                            $dotBg = 'bg-emerald-500';
+                                            $shadowColor = 'rgba(16,185,129,0.5)';
+                                        } elseif ($history->status === 'danger') {
+                                            $dotBg = 'bg-red-500';
+                                            $shadowColor = 'rgba(239,68,68,0.5)';
+                                        } elseif ($history->status === 'warning') {
+                                            $dotBg = 'bg-amber-500';
+                                            $shadowColor = 'rgba(245,158,11,0.5)';
+                                        }
+                                    @endphp
+                                    <div class="w-2.5 h-2.5 rounded-full {{ $dotBg }} shadow-[0_0_10px_{{ $shadowColor }}] z-10"></div>
+                                    @if(!$loop->last)
+                                    <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                                    @endif
                                 </div>
-                                <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 italic">"{{ $history->description }}"</p>
-                                @php
-                                    $badgeBg = 'bg-blue-50';
-                                    $badgeText = 'text-blue-600';
-                                    $badgeBorder = 'border-blue-100';
-                                    if ($history->status === 'success') {
-                                        $badgeBg = 'bg-emerald-50';
-                                        $badgeText = 'text-emerald-600';
-                                        $badgeBorder = 'border-emerald-100';
-                                    } elseif ($history->status === 'danger') {
-                                        $badgeBg = 'bg-red-50';
-                                        $badgeText = 'text-red-600';
-                                        $badgeBorder = 'border-red-100';
-                                    } elseif ($history->status === 'warning') {
-                                        $badgeBg = 'bg-amber-50';
-                                        $badgeText = 'text-amber-600';
-                                        $badgeBorder = 'border-amber-100';
-                                    }
-                                @endphp
-                                <span class="inline-flex items-center px-2 py-0.5 rounded {{ $badgeBg }} {{ $badgeText }} text-[9px] font-black uppercase tracking-wider border {{ $badgeBorder }} shadow-sm">
-                                    {{ $history->status === 'info' ? 'Update' : ucfirst($history->status) }}
-                                </span>
+                                <div class="flex-1 pb-8">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-sm font-black text-slate-900 leading-none">{{ $history->action }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $history->created_at->format('M d, Y h:i A') }}</span>
+                                    </div>
+                                    <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 italic">"{{ $history->description }}"</p>
+                                    @php
+                                        $badgeBg = 'bg-blue-50';
+                                        $badgeText = 'text-blue-600';
+                                        $badgeBorder = 'border-blue-100';
+                                        if ($history->status === 'success') {
+                                            $badgeBg = 'bg-emerald-50';
+                                            $badgeText = 'text-emerald-600';
+                                            $badgeBorder = 'border-emerald-100';
+                                        } elseif ($history->status === 'danger') {
+                                            $badgeBg = 'bg-red-50';
+                                            $badgeText = 'text-red-600';
+                                            $badgeBorder = 'border-red-100';
+                                        } elseif ($history->status === 'warning') {
+                                            $badgeBg = 'bg-amber-50';
+                                            $badgeText = 'text-amber-600';
+                                            $badgeBorder = 'border-amber-100';
+                                        }
+                                    @endphp
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded {{ $badgeBg }} {{ $badgeText }} text-[9px] font-black uppercase tracking-wider border {{ $badgeBorder }} shadow-sm">
+                                        {{ $history->status === 'info' ? 'Update' : ucfirst($history->status) }}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="text-center py-8">
-                            <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
-                                <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                            @endforeach
+                        @else
+                            <div class="text-center py-8">
+                                <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                                    <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <p class="text-xs font-bold text-slate-400">No history recorded yet</p>
                             </div>
-                            <p class="text-xs font-bold text-slate-400">No history recorded yet</p>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
         </aside>
