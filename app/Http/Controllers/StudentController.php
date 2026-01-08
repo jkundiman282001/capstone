@@ -921,6 +921,26 @@ class StudentController extends Controller
 
         // Get documents for the view
         $documents = $student->documents ?? collect();
+
+        // Get notifications for the history log
+        $notifications = $student->notifications()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($notification) {
+                $data = $notification->data;
+
+                return [
+                    'id' => $notification->id,
+                    'type' => $data['type'] ?? 'general',
+                    'title' => $data['title'] ?? 'Notification',
+                    'message' => $data['message'] ?? '',
+                    'is_read' => $notification->read_at !== null,
+                    'created_at' => $notification->created_at,
+                    'priority' => $data['priority'] ?? 'normal',
+                    'rejection_reason' => $data['rejection_reason'] ?? null,
+                ];
+            });
+
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
             'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
@@ -937,7 +957,8 @@ class StudentController extends Controller
             'priorityFactors',
             'priorityStatistics',
             'documents',
-            'requiredTypes'
+            'requiredTypes',
+            'notifications'
         ));
     }
 
