@@ -9,6 +9,21 @@
 @endpush
 
 @section('content')
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+    }
+</style>
 <div class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen pt-20">
  <!-- Main Content Wrapper -->
   <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
@@ -680,41 +695,44 @@
                             ]);
                         }
                         
-                        $sortedActivities = $activities->sortByDesc('created_at')->take(5);
+                        // Show more activities now that it's scrollable
+                        $sortedActivities = $activities->sortByDesc('created_at')->take(20);
                     @endphp
 
                     @if($sortedActivities->count() > 0)
-                        @foreach($sortedActivities as $activity)
-                        <div class="flex gap-4 group/item">
-                            <div class="relative flex flex-col items-center">
-                                @php
-                                    $dotBg = 'bg-blue-500';
-                                    $shadowColor = 'rgba(59,130,246,0.5)';
-                                    if ($activity['status'] === 'success') {
-                                        $dotBg = 'bg-emerald-500';
-                                        $shadowColor = 'rgba(16,185,129,0.5)';
-                                    } elseif ($activity['status'] === 'danger') {
-                                        $dotBg = 'bg-red-500';
-                                        $shadowColor = 'rgba(239,68,68,0.5)';
-                                    } elseif ($activity['status'] === 'warning') {
-                                        $dotBg = 'bg-amber-500';
-                                        $shadowColor = 'rgba(245,158,11,0.5)';
-                                    }
-                                @endphp
-                                <div class="w-2.5 h-2.5 rounded-full {{ $dotBg }} shadow-[0_0_10px_{{ $shadowColor }}] z-10"></div>
-                                @if(!$loop->last)
-                                <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                                @endif
-                            </div>
-                            <div class="flex-1 pb-8">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $activity['action'] }}</span>
-                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $activity['created_at']->format('M d, Y') }}</span>
+                        <div class="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            @foreach($sortedActivities as $activity)
+                            <div class="flex gap-4 group/item">
+                                <div class="relative flex flex-col items-center">
+                                    @php
+                                        $dotBg = 'bg-blue-500';
+                                        $shadowColor = 'rgba(59,130,246,0.5)';
+                                        if ($activity['status'] === 'success') {
+                                            $dotBg = 'bg-emerald-500';
+                                            $shadowColor = 'rgba(16,185,129,0.5)';
+                                        } elseif ($activity['status'] === 'danger') {
+                                            $dotBg = 'bg-red-500';
+                                            $shadowColor = 'rgba(239,68,68,0.5)';
+                                        } elseif ($activity['status'] === 'warning') {
+                                            $dotBg = 'bg-amber-500';
+                                            $shadowColor = 'rgba(245,158,11,0.5)';
+                                        }
+                                    @endphp
+                                    <div class="w-2.5 h-2.5 rounded-full {{ $dotBg }} shadow-[0_0_10px_{{ $shadowColor }}] z-10"></div>
+                                    @if(!$loop->last)
+                                    <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                                    @endif
                                 </div>
-                                <p class="text-[11px] font-medium text-slate-500 leading-relaxed italic">"{{ $activity['description'] }}"</p>
+                                <div class="flex-1 pb-8">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-sm font-black text-slate-900 leading-none">{{ $activity['action'] }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $activity['created_at']->format('M d, Y') }}</span>
+                                    </div>
+                                    <p class="text-[11px] font-medium text-slate-500 leading-relaxed italic">"{{ $activity['description'] }}"</p>
+                                </div>
                             </div>
+                            @endforeach
                         </div>
-                        @endforeach
                     @else
                         <div class="text-center py-8">
                             <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
