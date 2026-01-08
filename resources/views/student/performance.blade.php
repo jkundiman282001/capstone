@@ -645,108 +645,70 @@
                 <!-- Recent Activity -->
                 <div class="space-y-6">
                     <div class="flex items-center justify-between mb-2">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</h5>
+                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Permanent History Log</h5>
                     </div>
                     
-                    @if($trackerStatus === 'returned')
-                    <div class="flex gap-4 group/item">
-                        <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] z-10"></div>
-                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                        </div>
-                        <div class="flex-1 pb-8">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">Application Returned</span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
+                    @if(isset($applicationHistory) && $applicationHistory->count() > 0)
+                        @foreach($applicationHistory as $history)
+                        <div class="flex gap-4 group/item">
+                            <div class="relative flex flex-col items-center">
+                                @php
+                                    $dotBg = 'bg-blue-500';
+                                    $shadowColor = 'rgba(59,130,246,0.5)';
+                                    if ($history->status === 'success') {
+                                        $dotBg = 'bg-emerald-500';
+                                        $shadowColor = 'rgba(16,185,129,0.5)';
+                                    } elseif ($history->status === 'danger') {
+                                        $dotBg = 'bg-red-500';
+                                        $shadowColor = 'rgba(239,68,68,0.5)';
+                                    } elseif ($history->status === 'warning') {
+                                        $dotBg = 'bg-amber-500';
+                                        $shadowColor = 'rgba(245,158,11,0.5)';
+                                    }
+                                @endphp
+                                <div class="w-2.5 h-2.5 rounded-full {{ $dotBg }} shadow-[0_0_10px_{{ $shadowColor }}] z-10"></div>
+                                @if(!$loop->last)
+                                <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
+                                @endif
                             </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been returned for document revisions."</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">Returned</span>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($trackerStatus === 'rejected')
-                    <div class="flex gap-4 group/item">
-                        <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] z-10"></div>
-                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                        </div>
-                        <div class="flex-1 pb-8">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">Application Rejected</span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
-                            </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been reviewed and rejected."</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-red-600 text-[9px] font-black uppercase tracking-wider border border-red-100 shadow-sm">Rejected</span>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($isGrantee)
-                    <div class="flex gap-4 group/item">
-                        <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] z-10"></div>
-                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                        </div>
-                        <div class="flex-1 pb-8">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">Scholarship Granted</span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
-                            </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Congratulations! You are now an official scholarship grantee."</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">Official</span>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($isStudentValidated)
-                    <div class="flex gap-4 group/item">
-                        <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] z-10"></div>
-                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                        </div>
-                        <div class="flex-1 pb-8">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-sm font-black text-slate-900 leading-none">Application Validated</span>
-                                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $basicInfo->updated_at ? $basicInfo->updated_at->format('M d, h:i A') : 'Recently' }}</span>
-                            </div>
-                            <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 line-clamp-2 italic">"Your application has been reviewed and validated."</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">Success</span>
-                        </div>
-                    </div>
-                    @endif
-
-                    @foreach($documents->whereIn('status', ['approved', 'rejected'])->sortByDesc('submitted_at')->take(5) as $doc)
-                    <div class="flex gap-4 group/item">
-                        <div class="relative flex flex-col items-center">
-                            <div class="w-2.5 h-2.5 rounded-full {{ $doc->status === 'approved' ? 'bg-emerald-500/50 group-hover/item:bg-emerald-500' : 'bg-red-500/50 group-hover/item:bg-red-500' }} transition-colors z-10"></div>
-                            @if(!$loop->last)
-                            <div class="w-0.5 h-full bg-slate-100 my-1 absolute top-2"></div>
-                            @endif
-                        </div>
-                        <div class="flex-1 pb-6">
-                            <div class="flex items-center justify-between mb-1">
-                                <p class="text-sm font-bold text-slate-800">{{ $doc->filename }}</p>
-                                <span class="text-[10px] font-medium text-slate-400">{{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $doc->status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600' }}">
-                                    {{ strtoupper($doc->status) }}
+                            <div class="flex-1 pb-8">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $history->action }}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $history->created_at->format('M d, Y h:i A') }}</span>
+                                </div>
+                                <p class="text-[11px] font-medium text-slate-500 leading-relaxed mb-2 italic">"{{ $history->description }}"</p>
+                                @php
+                                    $badgeBg = 'bg-blue-50';
+                                    $badgeText = 'text-blue-600';
+                                    $badgeBorder = 'border-blue-100';
+                                    if ($history->status === 'success') {
+                                        $badgeBg = 'bg-emerald-50';
+                                        $badgeText = 'text-emerald-600';
+                                        $badgeBorder = 'border-emerald-100';
+                                    } elseif ($history->status === 'danger') {
+                                        $badgeBg = 'bg-red-50';
+                                        $badgeText = 'text-red-600';
+                                        $badgeBorder = 'border-red-100';
+                                    } elseif ($history->status === 'warning') {
+                                        $badgeBg = 'bg-amber-50';
+                                        $badgeText = 'text-amber-600';
+                                        $badgeBorder = 'border-amber-100';
+                                    }
+                                @endphp
+                                <span class="inline-flex items-center px-2 py-0.5 rounded {{ $badgeBg }} {{ $badgeText }} text-[9px] font-black uppercase tracking-wider border {{ $badgeBorder }} shadow-sm">
+                                    {{ $history->status === 'info' ? 'Update' : ucfirst($history->status) }}
                                 </span>
-                                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">{{ str_replace('_', ' ', $doc->type) }}</span>
                             </div>
                         </div>
-                    </div>
-                    @endforeach
-
-                    @if($documents->whereIn('status', ['approved', 'rejected', 'pending'])->count() == 0 && !$isStudentValidated && !$isGrantee && $trackerStatus !== 'rejected')
+                        @endforeach
+                    @else
                         <div class="text-center py-8">
                             <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
                                 <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <p class="text-xs font-bold text-slate-400">No recent activity</p>
+                            <p class="text-xs font-bold text-slate-400">No history recorded yet</p>
                         </div>
                     @endif
                 </div>

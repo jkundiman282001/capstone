@@ -99,6 +99,14 @@ class DocumentController extends Controller
             'normal'
         ));
 
+        // Log to permanent history
+        \App\Models\ApplicationHistory::create([
+            'user_id' => $student->id,
+            'action' => 'Document Uploaded',
+            'description' => 'You have successfully uploaded the '.str_replace('_', ' ', $documentType).' document.',
+            'status' => 'info',
+        ]);
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -254,6 +262,14 @@ class DocumentController extends Controller
             'You have successfully deleted the '.str_replace('_', ' ', $document->type).' document.',
             'normal'
         ));
+
+        // Log to permanent history
+        \App\Models\ApplicationHistory::create([
+            'user_id' => $user->id,
+            'action' => 'Document Deleted',
+            'description' => 'You have successfully deleted the '.str_replace('_', ' ', $document->type).' document.',
+            'status' => 'warning',
+        ]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
