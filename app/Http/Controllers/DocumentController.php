@@ -57,7 +57,25 @@ class DocumentController extends Controller
 
         // Store new file using the default disk (S3 in cloud, public locally)
         $disk = config('filesystems.default');
-        $path = $file->store('documents', $disk);
+        try {
+            $path = $file->store('documents', $disk);
+        } catch (\Exception $e) {
+            Log::error("Failed to store file on disk {$disk}", [
+                'error' => $e->getMessage(),
+                'type' => $request->type,
+                'user_id' => $user->id
+            ]);
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to upload document to storage. Please check your cloud storage configuration.',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            
+            return back()->with('error', 'Failed to upload document to storage. Please check your cloud storage configuration.');
+        }
 
         // Update or create document record
         $document = Document::updateOrCreate(
@@ -145,29 +163,49 @@ class DocumentController extends Controller
         
         // 1. Check the default disk first (configured via FILESYSTEM_DISK)
         $defaultDisk = config('filesystems.default');
-        if (Storage::disk($defaultDisk)->exists($filepath)) {
-            Log::info("Found document via Storage default disk ({$defaultDisk})", ['path' => $filepath]);
-            return Storage::disk($defaultDisk)->response($filepath);
+        try {
+            if (Storage::disk($defaultDisk)->exists($filepath)) {
+                Log::info("Found document via Storage default disk ({$defaultDisk})", ['path' => $filepath]);
+                return Storage::disk($defaultDisk)->response($filepath);
+            }
+        } catch (\Exception $e) {
+            Log::warning("Storage disk {$defaultDisk} error", ['error' => $e->getMessage()]);
         }
 
         // 2. Explicitly check S3 if it's not the default but is configured
         if ($defaultDisk !== 's3' && config('filesystems.disks.s3.bucket')) {
-            if (Storage::disk('s3')->exists($filepath)) {
-                Log::info('Found document via Storage S3 disk', ['path' => $filepath]);
-                return Storage::disk('s3')->response($filepath);
+            try {
+                if (Storage::disk('s3')->exists($filepath)) {
+                    Log::info('Found document via Storage S3 disk', ['path' => $filepath]);
+                    return Storage::disk('s3')->response($filepath);
+                }
+            } catch (\Exception $e) {
+                Log::warning("S3 disk error", ['error' => $e->getMessage()]);
             }
         }
 
         // 3. Check public disk
-        if ($defaultDisk !== 'public' && Storage::disk('public')->exists($filepath)) {
-            Log::info('Found document via Storage public disk', ['path' => $filepath]);
-            return Storage::disk('public')->response($filepath);
+        if ($defaultDisk !== 'public') {
+            try {
+                if (Storage::disk('public')->exists($filepath)) {
+                    Log::info('Found document via Storage public disk', ['path' => $filepath]);
+                    return Storage::disk('public')->response($filepath);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Public disk error", ['error' => $e->getMessage()]);
+            }
         }
 
         // 4. Check local disk
-        if ($defaultDisk !== 'local' && Storage::disk('local')->exists($filepath)) {
-            Log::info('Found document via Storage local disk', ['path' => $filepath]);
-            return Storage::disk('local')->response($filepath);
+        if ($defaultDisk !== 'local') {
+            try {
+                if (Storage::disk('local')->exists($filepath)) {
+                    Log::info('Found document via Storage local disk', ['path' => $filepath]);
+                    return Storage::disk('local')->response($filepath);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Local disk error", ['error' => $e->getMessage()]);
+            }
         }
 
         // Fallback: try to see if it's stored without the 'documents/' prefix or with a different prefix
@@ -181,17 +219,31 @@ class DocumentController extends Controller
 
         foreach ($possiblePaths as $path) {
             // Check cloud first in fallback
-            if (config('filesystems.disks.s3.bucket') && Storage::disk('s3')->exists($path)) {
-                Log::info('Found via fallback search on S3 disk', ['path' => $path]);
-                return Storage::disk('s3')->response($path);
+            try {
+                if (config('filesystems.disks.s3.bucket') && Storage::disk('s3')->exists($path)) {
+                    Log::info('Found via fallback search on S3 disk', ['path' => $path]);
+                    return Storage::disk('s3')->response($path);
+                }
+            } catch (\Exception $e) {
+                Log::warning("S3 fallback check failed", ['path' => $path, 'error' => $e->getMessage()]);
             }
-            if (Storage::disk('public')->exists($path)) {
-                Log::info('Found via fallback search on public disk', ['path' => $path]);
-                return Storage::disk('public')->response($path);
+
+            try {
+                if (Storage::disk('public')->exists($path)) {
+                    Log::info('Found via fallback search on public disk', ['path' => $path]);
+                    return Storage::disk('public')->response($path);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Public fallback check failed", ['path' => $path, 'error' => $e->getMessage()]);
             }
-            if (Storage::disk('local')->exists($path)) {
-                Log::info('Found via fallback search on local disk', ['path' => $path]);
-                return Storage::disk('local')->response($path);
+
+            try {
+                if (Storage::disk('local')->exists($path)) {
+                    Log::info('Found via fallback search on local disk', ['path' => $path]);
+                    return Storage::disk('local')->response($path);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Local fallback check failed", ['path' => $path, 'error' => $e->getMessage()]);
             }
         }
 
