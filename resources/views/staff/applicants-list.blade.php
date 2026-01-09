@@ -246,7 +246,7 @@
                             </a>
 
                             <button type="button"
-                                    onclick="window.openReplacementModal('waiting', {{ $applicant->id }}, {{ e(json_encode($fullName)) }})"
+                                    onclick='window.openReplacementModal("waiting", {{ $applicant->id }}, @json($fullName))'
                                     class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all
                                         {{ $canReplaceFromWaiting ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed' }}"
                                     {{ $canReplaceFromWaiting ? '' : 'disabled' }}
@@ -1732,7 +1732,7 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-bold">${rank ? '#' + rank : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
                         <button type="button"
-                                onclick="window.openReplacementModal('waiting', ${applicant.user_id}, ${JSON.stringify(applicant.name || '').replace(/"/g, '&quot;')})"
+                                onclick="window.openReplacementModal('waiting', ${applicant.user_id}, '${(applicant.name || '').replace(/'/g, "\\'")}')"
                                 class="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs shadow-sm transition-all">
                             Replace
                         </button>
