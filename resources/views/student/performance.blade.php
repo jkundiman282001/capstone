@@ -114,8 +114,9 @@
 
 <!-- Performance Dashboard -->
 <div class="mb-8">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+  <div class="grid grid-cols-1 {{ $isGrantee ? 'lg:grid-cols-1 max-w-2xl' : 'lg:grid-cols-2 max-w-6xl' }} gap-6 mx-auto">
     <!-- Priority Rank Card -->
+    @if(!$isGrantee)
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
       <div class="bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 px-6 py-5">
         <div class="flex items-center gap-3">
@@ -162,6 +163,7 @@
         @endif
       </div>
     </div>
+    @endif
 
     <!-- Chance Percentage Card -->
     @php
