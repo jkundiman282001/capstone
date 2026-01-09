@@ -68,7 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
 
     // Locked performance tab
-    Route::get('/student/performance', [DocumentController::class, 'index'])
+    Route::get('/student/performance', [StudentController::class, 'performance'])
         ->middleware('has.applied')
         ->name('student.performance');
 
