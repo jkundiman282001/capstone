@@ -952,9 +952,14 @@ class StudentController extends Controller
         $documents = $student->documents ?? collect();
         
         // Fetch permanent transaction history
-        $transactionHistories = TransactionHistory::where('user_id', $student->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        try {
+            $transactionHistories = TransactionHistory::where('user_id', $student->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } catch (\Exception $e) {
+            \Log::error('Error fetching transaction histories: ' . $e->getMessage());
+            $transactionHistories = collect();
+        }
 
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
