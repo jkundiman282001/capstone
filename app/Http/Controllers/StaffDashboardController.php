@@ -2281,7 +2281,7 @@ class StaffDashboardController extends Controller
 
             return response()->json([
                 'success' => true,
-                'applicants' => $pamanaApplicants->map(function ($applicant, $index) {
+                'pamana' => $pamanaApplicants->map(function ($applicant, $index) {
                     $basicInfo = $applicant->basicInfo;
                     $address = $basicInfo && $basicInfo->fullAddress ? ($basicInfo->fullAddress->address ?? null) : null;
                     $documents = $applicant->documents ?? collect();
@@ -2459,7 +2459,7 @@ class StaffDashboardController extends Controller
 
             return response()->json([
                 'success' => true,
-                'waiting_list' => $waitingList->map(function ($applicant, $index) use ($priorityMap) {
+                'waitingList' => $waitingList->map(function ($applicant, $index) use ($priorityMap) {
                     $basicInfo = $applicant->basicInfo;
                     $address = $basicInfo && $basicInfo->fullAddress ? ($basicInfo->fullAddress->address ?? null) : null;
 

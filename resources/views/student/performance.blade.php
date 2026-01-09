@@ -40,6 +40,9 @@
 
     // Tracker configuration - move up so it can be used in the scholar bar
     $trackerStatus = strtolower($basicInfo->application_status ?? 'submitted');
+    if ($basicInfo === null) {
+        $trackerStatus = 'submitted';
+    }
     
     // Determine the label and color for the review step
     $reviewLabel = 'Review';
