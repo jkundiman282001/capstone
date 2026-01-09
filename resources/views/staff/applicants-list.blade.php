@@ -246,7 +246,7 @@
                             </a>
 
                             <button type="button"
-                                    onclick='window.openReplacementModal("waiting", {{ $applicant->id }}, @json($fullName))'
+                                    onclick="window.openReplacementModal('waiting', {{ $applicant->id }}, {{ e(json_encode($fullName)) }})"
                                     class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all
                                         {{ $canReplaceFromWaiting ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed' }}"
                                     {{ $canReplaceFromWaiting ? '' : 'disabled' }}
@@ -649,6 +649,206 @@
 <!-- Replacement Modal (for Waiting List) -->
 @push('scripts')
 <script>
+    // ========== REPLACEMENTS (swap grantee <-> waiting) ==========
+    // mode = 'waiting' -> fixed user is waiting-list applicant (replacement awardee), select grantee to replace
+    // mode = 'grantee' -> fixed user is grantee to be replaced, select waiting-list replacement awardee
+    window.replacementModalMode = 'waiting';
+    window.replacementFixedUserId = null;
+
+    window.openReplacementModal = function(arg1, arg2 = null, arg3 = null) {
+        // Backward compatible signature:
+        // - openReplacementModal(waitingUserId, waitingName)
+        // New signature:
+        // - openReplacementModal(mode, fixedUserId, fixedUserName)
+        let mode = 'waiting';
+        let fixedUserId = null;
+        let fixedUserName = null;
+
+        if (typeof arg1 === 'string') {
+            mode = arg1;
+            fixedUserId = arg2;
+            fixedUserName = arg3;
+        } else {
+            fixedUserId = arg1;
+            fixedUserName = arg2;
+        }
+
+        window.replacementModalMode = mode;
+        window.replacementFixedUserId = fixedUserId;
+
+        const modal = document.getElementById('replacementModal');
+        const titleEl = document.getElementById('replacementModalTitle');
+        const subtitleEl = document.getElementById('replacementModalSubtitle');
+        const fixedLabelEl = document.getElementById('replacementFixedLabel');
+        const fixedNameEl = document.getElementById('replacementFixedName');
+        const selectLabelEl = document.getElementById('replacementSelectLabel');
+        const selectHelpEl = document.getElementById('replacementSelectHelp');
+        const reasonEl = document.getElementById('replacementReason');
+        const schoolYearEl = document.getElementById('replacementSchoolYear');
+        const selectEl = document.getElementById('replacementReplacedSelect');
+
+        if (titleEl) titleEl.textContent = 'Replace Applicant';
+        if (mode === 'grantee') {
+            if (subtitleEl) subtitleEl.textContent = 'Select a waiting-list applicant to replace this grantee, and enter a reason.';
+            if (fixedLabelEl) fixedLabelEl.textContent = 'Grantee/Awardee to be replaced:';
+            if (selectLabelEl) selectLabelEl.textContent = 'Replacement awardee (Waiting List)';
+            if (selectHelpEl) selectHelpEl.textContent = 'Select the waiting-list applicant who will replace this grantee.';
+        } else {
+            if (subtitleEl) subtitleEl.textContent = 'Select the grantee/awardee to be replaced, and enter a reason.';
+            if (fixedLabelEl) fixedLabelEl.textContent = 'Replacement awardee (Waiting List):';
+            if (selectLabelEl) selectLabelEl.textContent = 'Replaced Grantee/Awardee';
+            if (selectHelpEl) selectHelpEl.textContent = 'Select the grantee/awardee that will be replaced.';
+        }
+
+        if (fixedNameEl) {
+            fixedNameEl.textContent = (fixedUserName && String(fixedUserName).trim())
+                ? String(fixedUserName).trim()
+                : `User #${fixedUserId}`;
+        }
+
+        if (reasonEl) reasonEl.value = '';
+        if (schoolYearEl) schoolYearEl.value = '';
+
+        if (selectEl) {
+            selectEl.innerHTML = '<option value="">Loading...</option>';
+        }
+
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        if (typeof window.loadOptionsForReplacement === 'function') {
+            window.loadOptionsForReplacement();
+        }
+    };
+
+    window.closeReplacementModal = function() {
+        const modal = document.getElementById('replacementModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        window.replacementFixedUserId = null;
+    };
+
+    window.loadOptionsForReplacement = async function() {
+        const selectEl = document.getElementById('replacementReplacedSelect');
+        if (!selectEl) return;
+
+        try {
+            if (window.replacementModalMode === 'grantee') {
+                const res = await fetch(`{{ route('staff.replacements.waiting') }}`);
+                const data = await res.json();
+                const waiting = (data && data.success && Array.isArray(data.waiting)) ? data.waiting : [];
+
+                selectEl.innerHTML = `<option value="">Select waiting-list applicant...</option>`;
+                waiting.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = String(w.user_id || '');
+                    opt.textContent = w.name || `User #${w.user_id}`;
+                    selectEl.appendChild(opt);
+                });
+            } else {
+                const res = await fetch(`{{ route('staff.replacements.grantees') }}`);
+                const data = await res.json();
+                const grantees = (data && data.success && Array.isArray(data.grantees)) ? data.grantees : [];
+
+                selectEl.innerHTML = `<option value="">Select grantee/awardee to replace...</option>`;
+                grantees.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = String(g.user_id || '');
+                    opt.textContent = g.name || `User #${g.user_id}`;
+                    selectEl.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load replacement options', e);
+            selectEl.innerHTML = `
+                <option value="">Failed to load options</option>
+            `;
+        }
+    };
+
+    window.saveReplacement = async function() {
+        const fixedUserId = window.replacementFixedUserId;
+        const mode = window.replacementModalMode || 'waiting';
+        if (!fixedUserId) return;
+
+        const selectEl = document.getElementById('replacementReplacedSelect');
+        const reasonEl = document.getElementById('replacementReason');
+        const schoolYearEl = document.getElementById('replacementSchoolYear');
+        const saveBtn = document.getElementById('saveReplacementBtn');
+
+        const reason = (reasonEl?.value || '').trim();
+        if (!reason) {
+            alert('Please enter a reason for replacement.');
+            return;
+        }
+
+        const selected = selectEl?.value || '';
+        if (!selected) {
+            alert(mode === 'grantee'
+                ? 'Please select the waiting-list applicant who will replace this grantee.'
+                : 'Please select the grantee/awardee to be replaced.');
+            return;
+        }
+        const pickedUserId = parseInt(selected, 10);
+
+        // storeReplacement expects:
+        // replacement_user_id = waiting-list applicant
+        // replaced_user_id = grantee
+        const payload = (mode === 'grantee')
+            ? {
+                replacement_user_id: pickedUserId,
+                replaced_user_id: fixedUserId,
+                replacement_reason: reason,
+                school_year: (schoolYearEl?.value || '').trim() || null,
+            }
+            : {
+                replacement_user_id: fixedUserId,
+                replaced_user_id: pickedUserId,
+                replacement_reason: reason,
+                school_year: (schoolYearEl?.value || '').trim() || null,
+            };
+
+        const originalText = saveBtn?.innerHTML;
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = 'Saving...';
+        }
+
+        try {
+            const res = await fetch(`{{ route('staff.replacements.store') }}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (res.ok && data && data.success) {
+                alert(data.message || 'Replacement recorded.');
+                window.closeReplacementModal();
+                // Reload to reflect status changes (waiting applicant promoted; replaced grantee terminated)
+                window.location.reload();
+            } else {
+                alert('Failed to record replacement: ' + (data.message || 'Unknown error'));
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Failed to record replacement. Please try again.');
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText || 'Save Replacement';
+            }
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         const provinceFilter = document.getElementById('province-filter');
         const municipalityFilter = document.getElementById('municipality-filter');
@@ -1020,9 +1220,11 @@
         grants.push(...Object.values(grantMap));
 
         const saveBtn = document.getElementById('saveGrantsBtn');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+        const originalText = saveBtn ? saveBtn.innerHTML : '';
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+        }
 
         fetch('{{ route("staff.grantees.update-grants") }}', {
             method: 'POST',
@@ -1036,10 +1238,12 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                hasUnsavedChanges = false;
-                saveBtn.innerHTML = originalText;
-                saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                saveBtn.disabled = true;
+                window.hasUnsavedChanges = false;
+                if (saveBtn) {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    saveBtn.disabled = true;
+                }
                 
                 // Hide unsaved indicator
                 const unsavedIndicator = document.getElementById('unsavedIndicator');
@@ -1061,16 +1265,20 @@
                     successMsg.remove();
                 }, 3000);
                 } else {
-                alert('Error saving grants: ' + (data.message || 'Unknown error'));
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
+                    alert('Error saving grants: ' + (data.message || 'Unknown error'));
+                    if (saveBtn) {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.disabled = false;
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-            alert('Error saving grants. Please try again.');
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
+                alert('Error saving grants. Please try again.');
+                if (saveBtn) {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                }
             });
     }
 
@@ -1524,7 +1732,7 @@
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center font-bold">${rank ? '#' + rank : ''}</td>
                     <td class="border border-slate-300 px-2 py-2 text-xs text-slate-700 text-center">
                         <button type="button"
-                                onclick="window.openReplacementModal('waiting', ${applicant.user_id}, ${JSON.stringify(applicant.name || '')})"
+                                onclick="window.openReplacementModal('waiting', ${applicant.user_id}, ${JSON.stringify(applicant.name || '').replace(/"/g, '&quot;')})"
                                 class="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs shadow-sm transition-all">
                             Replace
                         </button>
@@ -1582,9 +1790,11 @@
         grants.push(...Object.values(grantMap));
 
         const saveBtn = document.getElementById('saveWaitingGrantsBtn');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+        const originalText = saveBtn ? saveBtn.innerHTML : 'Save Changes';
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+        }
 
         fetch('{{ route("staff.waiting-list.update") }}', {
             method: 'POST',
@@ -1599,9 +1809,11 @@
         .then(data => {
             if (data.success) {
                 window.hasUnsavedWaitingChanges = false;
-                saveBtn.innerHTML = originalText;
-                saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                saveBtn.disabled = true;
+                if (saveBtn) {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    saveBtn.disabled = true;
+                }
                 
                 // Hide unsaved indicator
                 const unsavedIndicator = document.getElementById('waitingUnsavedIndicator');
@@ -1624,15 +1836,19 @@
                 }, 3000);
             } else {
                 alert('Error saving grants: ' + (data.message || 'Unknown error'));
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
+                if (saveBtn) {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                }
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('Error saving grants. Please try again.');
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
+            if (saveBtn) {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
         });
     }
 
@@ -1789,202 +2005,6 @@
         link.click();
         document.body.removeChild(link);
     }
-
-    // ========== REPLACEMENTS (swap grantee <-> waiting) ==========
-    // mode = 'waiting' -> fixed user is waiting-list applicant (replacement awardee), select grantee to replace
-    // mode = 'grantee' -> fixed user is grantee to be replaced, select waiting-list replacement awardee
-    window.replacementModalMode = 'waiting';
-    window.replacementFixedUserId = null;
-
-    window.openReplacementModal = function(arg1, arg2 = null, arg3 = null) {
-        // Backward compatible signature:
-        // - openReplacementModal(waitingUserId, waitingName)
-        // New signature:
-        // - openReplacementModal(mode, fixedUserId, fixedUserName)
-        let mode = 'waiting';
-        let fixedUserId = null;
-        let fixedUserName = null;
-
-        if (typeof arg1 === 'string') {
-            mode = arg1;
-            fixedUserId = arg2;
-            fixedUserName = arg3;
-        } else {
-            fixedUserId = arg1;
-            fixedUserName = arg2;
-        }
-
-        window.replacementModalMode = mode;
-        window.replacementFixedUserId = fixedUserId;
-
-        const modal = document.getElementById('replacementModal');
-        const titleEl = document.getElementById('replacementModalTitle');
-        const subtitleEl = document.getElementById('replacementModalSubtitle');
-        const fixedLabelEl = document.getElementById('replacementFixedLabel');
-        const fixedNameEl = document.getElementById('replacementFixedName');
-        const selectLabelEl = document.getElementById('replacementSelectLabel');
-        const selectHelpEl = document.getElementById('replacementSelectHelp');
-        const reasonEl = document.getElementById('replacementReason');
-        const schoolYearEl = document.getElementById('replacementSchoolYear');
-        const selectEl = document.getElementById('replacementReplacedSelect');
-
-        if (titleEl) titleEl.textContent = 'Replace Applicant';
-        if (mode === 'grantee') {
-            if (subtitleEl) subtitleEl.textContent = 'Select a waiting-list applicant to replace this grantee, and enter a reason.';
-            if (fixedLabelEl) fixedLabelEl.textContent = 'Grantee/Awardee to be replaced:';
-            if (selectLabelEl) selectLabelEl.textContent = 'Replacement awardee (Waiting List)';
-            if (selectHelpEl) selectHelpEl.textContent = 'Select the waiting-list applicant who will replace this grantee.';
-        } else {
-            if (subtitleEl) subtitleEl.textContent = 'Select the grantee/awardee to be replaced, and enter a reason.';
-            if (fixedLabelEl) fixedLabelEl.textContent = 'Replacement awardee (Waiting List):';
-            if (selectLabelEl) selectLabelEl.textContent = 'Replaced Grantee/Awardee';
-            if (selectHelpEl) selectHelpEl.textContent = 'Select the grantee/awardee that will be replaced.';
-        }
-
-        if (fixedNameEl) {
-            fixedNameEl.textContent = (fixedUserName && String(fixedUserName).trim())
-                ? String(fixedUserName).trim()
-                : `User #${fixedUserId}`;
-        }
-
-        if (reasonEl) reasonEl.value = '';
-        if (schoolYearEl) schoolYearEl.value = '';
-
-        if (selectEl) {
-            selectEl.innerHTML = '<option value="">Loading...</option>';
-        }
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-
-        window.loadOptionsForReplacement();
-    };
-
-    window.closeReplacementModal = function() {
-        const modal = document.getElementById('replacementModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        window.replacementFixedUserId = null;
-    };
-
-    window.loadOptionsForReplacement = async function() {
-        const selectEl = document.getElementById('replacementReplacedSelect');
-        if (!selectEl) return;
-
-        try {
-            if (window.replacementModalMode === 'grantee') {
-                const res = await fetch(`{{ route('staff.replacements.waiting') }}`);
-                const data = await res.json();
-                const waiting = (data && data.success && Array.isArray(data.waiting)) ? data.waiting : [];
-
-                selectEl.innerHTML = `<option value="">Select waiting-list applicant...</option>`;
-                waiting.forEach(w => {
-                    const opt = document.createElement('option');
-                    opt.value = String(w.user_id || '');
-                    opt.textContent = w.name || `User #${w.user_id}`;
-                    selectEl.appendChild(opt);
-                });
-            } else {
-                const res = await fetch(`{{ route('staff.replacements.grantees') }}`);
-                const data = await res.json();
-                const grantees = (data && data.success && Array.isArray(data.grantees)) ? data.grantees : [];
-
-                selectEl.innerHTML = `<option value="">Select grantee/awardee to replace...</option>`;
-                grantees.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = String(g.user_id || '');
-                    opt.textContent = g.name || `User #${g.user_id}`;
-                    selectEl.appendChild(opt);
-                });
-            }
-        } catch (e) {
-            console.error('Failed to load replacement options', e);
-            selectEl.innerHTML = `
-                <option value="">Failed to load options</option>
-            `;
-        }
-    };
-
-    window.saveReplacement = async function() {
-        const fixedUserId = window.replacementFixedUserId;
-        const mode = window.replacementModalMode || 'waiting';
-        if (!fixedUserId) return;
-
-        const selectEl = document.getElementById('replacementReplacedSelect');
-        const reasonEl = document.getElementById('replacementReason');
-        const schoolYearEl = document.getElementById('replacementSchoolYear');
-        const saveBtn = document.getElementById('saveReplacementBtn');
-
-        const reason = (reasonEl?.value || '').trim();
-        if (!reason) {
-            alert('Please enter a reason for replacement.');
-            return;
-        }
-
-        const selected = selectEl?.value || '';
-        if (!selected) {
-            alert(mode === 'grantee'
-                ? 'Please select the waiting-list applicant who will replace this grantee.'
-                : 'Please select the grantee/awardee to be replaced.');
-            return;
-        }
-        const pickedUserId = parseInt(selected, 10);
-
-        // storeReplacement expects:
-        // replacement_user_id = waiting-list applicant
-        // replaced_user_id = grantee
-        const payload = (mode === 'grantee')
-            ? {
-                replacement_user_id: pickedUserId,
-                replaced_user_id: fixedUserId,
-                replacement_reason: reason,
-                school_year: (schoolYearEl?.value || '').trim() || null,
-            }
-            : {
-                replacement_user_id: fixedUserId,
-                replaced_user_id: pickedUserId,
-                replacement_reason: reason,
-                school_year: (schoolYearEl?.value || '').trim() || null,
-            };
-
-        const originalText = saveBtn?.innerHTML;
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = 'Saving...';
-        }
-
-        try {
-            const res = await fetch(`{{ route('staff.replacements.store') }}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (res.ok && data && data.success) {
-                alert(data.message || 'Replacement recorded.');
-                window.closeReplacementModal();
-                // Reload to reflect status changes (waiting applicant promoted; replaced grantee terminated)
-                window.location.reload();
-            } else {
-                alert('Failed to record replacement: ' + (data.message || 'Unknown error'));
-            }
-        } catch (e) {
-            console.error(e);
-            alert('Failed to record replacement. Please try again.');
-        } finally {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = originalText || 'Save Replacement';
-            }
-        }
-    };
 
     // Close waiting list modal on outside click
     document.getElementById('waitingListReportModal')?.addEventListener('click', function(e) {
