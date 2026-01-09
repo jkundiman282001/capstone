@@ -645,58 +645,23 @@
                 <!-- Recent Activity -->
                 <div class="space-y-6">
                     <div class="flex items-center justify-between mb-2">
-                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</h5>
+                        <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Application Tracker / History</h5>
                     </div>
                     
-                    @php
-                        $activities = collect();
-                        
-                        // Add document activities
-                        foreach($documents as $doc) {
-                            $activities->push([
-                                'action' => 'Document Uploaded',
-                                'description' => 'Uploaded: ' . ucwords(str_replace('_', ' ', $doc->type)),
-                                'status' => $doc->status === 'approved' ? 'success' : ($doc->status === 'rejected' ? 'danger' : 'info'),
-                                'created_at' => $doc->created_at
-                            ]);
-                            
-                            if($doc->status !== 'pending') {
-                                $activities->push([
-                                    'action' => 'Document ' . ucfirst($doc->status),
-                                    'description' => 'Your ' . str_replace('_', ' ', $doc->type) . ' was ' . $doc->status . ($doc->rejection_reason ? ': ' . $doc->rejection_reason : ''),
-                                    'status' => $doc->status === 'approved' ? 'success' : 'danger',
-                                    'created_at' => $doc->updated_at
-                                ]);
-                            }
-                        }
-                        
-                        // Add application status activity
-                        if($basicInfo) {
-                            $activities->push([
-                                'action' => 'Application Status',
-                                'description' => 'Your application status is ' . ucfirst($basicInfo->application_status),
-                                'status' => $basicInfo->application_status === 'validated' ? 'success' : ($basicInfo->application_status === 'rejected' ? 'danger' : 'info'),
-                                'created_at' => $basicInfo->updated_at
-                            ]);
-                        }
-                        
-                        $sortedActivities = $activities->sortByDesc('created_at')->take(5);
-                    @endphp
-
-                    @if($sortedActivities->count() > 0)
-                        @foreach($sortedActivities as $activity)
+                    @if($transactionHistories->count() > 0)
+                        @foreach($transactionHistories as $activity)
                         <div class="flex gap-4 group/item">
                             <div class="relative flex flex-col items-center">
                                 @php
                                     $dotBg = 'bg-blue-500';
                                     $shadowColor = 'rgba(59,130,246,0.5)';
-                                    if ($activity['status'] === 'success') {
+                                    if ($activity->status === 'success') {
                                         $dotBg = 'bg-emerald-500';
                                         $shadowColor = 'rgba(16,185,129,0.5)';
-                                    } elseif ($activity['status'] === 'danger') {
+                                    } elseif ($activity->status === 'danger') {
                                         $dotBg = 'bg-red-500';
                                         $shadowColor = 'rgba(239,68,68,0.5)';
-                                    } elseif ($activity['status'] === 'warning') {
+                                    } elseif ($activity->status === 'warning') {
                                         $dotBg = 'bg-amber-500';
                                         $shadowColor = 'rgba(245,158,11,0.5)';
                                     }
@@ -708,10 +673,10 @@
                             </div>
                             <div class="flex-1 pb-8">
                                 <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $activity['action'] }}</span>
-                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $activity['created_at']->format('M d, Y') }}</span>
+                                    <span class="text-sm font-black text-slate-900 leading-none">{{ $activity->action }}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $activity->created_at->format('M d, Y h:i A') }}</span>
                                 </div>
-                                <p class="text-[11px] font-medium text-slate-500 leading-relaxed italic">"{{ $activity['description'] }}"</p>
+                                <p class="text-[11px] font-medium text-slate-500 leading-relaxed italic">"{{ $activity->description }}"</p>
                             </div>
                         </div>
                         @endforeach

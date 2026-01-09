@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\Staff;
 use App\Models\BasicInfo;
+use App\Models\TransactionHistory;
 use App\Notifications\TransactionNotification;
 use App\Notifications\StudentUploadedDocument;
 use App\Services\DocumentPriorityService;
@@ -96,6 +97,19 @@ class DocumentController extends Controller
         // Calculate document priority (First Come, First Serve)
         $priorityService = new DocumentPriorityService;
         $priorityService->onDocumentUploaded($document);
+
+        // Log Transaction History
+        TransactionHistory::create([
+            'user_id' => $user->id,
+            'action' => 'Document Uploaded',
+            'description' => 'Uploaded: ' . ucwords(str_replace('_', ' ', $request->type)) . ' (File: ' . $file->getClientOriginalName() . ')',
+            'status' => 'info',
+            'metadata' => [
+                'document_id' => $document->id,
+                'type' => $request->type,
+                'filename' => $file->getClientOriginalName()
+            ]
+        ]);
 
         // Notify all staff
         /** @var \App\Models\User $student */

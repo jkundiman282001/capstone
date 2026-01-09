@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ApplicationDraft;
-use App\Models\BasicInfo;
 use App\Models\Document;
+use App\Models\BasicInfo;
+use App\Models\ApplicationDraft;
+use App\Models\TransactionHistory;
 use App\Notifications\TransactionNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -468,6 +469,19 @@ class StudentController extends Controller
                 $priorityService = new \App\Services\DocumentPriorityService;
                 $priorityService->onDocumentUploaded($document);
 
+                // Log Transaction History
+                TransactionHistory::create([
+                    'user_id' => $user->id,
+                    'action' => 'Document Uploaded',
+                    'description' => 'Uploaded: ' . ucwords(str_replace('_', ' ', $type)) . ' (File: ' . $file->getClientOriginalName() . ')',
+                    'status' => 'info',
+                    'metadata' => [
+                        'document_id' => $document->id,
+                        'type' => $type,
+                        'filename' => $file->getClientOriginalName()
+                    ]
+                ]);
+
                 // Notify staff (handle missing table gracefully)
                 try {
                     foreach (\App\Models\Staff::all() as $staff) {
@@ -495,6 +509,14 @@ class StudentController extends Controller
             'Your scholarship application has been successfully submitted and is now pending review.',
             'normal'
         ));
+
+        // Log Transaction History
+        TransactionHistory::create([
+            'user_id' => $user->id,
+            'action' => 'Application Submitted',
+            'description' => 'Your scholarship application has been successfully submitted and is now pending review.',
+            'status' => 'success',
+        ]);
 
         DB::commit();
 
@@ -928,6 +950,12 @@ class StudentController extends Controller
 
         // Get documents for the view
         $documents = $student->documents ?? collect();
+        
+        // Fetch permanent transaction history
+        $transactionHistories = TransactionHistory::where('user_id', $student->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         $requiredTypes = [
             'birth_certificate' => 'Original or Certified True Copy of Birth Certificate',
             'income_document' => 'Income Tax Return of the parents/guardians or Certificate of Tax Exemption from BIR or Certificate of Indigency signed by the barangay captain',
@@ -944,7 +972,8 @@ class StudentController extends Controller
             'priorityFactors',
             'priorityStatistics',
             'documents',
-            'requiredTypes'
+            'requiredTypes',
+            'transactionHistories'
         ));
     }
 

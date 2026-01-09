@@ -18,6 +18,7 @@ use App\Models\PermanentAddress;
 use App\Models\Replacement;
 use App\Models\SchoolPref;
 use App\Models\Staff;
+use App\Models\TransactionHistory;
 use App\Models\User;
 use App\Notifications\AnnouncementNotification;
 use App\Notifications\ApplicationStatusUpdated;
@@ -1313,6 +1314,19 @@ class StaffDashboardController extends Controller
 
         $document->update($updateData);
 
+        // Log Transaction History
+        TransactionHistory::create([
+            'user_id' => $document->user_id,
+            'action' => 'Document ' . ucfirst($validated['status']),
+            'description' => 'Your ' . str_replace('_', ' ', $document->type) . ' was ' . $validated['status'] . ($updateData['rejection_reason'] ? ': ' . $updateData['rejection_reason'] : ''),
+            'status' => $validated['status'] === 'approved' ? 'success' : ($validated['status'] === 'rejected' ? 'danger' : 'info'),
+            'metadata' => [
+                'document_id' => $document->id,
+                'type' => $document->type,
+                'rejection_reason' => $updateData['rejection_reason'] ?? null
+            ]
+        ]);
+
         // Notify the student
         $document->user->notify(new DocumentStatusUpdated($document, $validated['status']));
 
@@ -1450,6 +1464,34 @@ class StaffDashboardController extends Controller
 
         $basicInfo->update($updateData);
 
+        // Log Transaction History
+        $statusLabel = $validated['status'];
+        $logAction = 'Application ' . ucfirst($statusLabel);
+        $logDescription = 'Your application status has been updated to ' . $statusLabel;
+
+        if ($statusLabel === 'rejected') {
+            $logAction = $isTermination ? 'Scholarship Terminated' : 'Application Rejected';
+            $logDescription = $updateData['application_rejection_reason'] ?? ($isTermination ? 'Scholarship terminated.' : 'Application rejected.');
+        } elseif ($statusLabel === 'validated') {
+            $logAction = 'Application Approved';
+            $logDescription = 'Your scholarship application has been approved.';
+        } elseif ($statusLabel === 'returned') {
+            $logAction = 'Application Returned';
+            $logDescription = 'Your application has been returned for corrections.';
+        }
+
+        TransactionHistory::create([
+            'user_id' => $user->id,
+            'action' => $logAction,
+            'description' => $logDescription,
+            'status' => $statusLabel === 'validated' ? 'success' : ($statusLabel === 'rejected' ? 'danger' : ($statusLabel === 'returned' ? 'warning' : 'info')),
+            'metadata' => [
+                'status' => $statusLabel,
+                'rejection_reason' => $updateData['application_rejection_reason'] ?? null,
+                'is_termination' => $isTermination
+            ]
+        ]);
+
         // Send notification to user
         $user->notify(new ApplicationStatusUpdated($validated['status'], $updateData['application_rejection_reason'] ?? null));
 
@@ -1561,6 +1603,14 @@ class StaffDashboardController extends Controller
         // Update grant_status to waiting
         $basicInfo->update([
             'grant_status' => 'waiting',
+        ]);
+
+        // Log Transaction History
+        TransactionHistory::create([
+            'user_id' => $user->id,
+            'action' => 'Added to Waiting List',
+            'description' => 'Your application has been placed on the waiting list. We will notify you if a slot becomes available.',
+            'status' => 'info',
         ]);
 
         // Notify the student

@@ -77,6 +77,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(\App\Models\Document::class, 'user_id');
     }
 
+    public function transactionHistories(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\TransactionHistory::class, 'user_id');
+    }
+
     /**
      * Get the user's initials.
      */
