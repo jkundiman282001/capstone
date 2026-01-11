@@ -263,116 +263,303 @@
                 </button>
             </div>
 
-            <form action="{{ route('staff.settings.encode-applicant') }}" method="POST" class="space-y-6">
+            <form action="{{ route('staff.settings.encode-applicant') }}" method="POST" class="space-y-8">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Basic Information -->
-                    <div class="md:col-span-3">
-                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div class="space-y-12">
+                    <!-- 1. Personal Information -->
+                    <section>
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">1</span>
+                            Personal Information
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">First Name</label>
-                                <input type="text" name="first_name" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">First Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="first_name" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Enter first name">
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Middle Name</label>
-                                <input type="text" name="middle_name" class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                <input type="text" name="middle_name" class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Enter middle name">
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
-                                <input type="text" name="last_name" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Last Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="last_name" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Enter last name">
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Contact & System Info -->
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
-                        <input type="email" name="email" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Contact Number</label>
-                        <input type="text" name="contact_num" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">IP Group (Ethnicity)</label>
-                        <select name="ethno_id" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                            <option value="">Select IP Group</option>
-                            @foreach($ethnicities as $ethno)
-                                <option value="{{ $ethno->id }}">{{ $ethno->ethnicity }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Academic & Personal -->
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Course</label>
-                        <input type="text" name="course" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Birthdate</label>
-                        <input type="date" name="birthdate" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Gender</label>
-                        <select name="gender" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Civil Status</label>
-                        <select name="civil_status" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                            <option value="Separated">Separated</option>
-                            <option value="Widowed">Widowed</option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Birthplace</label>
-                        <input type="text" name="birthplace" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-
-                    <!-- Address Section -->
-                    <div class="md:col-span-3">
-                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Address Information</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Province</label>
-                                <select name="province" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
-                                    <option value="">Select Province</option>
-                                    @foreach($provinces as $province)
-                                        <option value="{{ $province }}">{{ $province }}</option>
-                                    @endforeach
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Email Address <span class="text-red-500">*</span></label>
+                                <input type="email" name="email" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="email@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Contact Number <span class="text-red-500">*</span></label>
+                                <input type="text" name="contact_num" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="09xxxxxxxxx">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Gender <span class="text-red-500">*</span></label>
+                                <select name="gender" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Municipality</label>
-                                <select name="municipality" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Birthdate <span class="text-red-500">*</span></label>
+                                <input type="date" name="birthdate" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Place of Birth <span class="text-red-500">*</span></label>
+                                <input type="text" name="birthplace" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="City/Municipality">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Civil Status <span class="text-red-500">*</span></label>
+                                <select name="civil_status" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select Status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Separated">Separated</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">IP Group (Ethnolinguistic) <span class="text-red-500">*</span></label>
+                                <select name="ethno_id" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select IP Group</option>
+                                    @foreach($ethnicities as $ethno)
+                                        <option value="{{ $ethno->id }}">{{ $ethno->ethnicity }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. Address Information -->
+                    @foreach(['mailing' => 'Mailing Address', 'permanent' => 'Permanent Address', 'origin' => 'Place of Origin/Birth'] as $prefix => $title)
+                    <section>
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">2.{{ $loop->iteration }}</span>
+                            {{ $title }}
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Municipality <span class="text-red-500">*</span></label>
+                                <select name="{{ $prefix }}_municipality" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
                                     <option value="">Select Municipality</option>
-                                    @foreach($municipalities as $municipality)
-                                        <option value="{{ $municipality }}">{{ $municipality }}</option>
+                                    @foreach($municipalities as $muni)
+                                        <option value="{{ $muni }}">{{ $muni }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Barangay</label>
-                                <select name="barangay" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Barangay <span class="text-red-500">*</span></label>
+                                <select name="{{ $prefix }}_barangay" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
                                     <option value="">Select Barangay</option>
-                                    @foreach($barangays as $barangay)
-                                        <option value="{{ $barangay }}">{{ $barangay }}</option>
+                                    @foreach($barangays as $brgy)
+                                        <option value="{{ $brgy }}">{{ $brgy }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">House No./Street</label>
-                                <input type="text" name="house_num" class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">House No. / Street</label>
+                                <input type="text" name="{{ $prefix }}_house_num" class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="House #, Street name">
                             </div>
                         </div>
-                    </div>
+                    </section>
+                    @endforeach
+
+                    <!-- 3. Academic Information -->
+                    <section>
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">3</span>
+                            Academic Information
+                        </h4>
+                        <div class="space-y-8">
+                            @foreach([
+                                ['key' => 'elem', 'label' => 'Elementary', 'required' => true],
+                                ['key' => 'hs', 'label' => 'High School', 'required' => true],
+                                ['key' => 'voc', 'label' => 'Vocational', 'required' => false],
+                                ['key' => 'college', 'label' => 'College', 'required' => false]
+                            ] as $level)
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <h5 class="text-sm font-bold text-slate-600 mb-4">{{ $level['label'] }} @if($level['required']) <span class="text-red-500">*</span> @endif</h5>
+                                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">School Name</label>
+                                        <input type="text" name="{{ $level['key'] }}_school" {{ $level['required'] ? 'required' : '' }} class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Type</label>
+                                        <select name="{{ $level['key'] }}_type" {{ $level['required'] ? 'required' : '' }} class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                            <option value="">Select</option>
+                                            <option value="Public">Public</option>
+                                            <option value="Private">Private</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Year Graduated</label>
+                                        <input type="text" name="{{ $level['key'] }}_year" {{ $level['required'] ? 'required' : '' }} class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="YYYY">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">GWA</label>
+                                        <input type="text" name="{{ $level['key'] }}_avg" {{ $level['required'] ? 'required' : '' }} class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="00.00">
+                                    </div>
+                                    <div class="md:col-span-1">
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Rank/Honors</label>
+                                        <input type="text" name="{{ $level['key'] }}_rank" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <!-- 4. Parents Information -->
+                    <section>
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">4</span>
+                            Parents Information
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            @foreach(['father' => 'Father', 'mother' => 'Mother'] as $parent => $label)
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <h5 class="text-sm font-bold text-slate-600 mb-4">{{ $label }}'s Details</h5>
+                                <div class="space-y-4">
+                                    <div class="flex gap-4 mb-4">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="{{ $parent }}_status" value="Living" checked class="text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm text-slate-700">Living</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="{{ $parent }}_status" value="Deceased" class="text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm text-slate-700">Deceased</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Full Name <span class="text-red-500">*</span></label>
+                                        <input type="text" name="{{ $parent }}_name" required class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Address</label>
+                                        <input type="text" name="{{ $parent }}_address" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">Occupation</label>
+                                            <input type="text" name="{{ $parent }}_occupation" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">Annual Income</label>
+                                            <input type="text" name="{{ $parent }}_income" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Educational Attainment</label>
+                                        <input type="text" name="{{ $parent }}_education" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Office Address</label>
+                                        <input type="text" name="{{ $parent }}_office_address" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">IP Group</label>
+                                        <select name="{{ $parent }}_ethno" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                            <option value="">Select</option>
+                                            @foreach($ethnicities as $ethno)
+                                                <option value="{{ $ethno->id }}">{{ $ethno->ethnicity }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <!-- 5. School Preference -->
+                    <section>
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">5</span>
+                            School Preference
+                        </h4>
+                        @php
+                            $courseOptions = [
+                                'Aerospace Engineering', 'Agribusiness', 'Agricultural Economics', 'Agricultural Engineering', 'Agricultural Technology', 'Agriculture', 'Animal Science', 'Anthropology', 'Aqua-Culture and Fisheries', 'Aquaculture', 'Archaeology', 'Architecture', 'Automotive Engineering', 'Biochemistry', 'Biology', 'Biotechnology', 'Business Administration', 'Business Management', 'Chemical Engineering', 'Chemistry', 'Civil Engineering', 'Communication Arts', 'Community Development', 'Community Services', 'Computer Engineering', 'Computer Science', 'Conservation', 'Construction Engineering', 'Constitutional Law', 'Counseling', 'Criminal Justice', 'Criminology', 'Crop Science', 'Cultural Studies', 'Curriculum Development', 'Dance', 'Data Science', 'Development Studies', 'Diplomatic Studies', 'Earth Science', 'Ecology', 'Economics', 'Education', 'Educational Administration', 'Electrical Engineering', 'Electronics Engineering', 'Elementary Education', 'Entrepreneurship', 'Environmental Engineering', 'Environmental Management', 'Environmental Science', 'Ethnic Studies', 'Finance', 'Fine Arts', 'Fisheries', 'Food Technology', 'Foreign Service', 'Forensic Science', 'Forestry and Environment Studies', 'Geodetic Engineering', 'Geographic Information Systems', 'Geological Engineering', 'Geology', 'Geomatics', 'Geophysics', 'Health Sciences', 'History', 'Hospitality Management', 'Hotel and Restaurant Management', 'Human Resource Management', 'Human Services', 'Industrial Engineering', 'Information Systems', 'Information Technology', 'International Relations', 'International Studies', 'Journalism', 'Jurisprudence', 'Land Surveying', 'Law', 'Law Enforcement', 'Legal Studies', 'Literature', 'Manufacturing Engineering', 'Marine Biology', 'Marine Science', 'Marketing', 'Mathematics', 'Mechanical Engineering', 'Medical Laboratory Science', 'Medicine and Allied Health Sciences', 'Mineral Processing', 'Mining Engineering', 'Mining Technology', 'Music', 'Natural Resource Management', 'Nutrition', 'Occupational Therapy', 'Oceanography', 'Operations Management', 'Pharmacy', 'Philosophy', 'Physical Education', 'Physical Therapy', 'Physics', 'Political Science', 'Psychology', 'Public Administration', 'Public Health', 'Radiologic Technology', 'Rural Development', 'Secondary Education', 'Security Management', 'Social Sciences', 'Social Welfare', 'Social Work', 'Sociology', 'Special Education', 'Sports Science', 'Statistics', 'Structural Engineering', 'Surveying', 'Theater Arts', 'Tourism', 'Transportation Engineering', 'Urban Planning', 'Other'
+                            ];
+                        @endphp
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            @foreach(['school1' => 'First Choice', 'school2' => 'Second Choice'] as $key => $label)
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <h5 class="text-sm font-bold text-slate-600 mb-4">{{ $label }} <span class="text-red-500">*</span></h5>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">School Name</label>
+                                        <input type="text" name="{{ $key }}_name" required class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">School Address</label>
+                                        <input type="text" name="{{ $key }}_address" required class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">Primary Course</label>
+                                            <select name="{{ $key }}_course1" required onchange="toggleOtherCourse(this, '{{ $key }}_course1_other_container')" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                                <option value="">Select Course</option>
+                                                @foreach($courseOptions as $course)
+                                                    <option value="{{ $course }}">{{ $course }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div id="{{ $key }}_course1_other_container" class="mt-2 hidden">
+                                                <input type="text" name="{{ $key }}_course1_other" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Specify course">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">Alternate Course</label>
+                                            <select name="{{ $key }}_course_alt" onchange="toggleOtherCourse(this, '{{ $key }}_course_alt_other_container')" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                                <option value="">Select Course</option>
+                                                @foreach($courseOptions as $course)
+                                                    <option value="{{ $course }}">{{ $course }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div id="{{ $key }}_course_alt_other_container" class="mt-2 hidden">
+                                                <input type="text" name="{{ $key }}_course_alt_other" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Specify course">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">Type</label>
+                                            <select name="{{ $key }}_type" required class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                                <option value="Public">Public</option>
+                                                <option value="Private">Private</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 mb-1">Duration (Years)</label>
+                                            <input type="text" name="{{ $key }}_years" required class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="e.g. 4">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    <!-- 6. Essay -->
+                    <section>
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center">6</span>
+                            Essay
+                        </h4>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">How will you contribute to your IP community? <span class="text-red-500">*</span></label>
+                                <textarea name="contribution" required rows="4" class="w-full border-slate-200 rounded-xl p-4 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Write your response here..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">What are your plans after graduation? <span class="text-red-500">*</span></label>
+                                <textarea name="plans_after_grad" required rows="4" class="w-full border-slate-200 rounded-xl p-4 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Write your response here..."></textarea>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 <div class="flex items-center justify-end gap-4 pt-8 border-t border-slate-100">
@@ -402,6 +589,18 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         document.body.style.overflow = 'auto';
+    };
+
+    window.toggleOtherCourse = function(select, containerId) {
+        const container = document.getElementById(containerId);
+        if (select.value === 'Other') {
+            container.classList.remove('hidden');
+            container.querySelector('input').setAttribute('required', 'required');
+        } else {
+            container.classList.add('hidden');
+            container.querySelector('input').removeAttribute('required');
+            container.querySelector('input').value = '';
+        }
     };
 
     // Search Functionality
