@@ -33,6 +33,23 @@
     </div>
     @endif
 
+    <!-- Error Messages -->
+    @if($errors->any())
+    <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-lg">
+        <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-700 font-bold">Please correct the following errors:</p>
+        </div>
+        <ul class="list-disc list-inside text-sm text-red-600 font-medium">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <!-- Settings Form -->
     <div class="space-y-8">
         <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8">
@@ -81,6 +98,33 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Manual Applicant Encoding Section -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-slate-900 text-xl">Manual Applicant Encoding</h2>
+                        <p class="text-sm text-slate-500 font-medium">Temporarily encode an applicant application form manually</p>
+                    </div>
+                </div>
+                <button 
+                    type="button"
+                    onclick="window.openEncodeModal()"
+                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Encode New Applicant
+                </button>
+            </div>
         </div>
 
         <!-- Account Management Section -->
@@ -201,8 +245,165 @@
     </div>
 </div>
 
+<!-- Manual Encoding Modal -->
+<div id="encodeApplicantModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+        <div class="p-8">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900">Manual Applicant Encoding</h3>
+                </div>
+                <button onclick="window.closeEncodeModal()" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('staff.settings.encode-applicant') }}" method="POST" class="space-y-6">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Basic Information -->
+                    <div class="md:col-span-3">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">First Name</label>
+                                <input type="text" name="first_name" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Middle Name</label>
+                                <input type="text" name="middle_name" class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
+                                <input type="text" name="last_name" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact & System Info -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                        <input type="email" name="email" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Contact Number</label>
+                        <input type="text" name="contact_num" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">IP Group (Ethnicity)</label>
+                        <select name="ethno_id" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            <option value="">Select IP Group</option>
+                            @foreach($ethnicities as $ethno)
+                                <option value="{{ $ethno->id }}">{{ $ethno->ethnicity }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Academic & Personal -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Course</label>
+                        <input type="text" name="course" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Birthdate</label>
+                        <input type="date" name="birthdate" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Gender</label>
+                        <select name="gender" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Civil Status</label>
+                        <select name="civil_status" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Separated">Separated</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Birthplace</label>
+                        <input type="text" name="birthplace" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                    </div>
+
+                    <!-- Address Section -->
+                    <div class="md:col-span-3">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Address Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Province</label>
+                                <select name="province" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select Province</option>
+                                    @foreach($provinces as $province)
+                                        <option value="{{ $province }}">{{ $province }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Municipality</label>
+                                <select name="municipality" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select Municipality</option>
+                                    @foreach($municipalities as $municipality)
+                                        <option value="{{ $municipality }}">{{ $municipality }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Barangay</label>
+                                <select name="barangay" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select Barangay</option>
+                                    @foreach($barangays as $barangay)
+                                        <option value="{{ $barangay }}">{{ $barangay }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">House No./Street</label>
+                                <input type="text" name="house_num" class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-4 pt-8 border-t border-slate-100">
+                    <button type="button" onclick="window.closeEncodeModal()" class="px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                        Encode Applicant
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    window.openEncodeModal = function() {
+        const modal = document.getElementById('encodeApplicantModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeEncodeModal = function() {
+        const modal = document.getElementById('encodeApplicantModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    };
+
     // Search Functionality
     document.getElementById('applicantSearch').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();

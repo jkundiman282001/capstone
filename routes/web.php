@@ -178,6 +178,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/users/{user}/update-gwa', [StaffDashboardController::class, 'updateGWA'])->name('staff.users.update-gwa');
     Route::get('/staff/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('staff.settings');
     Route::post('/staff/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('staff.settings.update');
+    Route::post('/staff/settings/encode-applicant', [App\Http\Controllers\SettingsController::class, 'storeApplicant'])->name('staff.settings.encode-applicant');
 
     // Document priority routes (First Come, First Serve)
     Route::post('/staff/documents/recalculate-priorities', [StaffDashboardController::class, 'recalculateDocumentPriorities'])->name('staff.documents.recalculate-priorities');
