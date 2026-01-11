@@ -289,12 +289,6 @@
                                 </a>
                             </div>
                         </div>
-                        <a href="{{ route('staff.reports.download') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.reports.download') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-xl shadow-orange-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-semibold text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm tracking-wide">Download Reports</span>
-                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.reports.download') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
-                            </div>
-                        </a>
                         <a href="{{ route('staff.announcements.index') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.announcements.*') ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-xl shadow-blue-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-300 font-semibold text-slate-700 hover:text-blue-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
                             <div class="flex items-center justify-between">
                                 <span class="text-sm tracking-wide">Announcements</span>
