@@ -114,6 +114,18 @@ class SettingsController extends Controller
             'mother_income' => 'nullable|string',
             'mother_ethno' => 'nullable|exists:ethno,id',
 
+            // Siblings
+            'sibling_name' => 'nullable|array',
+            'sibling_name.*' => 'nullable|string|max:255',
+            'sibling_age' => 'nullable|array',
+            'sibling_age.*' => 'nullable|string',
+            'sibling_scholarship' => 'nullable|array',
+            'sibling_scholarship.*' => 'nullable|string',
+            'sibling_course' => 'nullable|array',
+            'sibling_course.*' => 'nullable|string',
+            'sibling_status' => 'nullable|array',
+            'sibling_status.*' => 'nullable|string',
+
             // School Preference
             'school1_name' => 'required|string',
             'school1_address' => 'required|string',
@@ -278,6 +290,22 @@ class SettingsController extends Controller
                 'income' => $validated['mother_income'],
                 'ethno_id' => $validated['mother_ethno'],
             ]);
+
+            // 7. Create Sibling Records
+            if (!empty($validated['sibling_name'])) {
+                foreach ($validated['sibling_name'] as $i => $name) {
+                    if (!empty($name)) {
+                        FamSiblings::create([
+                            'basic_info_id' => $basicInfo->id,
+                            'name' => $name,
+                            'age' => $validated['sibling_age'][$i] ?? null,
+                            'scholarship' => $validated['sibling_scholarship'][$i] ?? null,
+                            'course_year' => $validated['sibling_course'][$i] ?? null,
+                            'present_status' => $validated['sibling_status'][$i] ?? null,
+                        ]);
+                    }
+                }
+            }
 
             DB::commit();
 

@@ -474,10 +474,51 @@
                         </div>
                     </section>
 
-                    <!-- 5. School Preference -->
+                    <!-- 5. Siblings Information -->
+                    <section>
+                        <div class="flex items-center justify-between mb-6">
+                            <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">5</span>
+                                Siblings Information
+                            </h4>
+                            <button type="button" onclick="addSiblingRow()" class="px-4 py-2 bg-orange-50 text-orange-600 text-xs font-bold rounded-lg hover:bg-orange-100 transition-all flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add Sibling
+                            </button>
+                        </div>
+                        <div id="siblingsContainer" class="space-y-4">
+                            <!-- Sibling rows will be added here -->
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 relative group">
+                                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Full Name</label>
+                                        <input type="text" name="sibling_name[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Sibling's full name">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Age</label>
+                                        <input type="text" name="sibling_age[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Age">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Status</label>
+                                        <input type="text" name="sibling_status[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="e.g. Student">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Course/Year</label>
+                                        <input type="text" name="sibling_course[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="e.g. BSIT-1">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 mb-1">Scholarship (if any)</label>
+                                        <input type="text" name="sibling_scholarship[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Scholarship name">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 6. School Preference -->
                     <section>
                         <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">5</span>
+                            <span class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">6</span>
                             School Preference
                         </h4>
                         @php
@@ -543,10 +584,10 @@
                         </div>
                     </section>
 
-                    <!-- 6. Essay -->
+                    <!-- 7. Essay -->
                     <section>
                         <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center">6</span>
+                            <span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center">7</span>
                             Essay
                         </h4>
                         <div class="space-y-6">
@@ -601,6 +642,40 @@
             container.querySelector('input').removeAttribute('required');
             container.querySelector('input').value = '';
         }
+    };
+
+    window.addSiblingRow = function() {
+        const container = document.getElementById('siblingsContainer');
+        const newRow = document.createElement('div');
+        newRow.className = 'p-4 bg-slate-50 rounded-xl border border-slate-100 relative group animate-fadeIn';
+        newRow.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Full Name</label>
+                    <input type="text" name="sibling_name[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Sibling's full name">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Age</label>
+                    <input type="text" name="sibling_age[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Age">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Status</label>
+                    <input type="text" name="sibling_status[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="e.g. Student">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Course/Year</label>
+                    <input type="text" name="sibling_course[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="e.g. BSIT-1">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Scholarship (if any)</label>
+                    <input type="text" name="sibling_scholarship[]" class="w-full border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Scholarship name">
+                </div>
+            </div>
+        `;
+        container.appendChild(newRow);
     };
 
     // Search Functionality
