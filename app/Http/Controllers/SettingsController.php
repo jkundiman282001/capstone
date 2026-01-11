@@ -23,7 +23,8 @@ class SettingsController extends Controller
         $maxSlots = \App\Models\Setting::get('max_slots', 120);
 
         // Get all student users for the deletion management
-        $applicants = User::orderBy('last_name')
+        $applicants = User::whereHas('basicInfo')
+            ->orderBy('last_name')
             ->get();
 
         // Data for manual encoding form
@@ -162,6 +163,7 @@ class SettingsController extends Controller
                 'ethno_id' => $validated['ethno_id'],
                 'password' => Hash::make('password123'),
                 'email_verified_at' => now(),
+                'role' => 'student', // Ensure role is set to student
             ]);
 
             // 2. Create Addresses and Link them
