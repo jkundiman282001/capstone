@@ -227,10 +227,16 @@
                         <div class="text-2xl sm:text-3xl font-black text-blue-400 mb-1.5">{{ number_format($stats['applicantsPending']) }}</div>
                         <div class="text-sm text-gray-300 font-medium">Pending Review</div>
                     </div>
-                    <div class="mb-6">
-                        <span class="inline-flex items-center px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-bold">
-                            <span class="mr-2">📅</span> Application Period: January - February
-                        </span>
+                    <div class="col-span-1 sm:col-span-2 mt-4">
+                        <div class="inline-flex items-center gap-4 px-6 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-2xl transition-all hover:bg-white/15 group">
+                            <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                📅
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400 mb-1">Application Period</span>
+                                <span class="text-xl font-black tracking-tight">January - February</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -476,8 +482,9 @@
                 <p class="text-lg text-white/80 mb-2 max-w-2xl mx-auto font-semibold">
                     ⚠️ Hurry! Only {{ number_format($stats['availableSlots']) }} slots remaining!
                 </p>
-                <p class="text-md text-white/90 mb-8 font-bold bg-white/10 py-2 px-4 rounded-full inline-block">
-                    📅 Application Deadline: January-February
+                <p class="text-lg text-white font-bold bg-white/20 mt-4 mb-10 py-3 px-6 rounded-2xl inline-flex items-center gap-3 shadow-lg">
+                    <span class="text-xl">📅</span>
+                    <span>Application Deadline: January - February</span>
                 </p>
             @else
                 <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold bg-red-500/30 px-6 py-3 rounded-lg inline-block">
