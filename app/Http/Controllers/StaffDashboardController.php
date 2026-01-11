@@ -679,9 +679,7 @@ class StaffDashboardController extends Controller
             $selectedStatus = $request->get('status');
             $selectedType = $request->get('type');
 
-            $applicantsQuery = User::where('role', 'student')
-                ->with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
-                ->latest()
+            $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
                 ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus, $selectedType) {
                     if ($selectedProvince) {
                         $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
@@ -831,8 +829,7 @@ class StaffDashboardController extends Controller
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
         // Get all applicants with basic info
-        $usersQuery = User::where('role', 'student')
-            ->with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function ($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
                     $query->whereHas('fullAddress', function ($q) use ($assignedBarangay) {
@@ -906,11 +903,10 @@ class StaffDashboardController extends Controller
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
         // Get all users who have approved tribal certificates
-        $usersWithApprovedTribalCert = User::where('role', 'student')
-            ->whereHas('documents', function ($query) {
-                $query->where('type', 'tribal_certificate')
-                    ->where('status', 'approved');
-            })
+        $usersWithApprovedTribalCert = User::whereHas('documents', function ($query) {
+            $query->where('type', 'tribal_certificate')
+                ->where('status', 'approved');
+        })
             ->with(['documents' => function ($query) {
                 $query->where('type', 'tribal_certificate')
                     ->where('status', 'approved')
@@ -960,8 +956,7 @@ class StaffDashboardController extends Controller
         $assignedBarangay = $user->assigned_barangay ?? 'All';
 
         // Get all applicants with basic info
-        $usersQuery = User::where('role', 'student')
-            ->with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents', 'basicInfo.schoolPref', 'basicInfo.education'])
             ->whereHas('basicInfo', function ($query) use ($assignedBarangay) {
                 if ($assignedBarangay !== 'All') {
                     $query->whereHas('fullAddress', function ($q) use ($assignedBarangay) {
@@ -1914,8 +1909,7 @@ class StaffDashboardController extends Controller
 
         // Build query for Regular scholarship applicants - Only show approved applications
         // Exclude grantees (they appear in the grantees masterlist)
-        $applicantsQuery = User::where('role', 'student')
-            ->with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Regular')
                     ->where('application_status', 'validated') // Only show validated/approved applications
@@ -1983,8 +1977,7 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for Regular Grantees - validated and marked as grantee
-        $applicantsQuery = User::where('role', 'student')
-            ->with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Regular')
                     ->where('application_status', 'validated')
@@ -3190,8 +3183,7 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for Regular Waiting - validated but marked as waiting
-        $applicantsQuery = User::where('role', 'student')
-            ->with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Regular')
                     ->where('application_status', 'validated')
@@ -3254,8 +3246,7 @@ class StaffDashboardController extends Controller
 
         // Build query for Pamana scholarship applicants - Only show approved applications
         // Exclude grantees (they appear in the grantees masterlist)
-        $applicantsQuery = User::where('role', 'student')
-            ->with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
+        $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 $query->where('type_assist', 'Pamana')
                     ->where('application_status', 'validated') // Only show validated/approved applications

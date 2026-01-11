@@ -23,9 +23,8 @@ class SettingsController extends Controller
         $maxSlots = \App\Models\Setting::get('max_slots', 120);
 
         // Get all student users for the deletion management
-        $applicants = User::where('role', 'student')
-            ->whereHas('basicInfo')
-            ->latest()
+        $applicants = User::whereHas('basicInfo')
+            ->orderBy('last_name')
             ->get();
 
         // Data for manual encoding form
