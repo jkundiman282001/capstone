@@ -172,6 +172,11 @@
                         <span class="hero-text-gradient">Indigenous</span><br/>
                         <span class="text-white">Futures</span>
                     </h1>
+                    <div class="mb-6">
+                        <span class="inline-flex items-center px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-bold">
+                            <span class="mr-2">📅</span> Application Period: January - February
+                        </span>
+                    </div>
                     <p class="text-xl lg:text-2xl text-gray-200 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                         Join the NCIP Educational Assistance Program and unlock your potential through quality education and scholarship opportunities.
                     </p>
@@ -412,6 +417,15 @@
             <div class="space-y-4">
                 <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
                     <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
+                        When is the scholarship application deadline?
+                    </summary>
+                    <p class="mt-4 text-gray-700 leading-relaxed">
+                        The scholarship application period for the NCIP Educational Assistance Program is from <strong>January to February</strong> each year. Please ensure all your documents are ready and submitted within this window.
+                    </p>
+                </details>
+                
+                <details class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 group cursor-pointer">
+                    <summary class="font-bold text-gray-900 text-lg cursor-pointer group-open:text-orange-600 transition-colors">
                         What documents do I need to submit?
                     </summary>
                     <p class="mt-4 text-gray-700 leading-relaxed">
@@ -459,8 +473,11 @@
                 Join hundreds of Indigenous students who are already benefiting from the NCIP Educational Assistance Program.
             </p>
             @if(!$stats['isFull'])
-                <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold">
+                <p class="text-lg text-white/80 mb-2 max-w-2xl mx-auto font-semibold">
                     ⚠️ Hurry! Only {{ number_format($stats['availableSlots']) }} slots remaining!
+                </p>
+                <p class="text-md text-white/90 mb-8 font-bold bg-white/10 py-2 px-4 rounded-full inline-block">
+                    📅 Application Deadline: January-February
                 </p>
             @else
                 <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto font-semibold bg-red-500/30 px-6 py-3 rounded-lg inline-block">
