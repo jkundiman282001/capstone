@@ -172,11 +172,6 @@
                         <span class="hero-text-gradient">Indigenous</span><br/>
                         <span class="text-white">Futures</span>
                     </h1>
-                    <div class="mb-6">
-                        <span class="inline-flex items-center px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-bold">
-                            <span class="mr-2">📅</span> Application Period: January - February
-                        </span>
-                    </div>
                     <p class="text-xl lg:text-2xl text-gray-200 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                         Join the NCIP Educational Assistance Program and unlock your potential through quality education and scholarship opportunities.
                     </p>
@@ -231,6 +226,11 @@
                     <div class="stat-card rounded-2xl p-5 text-center fade-in col-span-1 sm:col-span-2 mt-2" style="animation-delay: 0.6s">
                         <div class="text-2xl sm:text-3xl font-black text-blue-400 mb-1.5">{{ number_format($stats['applicantsPending']) }}</div>
                         <div class="text-sm text-gray-300 font-medium">Pending Review</div>
+                    </div>
+                    <div class="mb-6">
+                        <span class="inline-flex items-center px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-bold">
+                            <span class="mr-2">📅</span> Application Period: January - February
+                        </span>
                     </div>
                 </div>
             </div>
