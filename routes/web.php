@@ -213,6 +213,7 @@ Route::middleware(['auth.staff'])->group(function () {
     // Announcements routes
     Route::get('/staff/announcements', [StaffDashboardController::class, 'announcements'])->name('staff.announcements.index');
     Route::post('/staff/announcements', [StaffDashboardController::class, 'storeAnnouncement'])->name('staff.announcements.store');
+    Route::delete('/staff/announcements/{id}', [StaffDashboardController::class, 'deleteAnnouncement'])->name('staff.announcements.delete');
 });
 
 // Geographic API Routes (Public)

@@ -3360,4 +3360,34 @@ class StaffDashboardController extends Controller
             'announcement' => $announcement,
         ]);
     }
+
+    /**
+     * Delete an announcement
+     */
+    public function deleteAnnouncement($id)
+    {
+        try {
+            $announcement = Announcement::findOrFail($id);
+            
+            // Delete image if exists
+            if ($announcement->image_path) {
+                $disk = config('filesystems.default');
+                if (\Storage::disk($disk)->exists($announcement->image_path)) {
+                    \Storage::disk($disk)->delete($announcement->image_path);
+                }
+            }
+            
+            $announcement->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Announcement deleted successfully!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete announcement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

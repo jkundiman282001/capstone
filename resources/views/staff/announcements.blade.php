@@ -37,9 +37,16 @@
                             @endif
                             <div class="flex items-start justify-between mb-2">
                                 <h3 class="text-lg font-black text-slate-900 flex-1">{{ $announcement->title }}</h3>
-                                <span class="px-2 py-1 text-xs font-bold rounded-full {{ $announcement->priority === 'urgent' ? 'bg-red-100 text-red-700' : ($announcement->priority === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700') }}">
-                                    {{ ucfirst($announcement->priority) }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 text-xs font-bold rounded-full {{ $announcement->priority === 'urgent' ? 'bg-red-100 text-red-700' : ($announcement->priority === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700') }}">
+                                        {{ ucfirst($announcement->priority) }}
+                                    </span>
+                                    <button onclick="confirmDeleteAnnouncement({{ $announcement->id }})" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete Announcement">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <p class="text-sm text-slate-600 mb-4 line-clamp-3">{{ Str::limit($announcement->content, 120) }}</p>
                             <div class="flex items-center justify-between text-xs text-slate-500">
@@ -310,10 +317,38 @@
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeCreateAnnouncementModal();
-        }
+        if (e.key === 'Escape') closeCreateAnnouncementModal();
     });
+
+    function confirmDeleteAnnouncement(id) {
+        if (confirm('Are you sure you want to delete this announcement? This action cannot be undone.')) {
+            deleteAnnouncement(id);
+        }
+    }
+
+    function deleteAnnouncement(id) {
+        fetch(`/staff/announcements/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Announcement deleted successfully!');
+                window.location.reload();
+            } else {
+                alert('Error deleting announcement: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the announcement.');
+        });
+    }
 </script>
 @endpush
 @endsection
