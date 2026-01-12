@@ -22,10 +22,19 @@ class SettingsController extends Controller
     {
         $maxSlots = \App\Models\Setting::get('max_slots', 120);
 
-        // Get all student users for the deletion management
-        $applicants = User::whereHas('basicInfo')
-            ->orderBy('last_name')
-            ->get();
+        // Get regular applicants (non-manual)
+        $applicants = User::whereHas('basicInfo', function($query) {
+            $query->where('type_assist', '!=', 'Manual');
+        })
+        ->orderBy('last_name')
+        ->get();
+
+        // Get manually encoded applicants
+        $manualApplicants = User::whereHas('basicInfo', function($query) {
+            $query->where('type_assist', 'Manual');
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         // Data for manual encoding form
         $ethnicities = \App\Models\Ethno::all();
@@ -33,7 +42,7 @@ class SettingsController extends Controller
         $municipalities = \App\Models\Address::query()->select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
         $provinces = \App\Models\Address::query()->select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
 
-        return view('staff.settings', compact('maxSlots', 'applicants', 'ethnicities', 'barangays', 'municipalities', 'provinces'));
+        return view('staff.settings', compact('maxSlots', 'applicants', 'manualApplicants', 'ethnicities', 'barangays', 'municipalities', 'provinces'));
     }
 
     public function update(Request $request)
@@ -239,7 +248,7 @@ class SettingsController extends Controller
                 'birthplace' => $validated['birthplace'],
                 'gender' => $validated['gender'],
                 'civil_status' => $validated['civil_status'],
-                'type_assist' => 'Regular',
+                'type_assist' => 'Manual',
                 'assistance_for' => 'Tuition',
                 'application_status' => 'pending',
             ]);

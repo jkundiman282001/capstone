@@ -280,7 +280,7 @@
             </div>
             <div>
                 <h2 class="font-black text-slate-900 text-xl">Graduation Year Distribution</h2>
-                <p class="text-sm text-slate-500 font-medium">Applicants by their latest year of graduation</p>
+                <p class="text-sm text-slate-500 font-medium">Distribution of all graduated college applicants by year</p>
             </div>
         </div>
         <div class="h-80">

@@ -397,15 +397,14 @@ class StaffDashboardController extends Controller
 
         // Graduation Year Distribution Chart Data
         $basicInfoIds = $users->pluck('basicInfo.id')->filter()->toArray();
-        $gradYearDistribution = Education::whereIn('basic_info_id', $basicInfoIds)
+        // Graduation Year Distribution - Now specifically for College Graduates (category 4)
+        $gradYearDistribution = Education::where('category', 4)
             ->whereNotNull('year_grad')
             ->where('year_grad', '>', 0)
-            ->selectRaw('MAX(year_grad) as latest_year, basic_info_id')
-            ->groupBy('basic_info_id')
-            ->get()
-            ->groupBy('latest_year')
-            ->map->count()
-            ->sortKeys();
+            ->selectRaw('year_grad, count(*) as count')
+            ->groupBy('year_grad')
+            ->orderBy('year_grad')
+            ->pluck('count', 'year_grad');
 
         $gradYearChartData = [
             'labels' => $gradYearDistribution->keys()->toArray(),
