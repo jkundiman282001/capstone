@@ -410,7 +410,16 @@
                             <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">2.{{ $loop->iteration }}</span>
                             {{ $title }}
                         </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Province <span class="text-red-500">*</span></label>
+                                <select name="{{ $prefix }}_province" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                                    <option value="">Select Province</option>
+                                    @foreach($provinces as $prov)
+                                        <option value="{{ $prov }}" {{ $prov === 'Davao del Sur' ? 'selected' : '' }}>{{ $prov }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Municipality <span class="text-red-500">*</span></label>
                                 <select name="{{ $prefix }}_municipality" required class="w-full border-slate-200 rounded-xl p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
@@ -827,6 +836,13 @@
             spinner.classList.add('hidden');
         });
     });
+
+    // Auto-open modal if there are errors related to encoding
+    @if($errors->any() && (old('first_name') || old('email') || old('contact_num')))
+        window.addEventListener('load', function() {
+            window.openEncodeModal();
+        });
+    @endif
 </script>
 @endpush
 @endsection

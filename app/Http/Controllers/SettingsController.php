@@ -12,6 +12,9 @@ use App\Models\BasicInfo;
 use App\Models\Family;
 use App\Models\Education;
 use App\Models\FamSiblings;
+use App\Models\MailingAddress;
+use App\Models\PermanentAddress;
+use App\Models\Origin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -72,14 +75,17 @@ class SettingsController extends Controller
             'civil_status' => 'required|string',
 
             // Address - Mailing
+            'mailing_province' => 'required|string',
             'mailing_municipality' => 'required|string',
             'mailing_barangay' => 'required|string',
             'mailing_house_num' => 'nullable|string',
             // Address - Permanent
+            'permanent_province' => 'required|string',
             'permanent_municipality' => 'required|string',
             'permanent_barangay' => 'required|string',
             'permanent_house_num' => 'nullable|string',
             // Address - Origin
+            'origin_province' => 'required|string',
             'origin_municipality' => 'required|string',
             'origin_barangay' => 'required|string',
             'origin_house_num' => 'nullable|string',
@@ -179,40 +185,37 @@ class SettingsController extends Controller
             $mailingAddr = Address::firstOrCreate([
                 'barangay' => $validated['mailing_barangay'],
                 'municipality' => $validated['mailing_municipality'],
-                'province' => 'Davao del Sur',
+                'province' => $validated['mailing_province'],
             ]);
-            $mailingId = DB::table('mailing_address')->insertGetId([
+            $mailing = MailingAddress::create([
                 'address_id' => $mailingAddr->id,
                 'house_num' => $validated['mailing_house_num'] ?? '',
-                'created_at' => now(), 'updated_at' => now(),
             ]);
 
             $permanentAddr = Address::firstOrCreate([
                 'barangay' => $validated['permanent_barangay'],
                 'municipality' => $validated['permanent_municipality'],
-                'province' => 'Davao del Sur',
+                'province' => $validated['permanent_province'],
             ]);
-            $permanentId = DB::table('permanent_address')->insertGetId([
+            $permanent = PermanentAddress::create([
                 'address_id' => $permanentAddr->id,
                 'house_num' => $validated['permanent_house_num'] ?? '',
-                'created_at' => now(), 'updated_at' => now(),
             ]);
 
             $originAddr = Address::firstOrCreate([
                 'barangay' => $validated['origin_barangay'],
                 'municipality' => $validated['origin_municipality'],
-                'province' => 'Davao del Sur',
+                'province' => $validated['origin_province'],
             ]);
-            $originId = DB::table('origin')->insertGetId([
+            $origin = Origin::create([
                 'address_id' => $originAddr->id,
                 'house_num' => $validated['origin_house_num'] ?? '',
-                'created_at' => now(), 'updated_at' => now(),
             ]);
 
             $fullAddress = FullAddress::create([
-                'mailing_address_id' => $mailingId,
-                'permanent_address_id' => $permanentId,
-                'origin_id' => $originId,
+                'mailing_address_id' => $mailing->id,
+                'permanent_address_id' => $permanent->id,
+                'origin_id' => $origin->id,
             ]);
 
             // 3. Create School Preference
@@ -323,7 +326,13 @@ class SettingsController extends Controller
             return redirect()->route('staff.settings')->with('success', 'Applicant encoded successfully! Default password is "password123".');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => 'Failed to encode applicant: ' . $e->getMessage()])->withInput();
+            \Log::error('Manual encoding failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'input' => $request->all()
+            ]);
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to encode applicant: ' . $e->getMessage()])
+                ->withInput();
         }
     }
 }
