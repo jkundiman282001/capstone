@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Address;
 use App\Models\BasicInfo;
+use App\Models\Document;
 use App\Models\Education;
 use App\Models\Ethno;
 use App\Models\Family;
@@ -13,7 +14,9 @@ use App\Models\MailingAddress;
 use App\Models\Origin;
 use App\Models\PermanentAddress;
 use App\Models\SchoolPref;
+use App\Models\TransactionHistory;
 use App\Models\User;
+use App\Services\DocumentPriorityService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -31,6 +34,15 @@ class ManualApplicantSeeder extends Seeder
         if ($ethnos->isEmpty()) {
             $ethnos = collect([Ethno::create(['ethnicity' => 'Tagalog']), Ethno::create(['ethnicity' => 'Ilocano']), Ethno::create(['ethnicity' => 'Bisaya'])]);
         }
+
+        $documentTypes = [
+            'birth_certificate' => 'Birth Certificate',
+            'income_document' => 'Income Document',
+            'tribal_certificate' => 'Tribal Certificate',
+            'endorsement' => 'Endorsement',
+            'good_moral' => 'Good Moral',
+            'grades' => 'Grades'
+        ];
 
         for ($i = 0; $i < 10; $i++) {
             try {
@@ -175,6 +187,42 @@ class ManualApplicantSeeder extends Seeder
                         'scholarship' => $faker->randomElement(['None', 'Private', 'Government']),
                         'course_year' => $faker->jobTitle,
                         'present_status' => $faker->randomElement(['Studying', 'Working', 'Unemployed']),
+                    ]);
+                }
+
+                // 8. Create Document Records
+                foreach ($documentTypes as $type => $label) {
+                    $filename = "dummy_{$type}.pdf";
+                    $document = Document::create([
+                        'user_id' => $user->id,
+                        'type' => $type,
+                        'filename' => $filename,
+                        'filepath' => "documents/{$filename}",
+                        'filetype' => 'application/pdf',
+                        'filesize' => $faker->numberBetween(100000, 500000),
+                        'status' => 'pending',
+                        'submitted_at' => now(),
+                    ]);
+
+                    // Call priority service
+                    try {
+                        $priorityService = new DocumentPriorityService();
+                        $priorityService->calculateDocumentPriority($document);
+                    } catch (\Exception $e) {
+                        // Ignore if service fails
+                    }
+
+                    // Log Transaction
+                    TransactionHistory::create([
+                        'user_id' => $user->id,
+                        'action' => 'Document Uploaded',
+                        'description' => "Uploaded: {$label} (File: {$filename})",
+                        'status' => 'info',
+                        'metadata' => [
+                            'document_id' => $document->id,
+                            'type' => $type,
+                            'filename' => $filename
+                        ]
                     ]);
                 }
 
