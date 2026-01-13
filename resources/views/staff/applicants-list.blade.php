@@ -13,8 +13,10 @@
                     </div>
                     <div>
                         <h1 class="text-4xl font-black text-slate-900 tracking-tight">
-                            @if(request('status') === 'rejected' && request('type') === 'terminated')
+                            @if(request('status') === 'terminated' || (request('status') === 'rejected' && request('type') === 'terminated'))
                                 Terminated Applicants
+                            @elseif(request('status') === 'grantee')
+                                Scholarship Grantees
                             @elseif(request('status') === 'rejected')
                                 Rejected Applicants
                             @elseif(request('status') === 'validated')
@@ -26,8 +28,10 @@
                             @endif
                         </h1>
                         <p class="text-slate-500 text-sm mt-0.5">
-                            @if(request('status') === 'rejected' && request('type') === 'terminated')
+                            @if(request('status') === 'terminated' || (request('status') === 'rejected' && request('type') === 'terminated'))
                                 View and manage terminated scholarship grantees
+                            @elseif(request('status') === 'grantee')
+                                View and manage active scholarship grantees
                             @elseif(request('status') === 'rejected')
                                 View and manage rejected scholarship applications
                             @else
@@ -60,13 +64,18 @@
             </div>
             
             <form method="GET" action="{{ route('staff.applicants.list') }}">
-                @if(request()->has('status'))
-                    <input type="hidden" name="status" value="{{ request('status') }}">
-                @endif
-                @if(request()->has('type'))
-                    <input type="hidden" name="type" value="{{ request('type') }}">
-                @endif
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Status</label>
+                        <select name="status" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
+                            <option value="">All Statuses</option>
+                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="validated" {{ request('status') === 'validated' ? 'selected' : '' }}>Validated</option>
+                            <option value="grantee" {{ request('status') === 'grantee' ? 'selected' : '' }}>Grantees</option>
+                            <option value="rejected" {{ request('status') === 'rejected' && request('type') !== 'terminated' ? 'selected' : '' }}>Rejected</option>
+                            <option value="terminated" {{ request('status') === 'terminated' || request('type') === 'terminated' ? 'selected' : '' }}>Terminated</option>
+                        </select>
+                    </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Province</label>
                         <select name="province" id="province-filter" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
@@ -111,6 +120,34 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Quick Filters -->
+        <div class="flex flex-wrap items-center gap-2 mb-6">
+            <a href="{{ route('staff.applicants.list') }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ !request('status') ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-orange-300 hover:bg-orange-50' }}">
+                All Applicants
+            </a>
+            <a href="{{ route('staff.applicants.list', ['status' => 'pending']) }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'pending' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-amber-300 hover:bg-amber-50' }}">
+                Pending
+            </a>
+            <a href="{{ route('staff.applicants.list', ['status' => 'validated']) }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'validated' ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50' }}">
+                Validated
+            </a>
+            <a href="{{ route('staff.applicants.list', ['status' => 'grantee']) }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'grantee' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:bg-blue-50' }}">
+                Grantees
+            </a>
+            <a href="{{ route('staff.applicants.list', ['status' => 'rejected']) }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'rejected' && request('type') !== 'terminated' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-red-300 hover:bg-red-50' }}">
+                Rejected
+            </a>
+            <a href="{{ route('staff.applicants.list', ['status' => 'terminated']) }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'terminated' || request('type') === 'terminated' ? 'bg-slate-700 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400 hover:bg-slate-50' }}">
+                Terminated
+            </a>
         </div>
 
         <!-- Results Bar -->

@@ -44,6 +44,21 @@ class ManualApplicantSeeder extends Seeder
             'grades' => 'Grades'
         ];
 
+        $attainmentOptions = [
+            'None',
+            'Elementary/Primary School',
+            'High School (no diploma)',
+            'High School Diploma or GED',
+            'College, No Degree',
+            'College Graduate',
+            'Associate Degree',
+            'Bachelor\'s Degree',
+            'Master\'s Degree',
+            'Professional Degree',
+            'Doctorate Degree',
+            'Trade/Technical/Vocational Training/Certificate'
+        ];
+
         for ($i = 0; $i < 10; $i++) {
             try {
                 DB::beginTransaction();
@@ -171,7 +186,7 @@ class ManualApplicantSeeder extends Seeder
                     'status' => 'Living',
                     'address' => $faker->address,
                     'occupation' => $faker->jobTitle,
-                    'educational_attainment' => 'College Graduate',
+                    'educational_attainment' => $faker->randomElement($attainmentOptions),
                     'office_address' => $faker->address,
                     'income' => $faker->numberBetween(10000, 50000),
                     'ethno_id' => $ethnos->random()->id,
@@ -184,7 +199,7 @@ class ManualApplicantSeeder extends Seeder
                     'status' => 'Living',
                     'address' => $faker->address,
                     'occupation' => $faker->jobTitle,
-                    'educational_attainment' => 'College Graduate',
+                    'educational_attainment' => $faker->randomElement($attainmentOptions),
                     'office_address' => $faker->address,
                     'income' => $faker->numberBetween(10000, 50000),
                     'ethno_id' => $ethnos->random()->id,

@@ -1181,6 +1181,23 @@
                         <div class="form-step hidden" id="step-4" data-guide-step="4">
                             <h3 class="section-heading">Parents Information</h3>
                             
+                            @php
+                                $attainmentOptions = [
+                                    'None',
+                                    'Elementary/Primary School',
+                                    'High School (no diploma)',
+                                    'High School Diploma or GED',
+                                    'College, No Degree',
+                                    'College Graduate',
+                                    'Associate Degree',
+                                    'Bachelor\'s Degree',
+                                    'Master\'s Degree',
+                                    'Professional Degree',
+                                    'Doctorate Degree',
+                                    'Trade/Technical/Vocational Training/Certificate'
+                                ];
+                            @endphp
+                            
                             @foreach(['father' => 'Father', 'mother' => 'Mother'] as $parent => $label)
                             <div class="mb-8 pb-8 border-b border-slate-100">
                                 <h4 class="font-semibold text-slate-700 mb-4 uppercase text-sm tracking-wide">{{ $label }}'s Details</h4>
@@ -1300,7 +1317,12 @@
                                 </div>
                                     <div class="input-group">
                                         <label class="input-label">Educational Attainment</label>
-                                        <input type="text" name="{{ $parent }}_education" class="form-control">
+                                        <select name="{{ $parent }}_education" class="form-control">
+                                            <option value="">Select Attainment</option>
+                                            @foreach($attainmentOptions as $option)
+                                                <option value="{{ $option }}">{{ $option }}</option>
+                                            @endforeach
+                                        </select>
                                 </div>
                                     <div class="md:col-span-2">
                                     <label class="input-label">Office Address</label>

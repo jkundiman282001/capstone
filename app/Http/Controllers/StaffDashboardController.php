@@ -702,36 +702,41 @@ class StaffDashboardController extends Controller
                         });
                     }
 
-                    if ($selectedStatus) {
-                        $query->where('application_status', $selectedStatus);
+            if ($selectedStatus) {
+                if ($selectedStatus === 'grantee') {
+                    $query->where('application_status', 'validated')
+                          ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
+                } elseif ($selectedStatus === 'terminated') {
+                    $query->where('application_status', 'rejected')
+                          ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
+                } else {
+                    $query->where('application_status', $selectedStatus);
 
-                        if ($selectedStatus === 'rejected') {
-                            if ($selectedType === 'terminated') {
-                                $query->where('grant_status', 'grantee');
-                            } else {
-                                $query->where(function($q) {
-                                    $q->where('grant_status', '!=', 'grantee')
-                                      ->orWhereNull('grant_status');
-                                });
-                            }
-                        }
+                    if ($selectedStatus === 'rejected' && $selectedType !== 'terminated') {
+                        $query->where(function($q) {
+                            $q->whereRaw("LOWER(TRIM(grant_status)) != 'grantee'")
+                              ->orWhereNull('grant_status');
+                        });
                     }
-                });
-
-            if ($selectedEthno) {
-                $applicantsQuery->where('ethno_id', $selectedEthno);
+                }
             }
+        });
 
-            $applicants = $applicantsQuery->paginate(20);
-            $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
-            $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
-            $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
-            $ethnicities = Ethno::orderBy('ethnicity')->get();
+    if ($selectedEthno) {
+        $applicantsQuery->where('ethno_id', $selectedEthno);
+    }
 
-            return view('staff.applicants-list', compact(
-                'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
-                'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno'
-            ));
+    $applicants = $applicantsQuery->paginate(20);
+    $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
+    $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
+    $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+    $ethnicities = Ethno::orderBy('ethnicity')->get();
+
+    return view('staff.applicants-list', compact(
+        'applicants', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+        'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
+        'selectedStatus', 'selectedType'
+    ));
         } catch (Throwable $e) {
             $applicants = new LengthAwarePaginator(
                 collect([]),
