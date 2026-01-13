@@ -1196,6 +1196,17 @@
                                     'Doctorate Degree',
                                     'Trade/Technical/Vocational Training/Certificate'
                                 ];
+
+                                $incomeOptions = [
+                                    'Below ₱100,000',
+                                    '₱100,000 – ₱199,999',
+                                    '₱200,000 – ₱299,999',
+                                    '₱300,000 – ₱399,999',
+                                    '₱400,000 – ₱499,999',
+                                    '₱500,000 – ₱749,999',
+                                    '₱750,000 – ₱999,999',
+                                    '₱1,000,000 and above'
+                                ];
                             @endphp
                             
                             @foreach(['father' => 'Father', 'mother' => 'Mother'] as $parent => $label)
@@ -1330,7 +1341,12 @@
                             </div>
                                     <div class="input-group">
                                         <label class="input-label">Annual Income</label>
-                                        <input type="text" name="{{ $parent }}_income" class="form-control">
+                                        <select name="{{ $parent }}_income" class="form-control">
+                                            <option value="">Select Annual Income</option>
+                                            @foreach($incomeOptions as $option)
+                                                <option value="{{ $option }}">{{ $option }}</option>
+                                            @endforeach
+                                        </select>
                             </div>
                                     <div class="input-group">
                                         <label class="input-label">IP Group</label>

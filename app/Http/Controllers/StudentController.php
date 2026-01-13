@@ -377,9 +377,14 @@ class StudentController extends Controller
         }
 
         // Clean income values - remove commas and non-numeric characters, convert to integer
-        // If empty or invalid, default to 0 since the column doesn't allow null
+        // Handle range strings from dropdown by taking the first numeric part
         $fatherIncome = $request->father_income;
         if ($fatherIncome) {
+            // If it's a range like "₱100,000 – ₱199,999", take the first part
+            if (strpos($fatherIncome, '–') !== false) {
+                $parts = explode('–', $fatherIncome);
+                $fatherIncome = $parts[0];
+            }
             $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
         } else {
             $fatherIncome = 0;
@@ -387,6 +392,11 @@ class StudentController extends Controller
 
         $motherIncome = $request->mother_income;
         if ($motherIncome) {
+            // If it's a range like "₱100,000 – ₱199,999", take the first part
+            if (strpos($motherIncome, '–') !== false) {
+                $parts = explode('–', $motherIncome);
+                $motherIncome = $parts[0];
+            }
             $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
         } else {
             $motherIncome = 0;

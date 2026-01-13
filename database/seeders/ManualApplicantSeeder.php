@@ -59,6 +59,17 @@ class ManualApplicantSeeder extends Seeder
             'Trade/Technical/Vocational Training/Certificate'
         ];
 
+        $incomeOptions = [
+            'Below ₱100,000',
+            '₱100,000 – ₱199,999',
+            '₱200,000 – ₱299,999',
+            '₱300,000 – ₱399,999',
+            '₱400,000 – ₱499,999',
+            '₱500,000 – ₱749,999',
+            '₱750,000 – ₱999,999',
+            '₱1,000,000 and above'
+        ];
+
         // Fetch all existing addresses once
         $allAddresses = Address::all();
         if ($allAddresses->isEmpty()) {
@@ -205,7 +216,7 @@ class ManualApplicantSeeder extends Seeder
                     'occupation' => $faker->jobTitle,
                     'educational_attainment' => $faker->randomElement($attainmentOptions),
                     'office_address' => $faker->address,
-                    'income' => $faker->numberBetween(10000, 50000),
+                    'income' => $faker->randomElement($incomeOptions),
                     'ethno_id' => $ethnos->random()->id,
                 ]);
 
@@ -218,7 +229,7 @@ class ManualApplicantSeeder extends Seeder
                     'occupation' => $faker->jobTitle,
                     'educational_attainment' => $faker->randomElement($attainmentOptions),
                     'office_address' => $faker->address,
-                    'income' => $faker->numberBetween(10000, 50000),
+                    'income' => $faker->randomElement($incomeOptions),
                     'ethno_id' => $ethnos->random()->id,
                 ]);
 

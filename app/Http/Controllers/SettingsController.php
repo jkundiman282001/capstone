@@ -278,6 +278,29 @@ class SettingsController extends Controller
                 }
             }
 
+            // Clean income values
+            $fatherIncome = $validated['father_income'];
+            if ($fatherIncome) {
+                if (strpos($fatherIncome, '–') !== false) {
+                    $parts = explode('–', $fatherIncome);
+                    $fatherIncome = $parts[0];
+                }
+                $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
+            } else {
+                $fatherIncome = 0;
+            }
+
+            $motherIncome = $validated['mother_income'];
+            if ($motherIncome) {
+                if (strpos($motherIncome, '–') !== false) {
+                    $parts = explode('–', $motherIncome);
+                    $motherIncome = $parts[0];
+                }
+                $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
+            } else {
+                $motherIncome = 0;
+            }
+
             // 6. Create Family Records
             Family::create([
                 'basic_info_id' => $basicInfo->id,
@@ -288,7 +311,7 @@ class SettingsController extends Controller
                 'occupation' => $validated['father_occupation'],
                 'educational_attainment' => $validated['father_education'],
                 'office_address' => $validated['father_office_address'],
-                'income' => $validated['father_income'],
+                'income' => $fatherIncome,
                 'ethno_id' => $validated['father_ethno'],
             ]);
 
@@ -301,7 +324,7 @@ class SettingsController extends Controller
                 'occupation' => $validated['mother_occupation'],
                 'educational_attainment' => $validated['mother_education'],
                 'office_address' => $validated['mother_office_address'],
-                'income' => $validated['mother_income'],
+                'income' => $motherIncome,
                 'ethno_id' => $validated['mother_ethno'],
             ]);
 
