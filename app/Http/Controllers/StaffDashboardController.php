@@ -717,7 +717,7 @@ class StaffDashboardController extends Controller
                 } else {
                     $query->where('application_status', $selectedStatus);
 
-                    if ($selectedStatus === 'rejected' && $selectedType !== 'terminated') {
+                    if ($selectedStatus === 'rejected') {
                         $query->where(function($q) {
                             $q->whereRaw("LOWER(TRIM(grant_status)) != 'grantee'")
                               ->orWhereNull('grant_status');

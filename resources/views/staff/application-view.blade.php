@@ -136,9 +136,17 @@
                                 <span class="px-3 py-1.5 bg-red-50 text-red-700 text-xs font-bold rounded-lg border border-red-100">
                                     ❌ Rejected
                                 </span>
-                            @else
+                            @elseif($appStatus === 'validated')
                                 <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100">
-                                    ✅ Active
+                                    ✅ Validated
+                                </span>
+                            @elseif($appStatus === 'returned')
+                                <span class="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-100">
+                                    ↩️ Returned
+                                </span>
+                            @else
+                                <span class="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-100">
+                                    🕒 Pending
                                 </span>
                             @endif
                             @if(isset($basicInfo->grant_status) && $basicInfo->grant_status === 'grantee')

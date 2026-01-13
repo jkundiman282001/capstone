@@ -141,11 +141,11 @@
                 Grantees
             </a>
             <a href="{{ route('staff.applicants.list', ['status' => 'rejected']) }}" 
-               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'rejected' && request('type') !== 'terminated' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-red-300 hover:bg-red-50' }}">
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'rejected' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-red-300 hover:bg-red-50' }}">
                 Rejected
             </a>
             <a href="{{ route('staff.applicants.list', ['status' => 'terminated']) }}" 
-               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'terminated' || request('type') === 'terminated' ? 'bg-slate-700 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400 hover:bg-slate-50' }}">
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'terminated' ? 'bg-slate-700 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400 hover:bg-slate-50' }}">
                 Terminated
             </a>
         </div>
