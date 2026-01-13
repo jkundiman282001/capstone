@@ -699,6 +699,36 @@
         background: rgba(255, 255, 255, 0.8);
         color: #7c2d12;
     }
+
+    /* Loading Spinner */
+    .spinner {
+        display: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .btn-loading .btn-icon,
+    .btn-loading .btn-text {
+        display: none !important;
+    }
+
+    .btn-loading .spinner {
+        display: inline-block;
+    }
     </style>
 @endpush
 
@@ -1814,10 +1844,13 @@
                                 </svg>
                             </button>
                             <button type="submit" id="submitBtn" style="display: none" {{ $hasSubmitted ? 'disabled' : '' }}>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Submit Application
+                                <span class="spinner"></span>
+                                <span class="btn-icon">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </span>
+                                <span class="btn-text">Submit Application</span>
                             </button>
                                         </div>
                                         </div>
@@ -3197,6 +3230,13 @@
                 .catch(error => {
                     console.error('Error deleting draft on submit:', error);
                 });
+            }
+
+            // Show loading state on submit button
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.classList.add('btn-loading');
+                // We don't disable it here because some browsers might stop the form submission if the button is disabled immediately
             }
         });
 
