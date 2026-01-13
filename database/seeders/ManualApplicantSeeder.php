@@ -69,9 +69,27 @@ class ManualApplicantSeeder extends Seeder
             ]);
         }
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             try {
                 DB::beginTransaction();
+
+                // Determine status distribution
+                $statusRoll = $faker->numberBetween(1, 100);
+                $appStatus = 'pending';
+                $grantStatus = null;
+
+                if ($statusRoll <= 40) { // 40% Pending
+                    $appStatus = 'pending';
+                } elseif ($statusRoll <= 70) { // 30% Validated/Grantee
+                    $appStatus = 'validated';
+                    $grantStatus = $faker->randomElement([null, 'grantee', 'grantee']); // Bias toward grantee for validated
+                } elseif ($statusRoll <= 90) { // 20% Rejected
+                    $appStatus = 'rejected';
+                    $grantStatus = null;
+                } else { // 10% Terminated (Rejected + was Grantee)
+                    $appStatus = 'rejected';
+                    $grantStatus = 'grantee';
+                }
 
                 // 1. Create User
                 $user = User::create([
@@ -153,7 +171,8 @@ class ManualApplicantSeeder extends Seeder
                     'civil_status' => $faker->randomElement(['Single', 'Married']),
                     'type_assist' => 'Manual',
                     'assistance_for' => 'Tuition',
-                    'application_status' => 'pending',
+                    'application_status' => $appStatus,
+                    'grant_status' => $grantStatus,
                 ]);
 
                 // 5. Create Education Records
@@ -259,6 +278,6 @@ class ManualApplicantSeeder extends Seeder
             }
         }
         
-        $this->command->info("Successfully seeded 10 manual applicants.");
+        $this->command->info("Successfully seeded 20 manual applicants.");
     }
 }
