@@ -2872,15 +2872,6 @@
             }
         }
 
-        function ensureSiblingEntries(count) {
-            const list = document.getElementById('siblings-list');
-            if (!list) return;
-            // Clear existing first to match exact count/order if needed, or just add missing
-            // Handled in restoreDraft logic below.
-            while (list.querySelectorAll('.sibling-item').length < count) {
-                addSibling();
-            }
-        }
 
         window.restoreDraftFromData = function(draft) {
             if (!draft) {
@@ -2919,27 +2910,32 @@
             const siblingList = document.getElementById('siblings-list');
             if (siblingList) {
                 siblingList.innerHTML = '';
-                // Recreate the empty state element if it doesn't exist
-                const emptyElement = document.getElementById('siblings-empty');
-                if (!emptyElement) {
-                    const emptyP = document.createElement('p');
-                    emptyP.id = 'siblings-empty';
-                    emptyP.className = 'p-6 text-sm text-slate-500 text-center border border-dashed border-slate-300 rounded-2xl';
-                    emptyP.textContent = 'No siblings added yet.';
-                    siblingList.appendChild(emptyP);
-                }
             }
 
-            // Ensure sibling entries exist before populating
-            Object.entries(data).forEach(([name, value]) => {
-                if (Array.isArray(value) && name.startsWith('sibling_') && name.endsWith('[]')) {
-                    ensureSiblingEntries(value.length);
-                }
-            });
+            // Handle siblings separately and more robustly
+            const siblingNames = data['sibling_name[]'] || [];
+            const siblingAges = data['sibling_age[]'] || [];
+            const siblingScholarships = data['sibling_scholarship[]'] || [];
+            const siblingCourses = data['sibling_course[]'] || [];
+            const siblingStatuses = data['sibling_status[]'] || [];
+
+            if (Array.isArray(siblingNames) && siblingNames.length > 0) {
+                siblingNames.forEach((name, index) => {
+                    if (name) {
+                        window.addSibling({
+                            name: name,
+                            age: siblingAges[index] || '',
+                            scholarship: siblingScholarships[index] || '',
+                            course: siblingCourses[index] || '',
+                            status: siblingStatuses[index] || ''
+                        });
+                    }
+                });
+            }
 
             // Populate form fields
             Object.entries(data).forEach(([name, value]) => {
-                if (name === '_token' || name.startsWith('_')) {
+                if (name === '_token' || name.startsWith('_') || name.startsWith('sibling_')) {
                     return;
                 }
                 let fields = formEl.querySelectorAll(`[name="${name}"]`);
@@ -3289,7 +3285,7 @@
         const list = document.getElementById('siblings-list');
         if (!list) return;
         
-        const hasItems = list.children.length > 0;
+        const hasItems = list.querySelectorAll('.sibling-item').length > 0;
         let emptyElement = document.getElementById('siblings-empty');
         
         // Create the empty element if it doesn't exist

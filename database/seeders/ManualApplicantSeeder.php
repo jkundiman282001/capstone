@@ -99,6 +99,18 @@ class ManualApplicantSeeder extends Seeder
                 ]);
 
                 // 3. Create School Preference
+                $essay1 = $faker->randomElement([
+                    "I want to help my community by providing education and health support. As a member of the tribe, I value our indigenous culture and ancestral lands. I will lead mentor programs for the youth.",
+                    "My contribution to the IP community involves volunteer work in environment conservation. I will serve my people by teaching them about livelihood opportunities while preserving our ancestral heritage.",
+                    "I plan to support the tribe through educational initiatives. I will return to my community to help my tribe develop sustainable livelihood projects for the youth and lead cultural awareness programs."
+                ]);
+                
+                $essay2 = $faker->randomElement([
+                    "After graduation, I will give back to my community. I plan to work as a teacher in our tribal school to support the education of indigenous children and contribute to my tribe's development.",
+                    "I will return to my ancestral lands to serve as a health worker. My goal is to improve the health and well-being of our community members and mentor the next generation of leaders.",
+                    "I intend to lead projects that focus on livelihood and environment. I will serve my people by applying my knowledge to help my community grow while respecting our indigenous culture."
+                ]);
+
                 $schoolPref = SchoolPref::create([
                     'school_name' => $faker->company . ' University',
                     'address' => $faker->address,
@@ -112,8 +124,8 @@ class ManualApplicantSeeder extends Seeder
                     'alt_degree2' => $faker->jobTitle,
                     'school_type2' => $faker->randomElement(['Public', 'Private']),
                     'num_years2' => $faker->randomElement(['4', '5']),
-                    'ques_answer1' => $faker->paragraph,
-                    'ques_answer2' => $faker->paragraph,
+                    'ques_answer1' => $essay1,
+                    'ques_answer2' => $essay2,
                 ]);
 
                 // 4. Create Basic Info
@@ -193,6 +205,7 @@ class ManualApplicantSeeder extends Seeder
                 // 8. Create Document Records
                 foreach ($documentTypes as $type => $label) {
                     $filename = "dummy_{$type}.pdf";
+                    $status = $faker->randomElement(['pending', 'approved', 'approved', 'pending']); // Bias towards approved for testing
                     $document = Document::create([
                         'user_id' => $user->id,
                         'type' => $type,
@@ -200,7 +213,7 @@ class ManualApplicantSeeder extends Seeder
                         'filepath' => "documents/{$filename}",
                         'filetype' => 'application/pdf',
                         'filesize' => $faker->numberBetween(100000, 500000),
-                        'status' => 'pending',
+                        'status' => $status,
                         'submitted_at' => now(),
                     ]);
 
