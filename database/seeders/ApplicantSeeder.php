@@ -21,6 +21,16 @@ class ApplicantSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get all existing addresses
+        $allAddresses = Address::all();
+        if ($allAddresses->isEmpty()) {
+            // Fallback if no addresses exist yet
+            $allAddresses = collect([
+                Address::create(['barangay' => 'Aplaya', 'municipality' => 'Digos', 'province' => 'Davao del Sur']),
+                Address::create(['barangay' => 'San Jose', 'municipality' => 'Digos', 'province' => 'Davao del Sur'])
+            ]);
+        }
+
         // Get first ethnicity if exists, or create one
         $ethno = Ethno::first();
         if (! $ethno) {
@@ -49,11 +59,6 @@ class ApplicantSeeder extends Seeder
                     'type_assist' => 'Regular',
                     'assistance_for' => 'Tuition,Books',
                     'application_status' => 'validated',
-                ],
-                'address' => [
-                    'barangay' => 'Camp 7',
-                    'municipality' => 'Baguio City',
-                    'province' => 'Benguet',
                 ],
                 'school_pref' => [
                     'school_name' => 'University of the Cordilleras',
@@ -87,11 +92,6 @@ class ApplicantSeeder extends Seeder
                     'assistance_for' => 'Tuition',
                     'application_status' => 'validated',
                 ],
-                'address' => [
-                    'barangay' => 'Pico',
-                    'municipality' => 'La Trinidad',
-                    'province' => 'Benguet',
-                ],
                 'school_pref' => [
                     'school_name' => 'Benguet State University',
                     'address' => 'La Trinidad, Benguet',
@@ -123,11 +123,6 @@ class ApplicantSeeder extends Seeder
                     'type_assist' => 'Pamana',
                     'assistance_for' => 'Tuition,Books,Allowance',
                     'application_status' => 'validated',
-                ],
-                'address' => [
-                    'barangay' => 'Poblacion',
-                    'municipality' => 'Itogon',
-                    'province' => 'Benguet',
                 ],
                 'school_pref' => [
                     'school_name' => 'Saint Louis University',
@@ -161,11 +156,6 @@ class ApplicantSeeder extends Seeder
                     'assistance_for' => 'Tuition,Books',
                     'application_status' => 'validated',
                 ],
-                'address' => [
-                    'barangay' => 'Irisan',
-                    'municipality' => 'Baguio City',
-                    'province' => 'Benguet',
-                ],
                 'school_pref' => [
                     'school_name' => 'University of the Philippines Baguio',
                     'address' => 'Baguio City',
@@ -198,11 +188,6 @@ class ApplicantSeeder extends Seeder
                     'assistance_for' => 'Tuition',
                     'application_status' => 'validated',
                 ],
-                'address' => [
-                    'barangay' => 'Bagong',
-                    'municipality' => 'Sablan',
-                    'province' => 'Benguet',
-                ],
                 'school_pref' => [
                     'school_name' => 'Cordillera Career Development College',
                     'address' => 'La Trinidad, Benguet',
@@ -231,12 +216,8 @@ class ApplicantSeeder extends Seeder
             // Create User
             $user = User::create($applicantData['user']);
 
-            // Create Address (same for mailing, permanent, and origin)
-            $address = Address::firstOrCreate([
-                'barangay' => $applicantData['address']['barangay'],
-                'municipality' => $applicantData['address']['municipality'],
-                'province' => $applicantData['address']['province'],
-            ]);
+            // Pick a random existing address
+            $address = $allAddresses->random();
 
             // Create Mailing Address
             $mailingAddressId = DB::table('mailing_address')->insertGetId([
@@ -263,10 +244,12 @@ class ApplicantSeeder extends Seeder
             ]);
 
             // Create Full Address
-            $fullAddress = FullAddress::create([
+            $fullAddressId = DB::table('full_address')->insertGetId([
                 'mailing_address_id' => $mailingAddressId,
                 'permanent_address_id' => $permanentAddressId,
                 'origin_id' => $originId,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             // Create School Preference
@@ -275,7 +258,7 @@ class ApplicantSeeder extends Seeder
             // Create Basic Info
             $basicInfo = BasicInfo::create([
                 'user_id' => $user->id,
-                'full_address_id' => $fullAddress->id,
+                'full_address_id' => $fullAddressId,
                 'house_num' => $applicantData['basic_info']['house_num'],
                 'birthdate' => $applicantData['basic_info']['birthdate'],
                 'birthplace' => $applicantData['basic_info']['birthplace'],

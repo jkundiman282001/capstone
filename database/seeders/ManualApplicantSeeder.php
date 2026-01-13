@@ -59,6 +59,16 @@ class ManualApplicantSeeder extends Seeder
             'Trade/Technical/Vocational Training/Certificate'
         ];
 
+        // Fetch all existing addresses once
+        $allAddresses = Address::all();
+        if ($allAddresses->isEmpty()) {
+            // Fallback if no addresses exist yet (though they should from migrations)
+            $allAddresses = collect([
+                Address::create(['barangay' => 'Aplaya', 'municipality' => 'Digos', 'province' => 'Davao del Sur']),
+                Address::create(['barangay' => 'San Jose', 'municipality' => 'Digos', 'province' => 'Davao del Sur'])
+            ]);
+        }
+
         for ($i = 0; $i < 10; $i++) {
             try {
                 DB::beginTransaction();
@@ -76,32 +86,20 @@ class ManualApplicantSeeder extends Seeder
                     'role' => 'student',
                 ]);
 
-                // 2. Create Addresses
-                $mailingAddr = Address::firstOrCreate([
-                    'barangay' => $faker->streetName,
-                    'municipality' => 'Digos City',
-                    'province' => 'Davao del Sur',
-                ]);
+                // 2. Use Existing Addresses
+                $mailingAddr = $allAddresses->random();
                 $mailing = MailingAddress::create([
                     'address_id' => $mailingAddr->id,
                     'house_num' => $faker->buildingNumber,
                 ]);
 
-                $permanentAddr = Address::firstOrCreate([
-                    'barangay' => $faker->streetName,
-                    'municipality' => 'Digos City',
-                    'province' => 'Davao del Sur',
-                ]);
+                $permanentAddr = $allAddresses->random();
                 $permanent = PermanentAddress::create([
                     'address_id' => $permanentAddr->id,
                     'house_num' => $faker->buildingNumber,
                 ]);
 
-                $originAddr = Address::firstOrCreate([
-                    'barangay' => $faker->streetName,
-                    'municipality' => 'Digos City',
-                    'province' => 'Davao del Sur',
-                ]);
+                $originAddr = $allAddresses->random();
                 $origin = Origin::create([
                     'address_id' => $originAddr->id,
                     'house_num' => $faker->buildingNumber,
