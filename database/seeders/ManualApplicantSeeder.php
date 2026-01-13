@@ -60,14 +60,14 @@ class ManualApplicantSeeder extends Seeder
         ];
 
         $incomeOptions = [
-            'Below ₱100,000',
-            '₱100,000 – ₱199,999',
-            '₱200,000 – ₱299,999',
-            '₱300,000 – ₱399,999',
-            '₱400,000 – ₱499,999',
-            '₱500,000 – ₱749,999',
-            '₱750,000 – ₱999,999',
-            '₱1,000,000 and above'
+            'Below - ₱50,000',
+            '₱50,001 – ₱100,000',
+            '₱100,001 – ₱150,000',
+            '₱150,001 – ₱200,000',
+            '₱200,001 – ₱300,000',
+            '₱300,001 – ₱400,000',
+            '₱400,001 – ₱500,000',
+            '₱500,001 - Above'
         ];
 
         // Fetch all existing addresses once
@@ -207,6 +207,25 @@ class ManualApplicantSeeder extends Seeder
                 }
 
                 // 6. Create Family Records
+                // Clean income values for seeder
+                $fatherIncomeStr = $faker->randomElement($incomeOptions);
+                $dash = strpos($fatherIncomeStr, '–') !== false ? '–' : (strpos($fatherIncomeStr, '-') !== false ? '-' : null);
+                $fatherIncome = $fatherIncomeStr;
+                if ($dash && strpos($fatherIncome, 'Below') === false) {
+                    $parts = explode($dash, $fatherIncome);
+                    $fatherIncome = $parts[0];
+                }
+                $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
+
+                $motherIncomeStr = $faker->randomElement($incomeOptions);
+                $dash = strpos($motherIncomeStr, '–') !== false ? '–' : (strpos($motherIncomeStr, '-') !== false ? '-' : null);
+                $motherIncome = $motherIncomeStr;
+                if ($dash && strpos($motherIncome, 'Below') === false) {
+                    $parts = explode($dash, $motherIncome);
+                    $motherIncome = $parts[0];
+                }
+                $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
+
                 Family::create([
                     'basic_info_id' => $basicInfo->id,
                     'fam_type' => 'father',
@@ -216,7 +235,7 @@ class ManualApplicantSeeder extends Seeder
                     'occupation' => $faker->jobTitle,
                     'educational_attainment' => $faker->randomElement($attainmentOptions),
                     'office_address' => $faker->address,
-                    'income' => $faker->randomElement($incomeOptions),
+                    'income' => $fatherIncome,
                     'ethno_id' => $ethnos->random()->id,
                 ]);
 
@@ -229,7 +248,7 @@ class ManualApplicantSeeder extends Seeder
                     'occupation' => $faker->jobTitle,
                     'educational_attainment' => $faker->randomElement($attainmentOptions),
                     'office_address' => $faker->address,
-                    'income' => $faker->randomElement($incomeOptions),
+                    'income' => $motherIncome,
                     'ethno_id' => $ethnos->random()->id,
                 ]);
 

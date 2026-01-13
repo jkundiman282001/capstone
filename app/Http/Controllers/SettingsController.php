@@ -279,27 +279,29 @@ class SettingsController extends Controller
             }
 
             // Clean income values
-            $fatherIncome = $validated['father_income'];
-            if ($fatherIncome) {
-                if (strpos($fatherIncome, '–') !== false) {
-                    $parts = explode('–', $fatherIncome);
-                    $fatherIncome = $parts[0];
-                }
-                $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
-            } else {
-                $fatherIncome = 0;
-            }
-
-            $motherIncome = $validated['mother_income'];
-            if ($motherIncome) {
-                if (strpos($motherIncome, '–') !== false) {
-                    $parts = explode('–', $motherIncome);
-                    $motherIncome = $parts[0];
-                }
-                $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
-            } else {
-                $motherIncome = 0;
-            }
+             $fatherIncome = $validated['father_income'];
+             if ($fatherIncome) {
+                 $dash = strpos($fatherIncome, '–') !== false ? '–' : (strpos($fatherIncome, '-') !== false ? '-' : null);
+                 if ($dash && strpos($fatherIncome, 'Below') === false) {
+                     $parts = explode($dash, $fatherIncome);
+                     $fatherIncome = $parts[0];
+                 }
+                 $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
+             } else {
+                 $fatherIncome = 0;
+             }
+ 
+             $motherIncome = $validated['mother_income'];
+             if ($motherIncome) {
+                 $dash = strpos($motherIncome, '–') !== false ? '–' : (strpos($motherIncome, '-') !== false ? '-' : null);
+                 if ($dash && strpos($motherIncome, 'Below') === false) {
+                     $parts = explode($dash, $motherIncome);
+                     $motherIncome = $parts[0];
+                 }
+                 $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
+             } else {
+                 $motherIncome = 0;
+             }
 
             // 6. Create Family Records
             Family::create([

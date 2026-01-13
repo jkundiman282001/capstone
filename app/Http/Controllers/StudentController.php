@@ -380,9 +380,10 @@ class StudentController extends Controller
         // Handle range strings from dropdown by taking the first numeric part
         $fatherIncome = $request->father_income;
         if ($fatherIncome) {
-            // If it's a range like "₱100,000 – ₱199,999", take the first part
-            if (strpos($fatherIncome, '–') !== false) {
-                $parts = explode('–', $fatherIncome);
+            // Handle both en-dash (–) and regular dash (-)
+            $dash = strpos($fatherIncome, '–') !== false ? '–' : (strpos($fatherIncome, '-') !== false ? '-' : null);
+            if ($dash && strpos($fatherIncome, 'Below') === false) {
+                $parts = explode($dash, $fatherIncome);
                 $fatherIncome = $parts[0];
             }
             $fatherIncome = (int) preg_replace('/[^0-9]/', '', $fatherIncome);
@@ -392,9 +393,10 @@ class StudentController extends Controller
 
         $motherIncome = $request->mother_income;
         if ($motherIncome) {
-            // If it's a range like "₱100,000 – ₱199,999", take the first part
-            if (strpos($motherIncome, '–') !== false) {
-                $parts = explode('–', $motherIncome);
+            // Handle both en-dash (–) and regular dash (-)
+            $dash = strpos($motherIncome, '–') !== false ? '–' : (strpos($motherIncome, '-') !== false ? '-' : null);
+            if ($dash && strpos($motherIncome, 'Below') === false) {
+                $parts = explode($dash, $motherIncome);
                 $motherIncome = $parts[0];
             }
             $motherIncome = (int) preg_replace('/[^0-9]/', '', $motherIncome);
