@@ -173,23 +173,23 @@
                         @if($applicant->basicInfo?->type_assist)
                             @php
                                 $appStatus = $applicant->basicInfo?->application_status ?? 'pending';
-                                $grantStatus = $applicant->basicInfo?->grant_status ?? null;
-                                $isGrantee = strtolower($grantStatus) === 'grantee' && $appStatus !== 'terminated';
-                                $isValidated = $appStatus === 'validated';
-                                $isRejected = $appStatus === 'rejected';
-                                $isTerminated = $appStatus === 'terminated';
+                                $grantStatus = strtolower(trim((string)($applicant->basicInfo?->grant_status ?? '')));
+                                $isTerminated = $appStatus === 'terminated' || ($appStatus === 'rejected' && $grantStatus === 'grantee');
+                                $isGrantee = $grantStatus === 'grantee' && $appStatus === 'validated';
+                                $isValidated = $appStatus === 'validated' && $grantStatus !== 'grantee';
+                                $isRejected = $appStatus === 'rejected' && !$isTerminated;
                             @endphp
                             <div class="absolute top-3 left-3">
-                                <span class="{{ $isGrantee ? 'bg-blue-500' : ($isValidated ? 'bg-emerald-500' : ($isTerminated ? 'bg-slate-700' : ($isRejected ? 'bg-red-500' : 'bg-amber-500'))) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
-                                    @if($isGrantee)
+                                <span class="{{ $isTerminated ? 'bg-slate-700' : ($isGrantee ? 'bg-blue-500' : ($isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500'))) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
+                                    @if($isTerminated)
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                        Terminated
+                                    @elseif($isGrantee)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         Grantee
                                     @elseif($isValidated)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         Validated
-                                    @elseif($isTerminated)
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                                        Terminated
                                     @elseif($isRejected)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         Rejected

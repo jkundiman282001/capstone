@@ -707,8 +707,13 @@ class StaffDashboardController extends Controller
                     $query->where('application_status', 'validated')
                           ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
                 } elseif ($selectedStatus === 'terminated') {
-                    $query->where('application_status', 'rejected')
-                          ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
+                    $query->where(function($q) {
+                        $q->where('application_status', 'terminated')
+                          ->orWhere(function($sq) {
+                              $sq->where('application_status', 'rejected')
+                                 ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
+                          });
+                    });
                 } else {
                     $query->where('application_status', $selectedStatus);
 
