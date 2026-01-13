@@ -101,6 +101,7 @@
         </div>
 
         <!-- Manual Applicant Encoding Section -->
+        @if(false)
         <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div class="flex items-center gap-3">
@@ -126,9 +127,11 @@
                 </button>
             </div>
         </div>
+        @endif
 
         <!-- Account Management Section -->
         <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8">
+            @if(false)
             <div class="flex items-center gap-3 mb-8">
                 <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,6 +203,7 @@
                 </div>
             </div>
 
+            @endif
             <div class="flex items-center gap-3 mb-8 pt-8 border-t border-slate-100">
                 <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,6 +321,7 @@
 </div>
 
 <!-- Manual Encoding Modal -->
+@if(false)
 <div id="encodeApplicantModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
         <div class="p-8">
@@ -695,9 +700,11 @@
         </div>
     </div>
 </div>
+@endif
 
 @push('scripts')
 <script>
+    @if(false)
     window.openEncodeModal = function() {
         const modal = document.getElementById('encodeApplicantModal');
         modal.classList.remove('hidden');
@@ -757,6 +764,7 @@
         `;
         container.appendChild(newRow);
     };
+    @endif
 
     // Search Functionality
     document.getElementById('applicantSearch').addEventListener('input', function(e) {
@@ -838,7 +846,7 @@
     });
 
     // Auto-open modal if there are errors related to encoding
-    @if($errors->any() && (old('first_name') || old('email') || old('contact_num')))
+    @if(false && $errors->any() && (old('first_name') || old('email') || old('contact_num')))
         window.addEventListener('load', function() {
             window.openEncodeModal();
         });

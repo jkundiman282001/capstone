@@ -180,8 +180,8 @@ class ManualApplicantSeeder extends Seeder
                     'birthplace' => $faker->city,
                     'gender' => $faker->randomElement(['Male', 'Female']),
                     'civil_status' => $faker->randomElement(['Single', 'Married']),
-                    'type_assist' => 'Manual',
-                    'assistance_for' => 'Tuition',
+                    'type_assist' => 'Regular',
+                    'assistance_for' => 'College',
                     'application_status' => $appStatus,
                     'grant_status' => $grantStatus,
                 ]);
