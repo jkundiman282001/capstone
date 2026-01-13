@@ -2240,7 +2240,7 @@ async function submitApplicationRejection(event) {
     
     // Prepare request body
     const requestBody = { 
-        status: 'rejected'
+        status: isTerminate ? 'terminated' : 'rejected'
     };
     
     // Add disqualification reasons only for rejection (not termination)

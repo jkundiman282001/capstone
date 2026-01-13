@@ -1349,14 +1349,14 @@ class StaffDashboardController extends Controller
         // Validate based on status
         $status = $request->input('status');
 
-        if ($status === 'rejected') {
-            // For rejection, check if it's termination (grantee or Pamana) or regular rejection
-            $isTermination = ($basicInfo->application_status === 'validated' && ($basicInfo->grant_status === 'grantee' || $basicInfo->type_assist === 'Pamana'));
+        if ($status === 'rejected' || $status === 'terminated') {
+            // For rejection or termination, check if it's termination (grantee or Pamana) or regular rejection
+            $isTermination = ($status === 'terminated') || ($basicInfo->application_status === 'validated' && ($basicInfo->grant_status === 'grantee' || $basicInfo->type_assist === 'Pamana'));
 
             if ($isTermination) {
                 // Termination requires detailed reason
                 $validated = $request->validate([
-                    'status' => 'required|in:pending,validated,rejected,returned',
+                    'status' => 'required|in:pending,validated,rejected,returned,terminated',
                     'rejection_reason' => 'required|string|min:10|max:1000',
                 ], [
                     'rejection_reason.required' => 'Please provide a reason for termination.',
@@ -1365,7 +1365,7 @@ class StaffDashboardController extends Controller
             } else {
                 // Regular rejection - disqualification reasons are required (validated in frontend)
                 $validated = $request->validate([
-                    'status' => 'required|in:pending,validated,rejected,returned',
+                    'status' => 'required|in:pending,validated,rejected,returned,terminated',
                     'rejection_reason' => 'nullable|string|max:1000',
                     'disqualification_not_ip' => 'nullable|boolean',
                     'disqualification_exceeded_income' => 'nullable|boolean',
@@ -1375,7 +1375,7 @@ class StaffDashboardController extends Controller
             }
         } else {
             $validated = $request->validate([
-                'status' => 'required|in:pending,validated,rejected,returned',
+                'status' => 'required|in:pending,validated,rejected,returned,terminated',
                 'rejection_reason' => 'nullable|string|max:1000',
             ]);
         }
@@ -1412,9 +1412,9 @@ class StaffDashboardController extends Controller
         ];
 
         // Handle rejection/termination logic
-        if ($validated['status'] === 'rejected') {
+        if ($validated['status'] === 'rejected' || $validated['status'] === 'terminated') {
             // IMPORTANT: Distinguish between rejection and termination
-            if ($isTermination) {
+            if ($isTermination || $validated['status'] === 'terminated') {
                 // TERMINATION: Applicant was a confirmed grantee who broke a rule
                 // Keep grant_status as 'grantee' to identify them as terminated (not just rejected)
                 // This allows us to filter terminated applicants separately
@@ -1473,9 +1473,9 @@ class StaffDashboardController extends Controller
         $logAction = 'Application ' . ucfirst($statusLabel);
         $logDescription = 'Your application status has been updated to ' . $statusLabel;
 
-        if ($statusLabel === 'rejected') {
-            $logAction = $isTermination ? 'Scholarship Terminated' : 'Application Rejected';
-            $logDescription = $updateData['application_rejection_reason'] ?? ($isTermination ? 'Scholarship terminated.' : 'Application rejected.');
+        if ($statusLabel === 'rejected' || $statusLabel === 'terminated') {
+            $logAction = ($isTermination || $statusLabel === 'terminated') ? 'Scholarship Terminated' : 'Application Rejected';
+            $logDescription = $updateData['application_rejection_reason'] ?? (($isTermination || $statusLabel === 'terminated') ? 'Scholarship terminated.' : 'Application rejected.');
         } elseif ($statusLabel === 'validated') {
             $logAction = 'Application Approved';
             $logDescription = 'Your scholarship application has been approved.';
