@@ -123,9 +123,24 @@
                         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mb-1">{{ $user->first_name }} {{ $user->middle_name }} {{ $user->last_name }}</h1>
                         <p class="text-sm text-slate-500 font-medium mb-3">Application ID: #NCIP-{{ date('Y') }}-{{ str_pad($user->id, 3, '0', pad_type: STR_PAD_LEFT) }}</p>
                         <div class="flex flex-wrap justify-center sm:justify-start gap-2">
-                            <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100">
-                                ✅ Active
-                            </span>
+                            @php
+                                $appStatus = $basicInfo->application_status ?? 'pending';
+                                $grantStatus = strtolower(trim((string)($basicInfo->grant_status ?? '')));
+                                $isTerminated = $appStatus === 'terminated' || ($appStatus === 'rejected' && $grantStatus === 'grantee');
+                            @endphp
+                            @if($isTerminated)
+                                <span class="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">
+                                    🚫 Terminated
+                                </span>
+                            @elseif($appStatus === 'rejected')
+                                <span class="px-3 py-1.5 bg-red-50 text-red-700 text-xs font-bold rounded-lg border border-red-100">
+                                    ❌ Rejected
+                                </span>
+                            @else
+                                <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100">
+                                    ✅ Active
+                                </span>
+                            @endif
                             @if(isset($basicInfo->grant_status) && $basicInfo->grant_status === 'grantee')
                             <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100">
                                 💻 {{ $schoolPref->degree ?? 'N/A' }}
@@ -142,15 +157,16 @@
                 <div class="flex flex-col items-center lg:items-end gap-4 w-full lg:w-auto">
                     @php
                         $appStatus = $basicInfo->application_status ?? 'pending';
-                        $grantStatus = $basicInfo->grant_status ?? null;
+                        $grantStatus = strtolower(trim((string)($basicInfo->grant_status ?? '')));
                         $typeAssist = $basicInfo->type_assist ?? null;
                         
-                        $isGrantee = $grantStatus === 'grantee';
+                        $isTerminated = $appStatus === 'terminated' || ($appStatus === 'rejected' && $grantStatus === 'grantee');
+                        $isGrantee = $grantStatus === 'grantee' && $appStatus === 'validated';
                         $isWaiting = $grantStatus === 'waiting';
                         $isPamana = $typeAssist === 'Pamana';
                         
-                        $isValidated = $appStatus === 'validated';
-                        $isRejected = $appStatus === 'rejected';
+                        $isValidated = $appStatus === 'validated' && $grantStatus !== 'grantee';
+                        $isRejected = $appStatus === 'rejected' && !$isTerminated;
                         $isReturned = $appStatus === 'returned';
 
                         // Check if all required documents are approved
@@ -161,7 +177,8 @@
                     <div class="text-center lg:text-right mb-4">
                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Application Status</p>
                         <div class="px-6 py-3 rounded-2xl 
-                            @if($isRejected) bg-gradient-to-r from-red-500 to-rose-600
+                            @if($isTerminated) bg-gradient-to-r from-slate-600 to-slate-700
+                            @elseif($isRejected) bg-gradient-to-r from-red-500 to-rose-600
                             @elseif($isReturned) bg-gradient-to-r from-indigo-500 to-blue-600
                             @elseif($isGrantee) bg-gradient-to-r from-emerald-500 to-green-600
                             @elseif($isWaiting) bg-gradient-to-r from-blue-500 to-cyan-600
@@ -170,7 +187,8 @@
                             @else bg-gradient-to-r from-amber-500 to-orange-600
                             @endif shadow-lg">
                             <p class="text-xl sm:text-2xl font-black text-white">
-                                @if($isRejected) Rejected
+                                @if($isTerminated) Terminated
+                                @elseif($isRejected) Rejected
                                 @elseif($isReturned) Returned
                                 @elseif($isGrantee) Grantee
                                 @elseif($isWaiting) Waiting List
@@ -183,7 +201,22 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    @if($isRejected)
+                    @if($isTerminated)
+                        <div class="flex flex-wrap justify-center lg:justify-end gap-3">
+                            <div class="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl text-sm text-center border border-slate-200 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                Application Terminated
+                            </div>
+                            <button onclick="updateApplicationStatus('pending', event)" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                Set to Pending
+                            </button>
+                            <button onclick="updateApplicationStatus('validated', event)" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Reactivate Grantee
+                            </button>
+                        </div>
+                    @elseif($isRejected)
                         <div class="flex flex-wrap justify-center lg:justify-end gap-3">
                             <div class="px-5 py-2.5 bg-red-50 text-red-700 font-bold rounded-xl text-sm text-center border border-red-200 flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
