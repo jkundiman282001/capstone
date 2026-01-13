@@ -84,24 +84,6 @@ class ManualApplicantSeeder extends Seeder
             try {
                 DB::beginTransaction();
 
-                // Determine status distribution
-                $statusRoll = $faker->numberBetween(1, 100);
-                $appStatus = 'pending';
-                $grantStatus = null;
-
-                if ($statusRoll <= 40) { // 40% Pending
-                    $appStatus = 'pending';
-                } elseif ($statusRoll <= 70) { // 30% Validated/Grantee
-                    $appStatus = 'validated';
-                    $grantStatus = $faker->randomElement([null, 'grantee', 'grantee']); // Bias toward grantee for validated
-                } elseif ($statusRoll <= 90) { // 20% Rejected
-                    $appStatus = 'rejected';
-                    $grantStatus = null;
-                } else { // 10% Terminated (Rejected + was Grantee)
-                    $appStatus = 'rejected';
-                    $grantStatus = 'grantee';
-                }
-
                 // 1. Create User
                 $user = User::create([
                     'first_name' => $faker->firstName,
@@ -182,8 +164,8 @@ class ManualApplicantSeeder extends Seeder
                     'civil_status' => $faker->randomElement(['Single', 'Married']),
                     'type_assist' => 'Regular',
                     'assistance_for' => 'College',
-                    'application_status' => $appStatus,
-                    'grant_status' => $grantStatus,
+                    'application_status' => 'pending',
+                    'grant_status' => null,
                 ]);
 
                 // 5. Create Education Records
@@ -267,7 +249,6 @@ class ManualApplicantSeeder extends Seeder
                 // 8. Create Document Records
                 foreach ($documentTypes as $type => $label) {
                     $filename = "dummy_{$type}.pdf";
-                    $status = $faker->randomElement(['pending', 'approved', 'approved', 'pending']); // Bias towards approved for testing
                     $document = Document::create([
                         'user_id' => $user->id,
                         'type' => $type,
@@ -275,7 +256,7 @@ class ManualApplicantSeeder extends Seeder
                         'filepath' => "documents/{$filename}",
                         'filetype' => 'application/pdf',
                         'filesize' => $faker->numberBetween(100000, 500000),
-                        'status' => $status,
+                        'status' => 'pending',
                         'submitted_at' => now(),
                     ]);
 
