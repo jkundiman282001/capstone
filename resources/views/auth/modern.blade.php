@@ -758,12 +758,27 @@
               <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Educational Status</label>
               <div class="grid grid-cols-2 gap-4">
                 <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-orange-500 transition-all group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
-                  <input type="radio" name="educational_status" value="SHS Graduate" required class="sr-only">
+                  <input type="radio" name="educational_status" value="SHS Graduate" required class="sr-only educational-status-radio">
                   <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">SHS Graduate</span>
                 </label>
                 <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-orange-500 transition-all group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
-                  <input type="radio" name="educational_status" value="On-Going College" required class="sr-only">
-                  <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">On-Going College</span>
+                  <input type="radio" name="educational_status" value="Ongoing College" required class="sr-only educational-status-radio">
+                  <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">Ongoing College</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Grade Scale (Conditional) -->
+            <div id="grade_scale_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
+              <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">College Grade Scale</label>
+              <div class="space-y-2">
+                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
+                  <input type="radio" name="grade_scale" value="1.0" class="w-4 h-4 text-orange-600 focus:ring-orange-500">
+                  <span class="text-sm text-slate-700 group-has-[:checked]:font-semibold">Is your college using a 1.0 as the highest grade scale?</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
+                  <input type="radio" name="grade_scale" value="4.0" class="w-4 h-4 text-orange-600 focus:ring-orange-500">
+                  <span class="text-sm text-slate-700 group-has-[:checked]:font-semibold">Is your college using a 4.0 as the highest grade scale?</span>
                 </label>
               </div>
             </div>
@@ -925,6 +940,26 @@
       const courseOther = document.getElementById('register_course_other');
       const signupForm = document.querySelector("form[action='{{ url('/register') }}']");
       
+      // Educational Status & Grade Scale logic
+      const eduRadios = document.querySelectorAll('.educational-status-radio');
+      const gradeScaleSection = document.getElementById('grade_scale_section');
+      const gradeScaleRadios = document.querySelectorAll('input[name="grade_scale"]');
+
+      eduRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.value === 'Ongoing College' && this.checked) {
+            gradeScaleSection.classList.remove('hidden');
+            gradeScaleRadios.forEach(r => r.required = true);
+          } else {
+            gradeScaleSection.classList.add('hidden');
+            gradeScaleRadios.forEach(r => {
+              r.required = false;
+              r.checked = false;
+            });
+          }
+        });
+      });
+
       if (courseSelect) {
         courseSelect.addEventListener('change', function() {
           if (this.value === 'Other') {
