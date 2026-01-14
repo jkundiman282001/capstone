@@ -753,6 +753,21 @@
               />
             </div>
 
+            <!-- Educational Status -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Educational Status</label>
+              <div class="grid grid-cols-2 gap-4">
+                <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-orange-500 transition-all group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                  <input type="radio" name="educational_status" value="SHS Graduate" required class="sr-only">
+                  <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">SHS Graduate</span>
+                </label>
+                <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-orange-500 transition-all group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                  <input type="radio" name="educational_status" value="On-Going College" required class="sr-only">
+                  <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">On-Going College</span>
+                </label>
+              </div>
+            </div>
+
             <!-- Email -->
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Email Address</label>
