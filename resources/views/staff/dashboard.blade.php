@@ -254,10 +254,11 @@
     <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8 hover:shadow-2xl transition-shadow duration-300">
         <div class="flex items-center gap-3 mb-6">
             <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-            </div>
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                </div>
             <div>
                 <h2 class="font-black text-slate-900 text-xl">IP Group Distribution</h2>
                 <p class="text-sm text-slate-500 font-medium">Applicants by Indigenous Peoples group</p>
@@ -446,17 +447,25 @@
         }
     });
 
-    // Bar Chart - IP Group Distribution
+    // Pie Chart - IP Group Distribution
     new Chart(document.getElementById('ipChart'), {
-        type: 'bar',
+        type: 'pie',
         data: {!! json_encode($ipChartData) !!},
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: 'y',
             plugins: {
                 legend: {
-                    display: false
+                    display: true,
+                    position: 'right',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -471,38 +480,11 @@
                     },
                     callbacks: {
                         label: function(context) {
-                            const value = context.parsed.x || 0;
+                            const value = context.raw || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const percentage = ((value / total) * 100).toFixed(1);
-                            return `Applicants: ${value} (${percentage}% of total)`;
+                            return ` ${context.label}: ${value} (${percentage}%)`;
                         }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    ticks: {
-                        font: {
-                            size: 12,
-                            weight: '600'
-                        },
-                        color: '#64748b'
-                    },
-                    grid: {
-                        color: 'rgba(148, 163, 184, 0.1)'
-                    }
-                },
-                y: {
-                    ticks: {
-                        font: {
-                            size: 12,
-                            weight: '600'
-                        },
-                        color: '#334155'
-                    },
-                    grid: {
-                        display: false
                     }
                 }
             }
