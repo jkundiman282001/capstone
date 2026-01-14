@@ -140,10 +140,6 @@
                                 <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100">
                                     ✅ Validated
                                 </span>
-                            @elseif($appStatus === 'returned')
-                                <span class="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-100">
-                                    ↩️ Returned
-                                </span>
                             @else
                                 <span class="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-100">
                                     🕒 Pending
@@ -175,7 +171,6 @@
                         
                         $isValidated = $appStatus === 'validated' && $grantStatus !== 'grantee';
                         $isRejected = $appStatus === 'rejected' && !$isTerminated;
-                        $isReturned = $appStatus === 'returned';
 
                         // Check if all required documents are approved
                         $allDocsApproved = ($approvedCount >= $totalRequired);
@@ -187,7 +182,6 @@
                         <div class="px-6 py-3 rounded-2xl 
                             @if($isTerminated) bg-gradient-to-r from-slate-600 to-slate-700
                             @elseif($isRejected) bg-gradient-to-r from-red-500 to-rose-600
-                            @elseif($isReturned) bg-gradient-to-r from-indigo-500 to-blue-600
                             @elseif($isGrantee) bg-gradient-to-r from-emerald-500 to-green-600
                             @elseif($isWaiting) bg-gradient-to-r from-blue-500 to-cyan-600
                             @elseif($isPamana) bg-gradient-to-r from-purple-500 to-indigo-600
@@ -197,7 +191,6 @@
                             <p class="text-xl sm:text-2xl font-black text-white">
                                 @if($isTerminated) Terminated
                                 @elseif($isRejected) Rejected
-                                @elseif($isReturned) Returned
                                 @elseif($isGrantee) Grantee
                                 @elseif($isWaiting) Waiting List
                                 @elseif($isPamana) Pamana
@@ -246,11 +239,6 @@
                                 Set to Pending
                             </button>
 
-                            <button onclick="updateApplicationStatus('returned', event)" class="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                                Return Application
-                            </button>
-                            
                             @php
                                 $isGrantee = ($basicInfo->grant_status === 'grantee' || $basicInfo->grant_status === 'waiting' || $basicInfo->type_assist === 'Pamana');
                                 $actionWord = $isGrantee ? 'Move to' : 'Add to';
@@ -306,18 +294,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                {{ $isConfirmedGrantee ? 'Terminate' : 'Return Application' }}
-                            </button>
-                        </div>
-                    @elseif($isReturned)
-                        <div class="flex flex-wrap justify-center lg:justify-end gap-3">
-                            <div class="px-5 py-2.5 bg-indigo-50 text-indigo-700 font-bold rounded-xl text-sm text-center border border-indigo-200 flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                                Application Returned
-                            </div>
-                            <button onclick="updateApplicationStatus('pending', event)" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                Set to Pending
+                                {{ $isConfirmedGrantee ? 'Terminate' : 'Reject Application' }}
                             </button>
                         </div>
                     @else
@@ -339,11 +316,6 @@
                                 </button>
                             @endif
                             
-                            <button onclick="updateApplicationStatus('returned', event)" class="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                                Return Application
-                            </button>
-
                             <button onclick="showApplicationRejectionModal(false)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1710,8 +1682,6 @@ async function updateApplicationStatus(status, event) {
     
     if (status === 'validated') {
         confirmationMessage = 'Are you sure you want to approve this application?';
-    } else if (status === 'returned') {
-        confirmationMessage = 'Are you sure you want to return this application to the student? They will need to address document issues and re-submit.';
     } else {
         confirmationMessage = 'Are you sure you want to set this application to pending?';
     }
