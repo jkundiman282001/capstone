@@ -90,8 +90,21 @@ class StaffDashboardController extends Controller
 
         // Get geographic data for filters
         $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
-        $municipalities = Address::select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
-        $barangays = Address::select('barangay')->distinct()->where('barangay', '!=', '')->orderBy('barangay')->pluck('barangay');
+        
+        $municipalitiesQuery = Address::select('municipality')->distinct()->where('municipality', '!=', '');
+        if ($selectedProvince) {
+            $municipalitiesQuery->where('province', $selectedProvince);
+        }
+        $municipalities = $municipalitiesQuery->orderBy('municipality')->pluck('municipality');
+
+        $barangaysQuery = Address::select('barangay')->distinct()->where('barangay', '!=', '');
+        if ($selectedMunicipality) {
+            $barangaysQuery->where('municipality', $selectedMunicipality);
+            $barangays = $barangaysQuery->orderBy('barangay')->pluck('barangay');
+        } else {
+            $barangays = collect();
+        }
+        
         $ethnicities = Ethno::orderBy('ethnicity')->get();
 
         // Calculate real metrics
@@ -187,9 +200,10 @@ class StaffDashboardController extends Controller
             }
         })->map->count();
 
-        $pieChartData = [
+        $statusChartData = [
             'labels' => $statusBreakdown->keys()->toArray(),
             'datasets' => [[
+                'label' => 'Number of Applicants',
                 'backgroundColor' => [
                     'rgba(16, 185, 129, 0.9)',  // Green for Grantee/Validated
                     'rgba(59, 130, 246, 0.9)',   // Blue for Validated (if separate)
@@ -197,7 +211,8 @@ class StaffDashboardController extends Controller
                     'rgba(239, 68, 68, 0.9)',   // Red for Not Applied
                 ],
                 'borderColor' => ['#ffffff', '#ffffff', '#ffffff', '#ffffff'],
-                'borderWidth' => 3,
+                'borderWidth' => 2,
+                'borderRadius' => 8,
                 'data' => $statusBreakdown->values()->toArray(),
             ]],
         ];
@@ -421,7 +436,7 @@ class StaffDashboardController extends Controller
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
             'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars',
-            'alerts', 'barChartData', 'pieChartData', 'ipChartData',
+            'alerts', 'barChartData', 'statusChartData', 'ipChartData',
             'pendingRequirements', 'notifications',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
             'prioritizedDocuments', 'priorityStatistics',

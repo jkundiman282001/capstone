@@ -171,7 +171,7 @@
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Province</label>
                 <select name="province" id="province-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
                     @foreach($provinces as $province)
-                        <option value="{{ $province }}" selected>{{ $province }}</option>
+                        <option value="{{ $province }}" {{ $selectedProvince == $province ? 'selected' : '' }}>{{ $province }}</option>
                     @endforeach
                 </select>
             </div>
@@ -236,8 +236,7 @@
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
                 <div>
@@ -246,7 +245,7 @@
                 </div>
             </div>
             <div class="h-80">
-                <canvas id="pieChart"></canvas>
+                <canvas id="statusChart"></canvas>
             </div>
         </div>
     </div>
@@ -386,26 +385,16 @@
         }
     });
 
-    // Pie Chart - Application Status
-    new Chart(document.getElementById('pieChart'), {
-        type: 'doughnut',
-        data: {!! json_encode($pieChartData) !!},
+    // Application Status Chart - Bar Chart
+    new Chart(document.getElementById('statusChart'), {
+        type: 'bar',
+        data: {!! json_encode($statusChartData) !!},
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: {
-                            size: 12,
-                            weight: 'bold'
-                        },
-                        color: '#334155',
-                        padding: 15,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
+                    display: false
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -420,16 +409,40 @@
                     },
                     callbacks: {
                         label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
+                            const value = context.parsed.y || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: ${value} (${percentage}%)`;
+                            return `Applicants: ${value} (${percentage}%)`;
                         }
                     }
                 }
             },
-            cutout: '65%'
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            weight: 'bold'
+                        },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            weight: 'bold'
+                        },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
         }
     });
 
@@ -723,54 +736,72 @@
 
     // Geographic filter functionality
     document.addEventListener('DOMContentLoaded', function() {
-        const provinceFilter = document.getElementById('province-filter');
-        const municipalityFilter = document.getElementById('municipality-filter');
-        const barangayFilter = document.getElementById('barangay-filter');
-        const ethnoFilter = document.getElementById('ethno-filter');
-        const filterForm = document.getElementById('filter-form');
+        // Geographic Filter Logic
+        const setupGeographicFilters = () => {
+            const provinceFilter = document.getElementById('province-filter');
+            const municipalityFilter = document.getElementById('municipality-filter');
+            const barangayFilter = document.getElementById('barangay-filter');
+            const ethnoFilter = document.getElementById('ethno-filter');
+            const filterForm = document.getElementById('filter-form');
 
-        // Auto-submit form when filters change
-        [provinceFilter, municipalityFilter, barangayFilter, ethnoFilter].forEach(filter => {
-            filter.addEventListener('change', function() {
-                filterForm.submit();
+            if (!filterForm) return;
+
+            // Province Change
+            provinceFilter?.addEventListener('change', function() {
+                const province = this.value;
+                if (province) {
+                    fetch(`/address/municipalities?province=${encodeURIComponent(province)}`)
+                        .then(response => response.json())
+                        .then(municipalities => {
+                            if (municipalityFilter) {
+                                municipalityFilter.innerHTML = '<option value="">All Municipalities</option>';
+                                municipalities.forEach(muni => {
+                                    const option = document.createElement('option');
+                                    option.value = muni;
+                                    option.textContent = muni;
+                                    municipalityFilter.appendChild(option);
+                                });
+                            }
+                            if (barangayFilter) {
+                                barangayFilter.innerHTML = '<option value="">All Barangays</option>';
+                            }
+                            filterForm.submit();
+                        });
+                } else {
+                    filterForm.submit();
+                }
             });
-        });
 
-        // Dynamic municipality loading based on province
-        provinceFilter.addEventListener('change', function() {
-            const province = this.value;
-            if (province) {
-                fetch(`/address/municipalities?province=${encodeURIComponent(province)}`)
-                    .then(response => response.json())
-                    .then(municipalities => {
-                        municipalityFilter.innerHTML = '<option value="">All Municipalities</option>';
-                        municipalities.forEach(municipality => {
-                            const option = document.createElement('option');
-                            option.value = municipality;
-                            option.textContent = municipality;
-                            municipalityFilter.appendChild(option);
+            // Municipality Change
+            municipalityFilter?.addEventListener('change', function() {
+                const municipality = this.value;
+                if (municipality) {
+                    fetch(`/address/barangays?municipality=${encodeURIComponent(municipality)}`)
+                        .then(response => response.json())
+                        .then(barangays => {
+                            if (barangayFilter) {
+                                barangayFilter.innerHTML = '<option value="">All Barangays</option>';
+                                barangays.forEach(brgy => {
+                                    const option = document.createElement('option');
+                                    option.value = brgy;
+                                    option.textContent = brgy;
+                                    barangayFilter.appendChild(option);
+                                });
+                            }
+                            filterForm.submit();
                         });
-                    });
-            }
-        });
+                } else {
+                    filterForm.submit();
+                }
+            });
 
-        // Dynamic barangay loading based on municipality
-        municipalityFilter.addEventListener('change', function() {
-            const municipality = this.value;
-            if (municipality) {
-                fetch(`/address/barangays?municipality=${encodeURIComponent(municipality)}`)
-                    .then(response => response.json())
-                    .then(barangays => {
-                        barangayFilter.innerHTML = '<option value="">All Barangays</option>';
-                        barangays.forEach(barangay => {
-                            const option = document.createElement('option');
-                            option.value = barangay;
-                            option.textContent = barangay;
-                            barangayFilter.appendChild(option);
-                        });
-                    });
-            }
-        });
+            // Other filters that trigger immediate submit
+            [barangayFilter, ethnoFilter].forEach(filter => {
+                filter?.addEventListener('change', () => filterForm.submit());
+            });
+        };
+
+        setupGeographicFilters();
     });
 
     // Document priority functions
