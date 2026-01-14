@@ -729,6 +729,22 @@ class StudentController extends Controller
 
         // Check application status from basic_info table
         $basicInfo = $student->basicInfo;
+
+        // Sync college_year from User to BasicInfo if BasicInfo exists but year is missing
+        if ($basicInfo && !$basicInfo->current_year_level && $student->college_year) {
+            $yearLevel = match((int)$student->college_year) {
+                1 => '1st',
+                2 => '2nd',
+                3 => '3rd',
+                4 => '4th',
+                5 => '5th',
+                default => null
+            };
+            if ($yearLevel) {
+                $basicInfo->update(['current_year_level' => $yearLevel]);
+            }
+        }
+
         $applicationStatus = $basicInfo ? ($basicInfo->application_status ?? 'pending') : 'pending';
         $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? null) : null;
 
@@ -1337,6 +1353,7 @@ class StudentController extends Controller
             'last_name' => $validated['last_name'],
             'contact_num' => $validated['contact_num'],
             'email' => $validated['email'],
+            'college_year' => $validated['current_year_level'] ? (int) filter_var($validated['current_year_level'], FILTER_SANITIZE_NUMBER_INT) : null,
         ]);
 
         // Update or create basic_info record for current_year_level

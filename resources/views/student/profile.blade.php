@@ -148,13 +148,26 @@
                         @endif
                         
                         <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm">IP Scholar</span>
-                        @if($isGrantee)
-                            @if($courseName !== 'Course not set')
-                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>
-                            @endif
-                            @if(optional($student->basicInfo)->current_year_level)
-                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $student->basicInfo->current_year_level }} Year</span>
-                            @endif
+                        @if($courseName !== 'Course not set')
+                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>
+                        @endif
+                        
+                        @php
+                            $yearLevel = optional($student->basicInfo)->current_year_level;
+                            if (!$yearLevel && $student->college_year) {
+                                $yearLevel = match((int)$student->college_year) {
+                                    1 => '1st',
+                                    2 => '2nd',
+                                    3 => '3rd',
+                                    4 => '4th',
+                                    5 => '5th',
+                                    default => null
+                                };
+                            }
+                        @endphp
+                        
+                        @if($yearLevel)
+                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $yearLevel }} Year</span>
                         @endif
                     </div>
                     
@@ -276,16 +289,29 @@
                             </div>
                             <div class="space-y-2 relative" id="year-level-field-container">
                                 <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Current Year Level</label>
+                                @php
+                                    $currentYear = old('current_year_level', optional($student->basicInfo)->current_year_level);
+                                    if (!$currentYear && $student->college_year) {
+                                        $currentYear = match((int)$student->college_year) {
+                                            1 => '1st',
+                                            2 => '2nd',
+                                            3 => '3rd',
+                                            4 => '4th',
+                                            5 => '5th',
+                                            default => ''
+                                        };
+                                    }
+                                @endphp
                                 <select name="current_year_level" id="current-year-level-select" class="w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm p-3.5 text-slate-800">
                                     <option value="">Select Year Level</option>
-                                    <option value="1st" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '1st' ? 'selected' : '' }}>1st Year</option>
-                                    <option value="2nd" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '2nd' ? 'selected' : '' }}>2nd Year</option>
-                                    <option value="3rd" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '3rd' ? 'selected' : '' }}>3rd Year</option>
-                                    <option value="4th" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '4th' ? 'selected' : '' }}>4th Year</option>
-                                    <option value="5th" {{ old('current_year_level', optional($student->basicInfo)->current_year_level) == '5th' ? 'selected' : '' }}>5th Year</option>
+                                    <option value="1st" {{ $currentYear == '1st' ? 'selected' : '' }}>1st Year</option>
+                                    <option value="2nd" {{ $currentYear == '2nd' ? 'selected' : '' }}>2nd Year</option>
+                                    <option value="3rd" {{ $currentYear == '3rd' ? 'selected' : '' }}>3rd Year</option>
+                                    <option value="4th" {{ $currentYear == '4th' ? 'selected' : '' }}>4th Year</option>
+                                    <option value="5th" {{ $currentYear == '5th' ? 'selected' : '' }}>5th Year</option>
                                 </select>
                                 
-                                @if(!optional($student->basicInfo)->current_year_level)
+                                @if(!$currentYear)
                                 <!-- Arrow Guide Tooltip -->
                                 <div id="year-level-guide" class="absolute -right-64 top-1/2 -translate-y-1/2 z-50 animate-bounce-slow hidden md:block">
                                     <div class="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl p-4 shadow-2xl max-w-xs">
