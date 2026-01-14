@@ -147,11 +147,19 @@
                         <div class="relative hidden md:block" x-data="{ open: false }" @click.away="open = false">
                             <button @click="open = !open" class="flex items-center focus:outline-none">
                                 @if($user->profile_pic_url)
-                        <img src="{{ $user->profile_pic_url }}" alt="Profile" class="w-10 h-10 rounded-full border-2 border-orange-400 hover:border-orange-300 transition-colors object-cover">
-                    @else
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-black text-sm border-2 border-orange-400 hover:border-orange-300 transition-colors">
+                        <img id="nav-profile-pic" src="{{ $user->profile_pic_url }}" alt="Profile" 
+                             class="w-10 h-10 rounded-full border-2 border-orange-400 hover:border-orange-300 transition-colors object-cover"
+                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                        <div id="nav-profile-initials" class="hidden w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 items-center justify-center text-white font-black text-sm border-2 border-orange-400 hover:border-orange-300 transition-colors">
                             {{ $user->initials }}
                         </div>
+                    @else
+                        <div id="nav-profile-initials" class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-black text-sm border-2 border-orange-400 hover:border-orange-300 transition-colors">
+                            {{ $user->initials }}
+                        </div>
+                        <img id="nav-profile-pic" src="" alt="Profile" 
+                             class="hidden w-10 h-10 rounded-full border-2 border-orange-400 hover:border-orange-300 transition-colors object-cover"
+                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
                     @endif
                             </button>
                             

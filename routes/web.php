@@ -79,7 +79,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/student/support', [StudentController::class, 'support'])->name('student.support');
     Route::post('/student/apply', [StudentController::class, 'apply'])->name('student.apply');
     Route::post('/student/update-profile-pic', [StudentController::class, 'updateProfilePic'])->name('student.update-profile-pic');
-    Route::get('/student/profile-pic/{filename}', [StudentController::class, 'showProfilePic'])->name('profile-pic.show');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
     Route::post('/student/update-gwa', [StudentController::class, 'updateGWA'])->name('student.update-gwa');
 
@@ -149,6 +148,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::post('/documents/upload', [DocumentController::class, 'store'])->name('documents.upload');
 Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.view');
 Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.delete');
+Route::get('/student/profile-pic/{filename}', [StudentController::class, 'showProfilePic'])->name('profile-pic.show');
 
 // Staff Auth Routes (Public)
 Route::get('staff/login', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.login');

@@ -1244,10 +1244,10 @@ class StudentController extends Controller
             ));
 
             return response()->json([
-                'success' => true,
-                'message' => 'Profile picture updated successfully',
-                'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)]),
-            ]);
+                    'success' => true,
+                    'message' => 'Profile picture updated successfully',
+                    'profile_pic_url' => route('profile-pic.show', ['filename' => basename($path)], false),
+                ]);
         } catch (\Throwable $e) {
             Log::error("Failed to update profile picture: " . $e->getMessage());
             return response()->json([
@@ -1266,16 +1266,30 @@ class StudentController extends Controller
         try {
             $path = 'profile-pics/'.$filename;
             $disk = config('filesystems.default');
+            
+            \Log::info("Serving profile pic: {$path} from disk: {$disk}");
 
             // 1. Check default disk
             if (Storage::disk($disk)->exists($path)) {
-                return Storage::disk($disk)->response($path);
+                \Log::info("Found on default disk: {$disk}");
+                
+                $file = Storage::disk($disk)->get($path);
+                $mimeType = Storage::disk($disk)->mimeType($path);
+                
+                return response($file, 200)->header('Content-Type', $mimeType);
             }
 
             // 2. Fallback to public disk
             if ($disk !== 'public' && Storage::disk('public')->exists($path)) {
-                return Storage::disk('public')->response($path);
+                \Log::info("Found on public disk");
+                
+                $file = Storage::disk('public')->get($path);
+                $mimeType = Storage::disk('public')->mimeType($path);
+                
+                return response($file, 200)->header('Content-Type', $mimeType);
             }
+            
+            \Log::warning("Profile pic not found on any disk: {$path}");
 
             // 3. Fallback to default avatar
             $defaultPath = public_path('images/default-avatar.png');

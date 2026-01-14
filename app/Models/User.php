@@ -108,18 +108,14 @@ class User extends Authenticatable implements MustVerifyEmail
                 // Get the default disk
                 $disk = config('filesystems.default');
                 
-                // If using local/public disk, use our custom route for better compatibility
-                // We use this route because it handles storage availability issues gracefully now
-                if ($disk === 'local' || $disk === 'public') {
-                    return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
-                }
-
-                // For S3/Cloud, try to get the URL
-                return Storage::disk($disk)->url($this->profile_pic);
+                // ALWAYS use our custom route for profile pictures.
+                // This ensures compatibility across local and cloud storage (like R2/S3)
+                // by streaming the file through our server which has the credentials.
+                return route('profile-pic.show', ['filename' => basename($this->profile_pic)], false);
             } catch (\Throwable $e) {
                 Log::warning("Failed to generate profile pic URL for user {$this->id}: " . $e->getMessage());
                 // Fallback to the local route which has its own error handling
-                return route('profile-pic.show', ['filename' => basename($this->profile_pic)]);
+                return route('profile-pic.show', ['filename' => basename($this->profile_pic)], false);
             }
         }
 

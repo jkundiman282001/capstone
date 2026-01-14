@@ -560,15 +560,35 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const image = document.getElementById('profile-pic-image');
-                    const placeholder = document.getElementById('profile-pic-placeholder');
-                    if (image) {
-                        image.src = data.profile_pic_url + '?t=' + new Date().getTime();
-                        image.classList.remove('hidden');
+                    // Update profile picture displays
+                    const newUrl = data.profile_pic_url + '?t=' + new Date().getTime();
+                    
+                    // Update main profile page display
+                    const mainDisplay = document.getElementById('profile-pic-image');
+                    const mainPlaceholder = document.getElementById('profile-pic-placeholder');
+                    if (mainDisplay) {
+                        mainDisplay.src = newUrl;
+                        mainDisplay.classList.remove('hidden');
+                        mainDisplay.style.display = 'block';
                     }
-                    if (placeholder) {
-                        placeholder.classList.add('hidden');
+                    if (mainPlaceholder) {
+                        mainPlaceholder.classList.add('hidden');
+                        mainPlaceholder.classList.remove('flex');
                     }
+
+                    // Update navbar display
+                    const navDisplay = document.getElementById('nav-profile-pic');
+                    const navPlaceholder = document.getElementById('nav-profile-initials');
+                    if (navDisplay) {
+                        navDisplay.src = newUrl;
+                        navDisplay.classList.remove('hidden');
+                        navDisplay.style.display = 'block';
+                    }
+                    if (navPlaceholder) {
+                        navPlaceholder.classList.add('hidden');
+                        navPlaceholder.classList.remove('flex');
+                    }
+
                     closeCropper();
                 } else {
                     alert('Failed to update.');
