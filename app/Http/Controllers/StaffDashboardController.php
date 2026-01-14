@@ -1838,8 +1838,23 @@ class StaffDashboardController extends Controller
         }
 
         // Update GWA in basic_info table
+        $oldGwa = $basicInfo->gpa;
         $basicInfo->gpa = $validated['gwa'];
         $basicInfo->save();
+
+        // Log the action in Transaction History (Audit Log)
+        \App\Models\TransactionHistory::create([
+            'user_id' => $user->id,
+            'action' => 'GWA Verified',
+            'description' => 'GWA verified and updated by admin' . (auth()->user() ? ' (' . auth()->user()->first_name . ' ' . auth()->user()->last_name . ')' : '') . '. Old GWA: ' . ($oldGwa ?? 'N/A') . ', New GWA: ' . $validated['gwa'],
+            'status' => 'success',
+            'metadata' => [
+                'admin_id' => auth()->id(),
+                'old_gwa' => $oldGwa,
+                'new_gwa' => $validated['gwa'],
+                'updated_at' => now()->toDateTimeString(),
+            ]
+        ]);
 
         return response()->json([
             'success' => true,

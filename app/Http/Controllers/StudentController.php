@@ -157,6 +157,7 @@ class StudentController extends Controller
             'mother_address' => 'nullable|string|max:255',
             'mother_education' => 'nullable|string|max:255',
             'mother_income' => 'nullable|string|max:255',
+            'gpa' => 'nullable|numeric|min:75|max:100',
         ]);
 
         try {
@@ -201,6 +202,14 @@ class StudentController extends Controller
                     } catch (\Exception $e) {
                         \Log::error('Failed to notify staff about document upload: ' . $e->getMessage());
                     }
+                }
+            }
+
+            // Update GWA if provided for renewal
+            if ($request->has('gpa') && $request->gpa) {
+                $basicInfo = BasicInfo::where('user_id', $user->id)->first();
+                if ($basicInfo) {
+                    $basicInfo->update(['gpa' => $request->gpa]);
                 }
             }
 
@@ -335,6 +344,7 @@ class StudentController extends Controller
             'school_pref_id' => $schoolPref->id,
             'type_assist' => $typeAssist,
             'assistance_for' => $assistanceFor,
+            'gpa' => $request->gpa,
         ]);
 
         // 2. Save Education (each level as a separate row, linked to BasicInfo)
