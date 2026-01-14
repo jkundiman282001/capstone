@@ -62,9 +62,13 @@
         'scholar' => ['label' => 'Scholar', 'color' => 'bg-blue-600']
     ];
     $currentStepIndex = 0;
-    if (in_array($trackerStatus, ['submitted', 'pending', 'rejected', 'returned'])) $currentStepIndex = 1;
-    if ($trackerStatus === 'validated') $currentStepIndex = 2;
-    if ($isGrantee) $currentStepIndex = 3;
+    if (in_array($trackerStatus, ['submitted', 'pending', 'rejected', 'returned'])) {
+        $currentStepIndex = 1;
+    } elseif ($trackerStatus === 'validated') {
+        $currentStepIndex = 3;
+    } elseif ($isGrantee) {
+        $currentStepIndex = 4;
+    }
 
     // ============================================
     // ACCEPTANCE CHANCE CALCULATION
@@ -636,13 +640,18 @@
                     <div class="absolute top-4 left-0 w-full h-0.5 bg-slate-100 -z-0"></div>
                     
                     @foreach($trackerSteps as $key => $step)
+                        @php
+                            $isCompleted = $loop->index < $currentStepIndex;
+                            $isCurrent = $loop->index === $currentStepIndex;
+                            $stepColor = $isCompleted ? 'bg-emerald-500' : ($isCurrent ? $step['color'] : 'bg-slate-200');
+                        @endphp
                         <div class="relative z-10 flex flex-col items-center gap-2">
-                            <div class="w-8 h-8 rounded-full {{ $loop->index <= $currentStepIndex ? $step['color'] : 'bg-slate-200' }} border-4 border-white shadow-md flex items-center justify-center transition-all duration-500 {{ $loop->index === $currentStepIndex ? 'ring-4 ring-'.explode('-', $step['color'])[1].'-100 scale-110' : '' }}">
-                                @if($loop->index < $currentStepIndex)
+                            <div class="w-8 h-8 rounded-full {{ $stepColor }} border-4 border-white shadow-md flex items-center justify-center transition-all duration-500 {{ $isCurrent ? 'ring-4 ring-'.explode('-', $step['color'])[1].'-100 scale-110' : '' }}">
+                                @if($isCompleted)
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                 @endif
                             </div>
-                            <span class="text-[10px] font-black uppercase tracking-tighter {{ $loop->index <= $currentStepIndex ? 'text-slate-900' : 'text-slate-400' }}">{{ $step['label'] }}</span>
+                            <span class="text-[10px] font-black uppercase tracking-tighter {{ $isCompleted || $isCurrent ? 'text-slate-900' : 'text-slate-400' }}">{{ $step['label'] }}</span>
                         </div>
                     @endforeach
                 </div>
