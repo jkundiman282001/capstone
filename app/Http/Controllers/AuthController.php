@@ -86,6 +86,7 @@ class AuthController extends Controller
             'password' => ['required', 'min:8', 'confirmed'],
             'ethno_id' => ['required', 'exists:ethno,id'],
             'educational_status' => ['required', 'string', 'in:SHS Graduate,Ongoing College'],
+            'college_year' => ['nullable', 'required_if:educational_status,Ongoing College', 'integer', 'min:1', 'max:5'],
             'grade_scale' => ['nullable', 'required_if:educational_status,Ongoing College', 'string', 'in:1.0,4.0'],
             'course' => ['nullable', 'string', 'max:150'],
             'course_other' => ['nullable', 'string', 'max:150'],
@@ -109,6 +110,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
             'ethno_id' => $validated['ethno_id'],
             'educational_status' => $validated['educational_status'],
+            'college_year' => $validated['college_year'] ?? null,
             'grade_scale' => $validated['grade_scale'] ?? null,
             'course' => $course,
         ]);

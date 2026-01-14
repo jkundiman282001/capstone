@@ -38,6 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'ethno_id',
         'course',
         'educational_status',
+        'college_year',
         'grade_scale',
         'role',
     ];

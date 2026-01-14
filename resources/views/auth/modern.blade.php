@@ -783,6 +783,23 @@
               </div>
             </div>
 
+            <!-- College Year Level (Conditional) -->
+            <div id="college_year_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
+              <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">College Year Level</label>
+              <div class="relative">
+                <input 
+                  type="number" 
+                  name="college_year" 
+                  id="register_college_year" 
+                  min="1" 
+                  max="5"
+                  placeholder="Enter Year Level (1-5)" 
+                  class="form-input w-full px-4 py-3 rounded-xl focus:ring-4 focus:ring-orange-500/20 outline-none"
+                />
+                <p class="text-[10px] text-orange-600 font-medium">Please enter your current year level (e.g., 1, 2, 3, 4, 5)</p>
+              </div>
+            </div>
+
             <!-- Email -->
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Email Address</label>
@@ -943,19 +960,26 @@
       // Educational Status & Grade Scale logic
       const eduRadios = document.querySelectorAll('.educational-status-radio');
       const gradeScaleSection = document.getElementById('grade_scale_section');
+      const collegeYearSection = document.getElementById('college_year_section');
+      const collegeYearInput = document.getElementById('register_college_year');
       const gradeScaleRadios = document.querySelectorAll('input[name="grade_scale"]');
 
       eduRadios.forEach(radio => {
         radio.addEventListener('change', function() {
           if (this.value === 'Ongoing College' && this.checked) {
             gradeScaleSection.classList.remove('hidden');
+            collegeYearSection.classList.remove('hidden');
             gradeScaleRadios.forEach(r => r.required = true);
+            collegeYearInput.required = true;
           } else {
             gradeScaleSection.classList.add('hidden');
+            collegeYearSection.classList.add('hidden');
             gradeScaleRadios.forEach(r => {
               r.required = false;
               r.checked = false;
             });
+            collegeYearInput.required = false;
+            collegeYearInput.value = '';
           }
         });
       });
