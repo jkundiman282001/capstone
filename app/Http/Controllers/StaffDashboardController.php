@@ -738,6 +738,19 @@ class StaffDashboardController extends Controller
                 } else {
                     $query->where('application_status', $selectedStatus);
 
+                    if ($selectedStatus === 'validated') {
+                        // Exclude grantees and pamana from validated list
+                        $query->where(function($q) {
+                            $q->where(function($sq) {
+                                $sq->whereRaw("LOWER(TRIM(grant_status)) != 'grantee'")
+                                   ->whereRaw("LOWER(TRIM(grant_status)) != 'pamana'");
+                            })->orWhereNull('grant_status');
+                        })->where(function($q) {
+                            $q->where('type_assist', '!=', 'Pamana')
+                              ->orWhereNull('type_assist');
+                        });
+                    }
+
                     if ($selectedStatus === 'rejected') {
                         $query->where(function($q) {
                             $q->whereRaw("LOWER(TRIM(grant_status)) != 'grantee'")
