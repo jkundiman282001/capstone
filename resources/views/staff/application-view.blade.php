@@ -515,7 +515,7 @@
                                             
                                             @if($status === 'pending')
                                                 <button onclick="updateDocumentStatus({{ $doc->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
-                                                <button onclick="showFeedbackModal({{ $doc->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Reject</button>
+                                                <button onclick="showFeedbackModal({{ $doc->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Return</button>
                                             @endif
                                         </div>
                                     @else
