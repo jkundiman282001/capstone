@@ -1789,26 +1789,6 @@
                                                             <input type="file" name="documents[{{ $typeKey }}]" class="doc-file-input absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.jpg,.jpeg,.png,.gif">
                                                         </label>
                                                         <div class="file-name-display text-xs text-slate-600 mt-2 text-center truncate hidden px-2"></div>
-                                                        
-                                                        @if($typeKey === 'grades')
-                                                        <div class="mt-4 px-2">
-                                                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Enter GWA</label>
-                                                            <div class="relative group">
-                                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                                    <svg class="h-4 w-4 text-slate-400 group-focus-within:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                    </svg>
-                                                                </div>
-                                                                <input type="number" 
-                                                                       step="0.01" 
-                                                                       name="gpa" 
-                                                                       id="gpa-input-grades" 
-                                                                       class="block w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-slate-50/50 hover:bg-white transition-all outline-none" 
-                                                                       placeholder="0.00">
-                                                            </div>
-                                                            <p class="text-[9px] text-slate-400 mt-1">Please enter your GWA as shown on your grades document.</p>
-                                                        </div>
-                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -2416,11 +2396,7 @@
             if (regularDocs) regularDocs.style.display = 'grid';
             if (renewalDocs) renewalDocs.style.display = 'none';
 
-            // Enable regular GWA, disable renewal GWA
-            const gpaRenewal = document.getElementById('gpa-input-renewal');
-            const gpaGrades = document.getElementById('gpa-input-grades');
-            if (gpaGrades) gpaGrades.disabled = false;
-            if (gpaRenewal) gpaRenewal.disabled = true;
+
             // Regular application flow
             const currentStepEl = document.getElementById('step-' + currentStep);
             if (currentStepEl) {
