@@ -247,22 +247,43 @@
         </div>
     </div>
 
-    <!-- IP Group Analytics -->
-    <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 mb-8 hover:shadow-2xl transition-shadow duration-300">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+    <!-- IP Group & Gender Distribution -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- IP Group Analytics -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                     </svg>
                 </div>
-            <div>
-                <h2 class="font-black text-slate-900 text-xl">IP Group Distribution</h2>
-                <p class="text-sm text-slate-500 font-medium">Applicants by Indigenous Peoples group</p>
+                <div>
+                    <h2 class="font-black text-slate-900 text-xl">IP Group Distribution</h2>
+                    <p class="text-sm text-slate-500 font-medium">Applicants by Indigenous Peoples group</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="ipChart"></canvas>
             </div>
         </div>
-        <div class="h-96">
-            <canvas id="ipChart"></canvas>
+
+        <!-- Gender Distribution -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-900 text-lg">Gender Distribution</h2>
+                    <p class="text-xs text-slate-500 font-medium">Applicants by gender</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="genderChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -285,28 +306,7 @@
         </div>
     </div>
 
-    <!-- Gender & Application Trends -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Gender Distribution -->
-        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="font-black text-slate-900 text-lg">Gender Distribution</h2>
-                    <p class="text-xs text-slate-500 font-medium">Applicants by gender</p>
-                </div>
-            </div>
-            <div class="h-80">
-                <canvas id="genderChart"></canvas>
-            </div>
-        </div>
 
-
-    </div>
 </div>
 @endsection
 
