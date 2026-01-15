@@ -146,7 +146,7 @@
                 Grantees
             </a>
             <a href="{{ route('staff.applicants.list', ['status' => 'pamana']) }}" 
-               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'pamana' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50' }}">
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'pamana' ? 'bg-purple-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-purple-300 hover:bg-purple-50' }}">
                 Pamana
             </a>
             <a href="{{ route('staff.applicants.list', ['status' => 'rejected']) }}" 
@@ -190,7 +190,7 @@
                                 $isRejected = $appStatus === 'rejected' && !$isTerminated;
                             @endphp
                             <div class="absolute top-3 left-3">
-                                <span class="{{ $isTerminated ? 'bg-slate-700' : ($isGrantee ? 'bg-blue-500' : ($isPamana ? 'bg-emerald-600' : ($isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500')))) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
+                                <span class="{{ $isTerminated ? 'bg-slate-700' : ($isGrantee ? 'bg-blue-500' : ($isPamana ? 'bg-purple-600' : ($isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500')))) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
                                     @if($isTerminated)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
                                         Terminated
