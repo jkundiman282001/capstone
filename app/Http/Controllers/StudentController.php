@@ -157,6 +157,7 @@ class StudentController extends Controller
             'mother_address' => 'nullable|string|max:255',
             'mother_education' => 'nullable|string|max:255',
             'mother_income' => 'nullable|string|max:255',
+            'gpa' => 'nullable|numeric|min:0|max:100',
         ]);
 
         try {
@@ -164,6 +165,16 @@ class StudentController extends Controller
 
         // For renewals, only process document uploads and skip form data
         if ($isRenewal) {
+            // Update GWA if provided in renewal
+            if ($request->has('gpa') && $request->gpa) {
+                $existingApplication = BasicInfo::where('user_id', $user->id)
+                    ->whereNotNull('type_assist')
+                    ->first();
+                if ($existingApplication) {
+                    $existingApplication->update(['gpa' => $request->gpa]);
+                }
+            }
+
             // Handle document uploads for renewal
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $type => $file) {
@@ -335,6 +346,7 @@ class StudentController extends Controller
             'school_pref_id' => $schoolPref->id,
             'type_assist' => $typeAssist,
             'assistance_for' => $assistanceFor,
+            'gpa' => $request->gpa,
         ]);
 
         // 2. Save Education (each level as a separate row, linked to BasicInfo)
