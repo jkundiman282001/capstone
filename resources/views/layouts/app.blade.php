@@ -163,7 +163,23 @@
                                         </a>
                                         <a href="{{ route('staff.masterlist.regular.waiting') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-xs tracking-wide">Waiting</span>
+                                                <div class="flex items-center gap-3">
+                                                    <span class="text-xs tracking-wide">Waiting</span>
+                                                    @php
+                                                        try {
+                                                            $waitingCount = \App\Models\BasicInfo::where('grant_status', 'waiting')
+                                                                ->orWhere(function($query) {
+                                                                    $query->where('application_status', 'validated')
+                                                                          ->whereNull('grant_status');
+                                                                })->count();
+                                                        } catch (\Throwable $e) {
+                                                            $waitingCount = 0;
+                                                        }
+                                                    @endphp
+                                                    @if($waitingCount > 0)
+                                                        <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $waitingCount }}</span>
+                                                    @endif
+                                                </div>
                                                 <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
                                             </div>
                                         </a>
