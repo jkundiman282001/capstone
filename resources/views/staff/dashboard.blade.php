@@ -145,9 +145,6 @@
                         </svg>
                         <span class="font-bold text-xs md:text-sm text-white">{{ $name }}</span>
                     </div>
-                    <div class="bg-white/15 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-white/20">
-                        <span class="font-semibold text-[10px] md:text-xs text-white">{{ $assignedBarangay }}</span>
-                    </div>
                 </div>
             </div>
         </div>
