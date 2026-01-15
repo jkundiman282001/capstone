@@ -1820,14 +1820,11 @@ class StaffDashboardController extends Controller
 
         $validated = $request->validate([
             'gwa' => 'required|numeric|min:75|max:100',
-            'grade_scale' => 'required|string|in:1.0,4.0',
         ], [
             'gwa.required' => 'GWA value is required.',
             'gwa.numeric' => 'GWA must be a number.',
             'gwa.min' => 'GWA must be at least 75.',
             'gwa.max' => 'GWA cannot exceed 100.',
-            'grade_scale.required' => 'Grade scale is required.',
-            'grade_scale.in' => 'Invalid grade scale selected.',
         ]);
 
         // Get or create basic_info record
@@ -1840,45 +1837,29 @@ class StaffDashboardController extends Controller
             ], 404);
         }
 
-        // Update Grade Scale and GWA
+        // Update GWA in basic_info table
         $oldGwa = $basicInfo->gpa;
-        $oldScale = $user->grade_scale;
-        
-        $user->grade_scale = $validated['grade_scale'];
-        $user->save();
-
         $basicInfo->gpa = $validated['gwa'];
         $basicInfo->save();
-
-        // Calculate converted grade for the log description
-        $convertedGrade = $user->convertGrade($validated['gwa']);
-        $convertedInfo = $convertedGrade ? " (Converted: {$convertedGrade} on {$user->grade_scale} scale)" : "";
 
         // Log the action in Transaction History (Audit Log)
         \App\Models\TransactionHistory::create([
             'user_id' => $user->id,
             'action' => 'GWA Verified',
-            'description' => 'GWA verified and updated by admin' . (auth()->user() ? ' (' . auth()->user()->first_name . ' ' . auth()->user()->last_name . ')' : '') . 
-                           '. Scale: ' . $validated['grade_scale'] . ', GWA: ' . $validated['gwa'] . $convertedInfo .
-                           ($oldScale ? " (Prev: {$oldScale}, {$oldGwa})" : ""),
+            'description' => 'GWA verified and updated by admin' . (auth()->user() ? ' (' . auth()->user()->first_name . ' ' . auth()->user()->last_name . ')' : '') . '. Old GWA: ' . ($oldGwa ?? 'N/A') . ', New GWA: ' . $validated['gwa'],
             'status' => 'success',
             'metadata' => [
                 'admin_id' => auth()->id(),
                 'old_gwa' => $oldGwa,
                 'new_gwa' => $validated['gwa'],
-                'old_grade_scale' => $oldScale,
-                'new_grade_scale' => $validated['grade_scale'],
-                'converted_grade' => $convertedGrade,
                 'updated_at' => now()->toDateTimeString(),
             ]
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'GWA updated and converted successfully.',
+            'message' => 'GWA updated successfully.',
             'gwa' => $validated['gwa'],
-            'grade_scale' => $validated['grade_scale'],
-            'converted_grade' => $convertedGrade,
             'basic_info_id' => $basicInfo->id,
         ]);
     }

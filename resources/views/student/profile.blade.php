@@ -169,13 +169,6 @@
                         @if($yearLevel)
                             <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">{{ $yearLevel }} Year</span>
                         @endif
-
-                        @if($currentGWA !== null && $student->converted_grade)
-                            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-600 border border-purple-100 shadow-sm flex items-center gap-1.5" title="Converted to {{ $student->grade_scale }} scale">
-                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                                GPA: {{ $student->converted_grade }}
-                            </span>
-                        @endif
                     </div>
                     
                     <!-- Apply Button in Sidebar -->
@@ -347,21 +340,6 @@
                                 </div>
                                 @endif
                             </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Grade Scale Preference</label>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <label class="relative flex items-center p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-orange-200 transition-all group">
-                                        <input type="radio" name="grade_scale" value="1.0" class="w-4 h-4 text-orange-600 focus:ring-orange-500" {{ old('grade_scale', $student->grade_scale) == '1.0' ? 'checked' : '' }}>
-                                        <span class="ml-3 text-sm font-medium text-slate-700 group-hover:text-orange-700 transition-colors">1.0 Highest</span>
-                                    </label>
-                                    <label class="relative flex items-center p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-orange-200 transition-all group">
-                                        <input type="radio" name="grade_scale" value="4.0" class="w-4 h-4 text-orange-600 focus:ring-orange-500" {{ old('grade_scale', $student->grade_scale) == '4.0' ? 'checked' : '' }}>
-                                        <span class="ml-3 text-sm font-medium text-slate-700 group-hover:text-orange-700 transition-colors">4.0 Highest</span>
-                                    </label>
-                                </div>
-                                <p class="text-[10px] text-slate-500 mt-1 italic">Used for automatic GPA conversion</p>
-                            </div>
                         </div>
 
                         <div class="pt-4 border-t border-slate-100 flex justify-end">
@@ -409,25 +387,6 @@
                                 <p class="text-sm font-semibold text-slate-700 mb-1">Current General Weighted Average</p>
                                 <p class="text-xs text-slate-500">Scale: 75 - 100 (Philippine Grading System)</p>
                             </div>
-
-                            @if($student->converted_grade)
-                            <!-- Converted GPA Card -->
-                            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-100 mb-6 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-purple-600">
-                                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Converted GPA</p>
-                                        <p class="text-sm font-bold text-slate-700">Based on {{ $student->grade_scale }} Scale</p>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-2xl font-black text-purple-600 leading-none">{{ $student->converted_grade }}</p>
-                                    <p class="text-[10px] font-medium text-slate-500 mt-1">Scale: {{ $student->grade_scale }}</p>
-                                </div>
-                            </div>
-                            @endif
 
                             <!-- GWA Progress Bar -->
                             <div class="mb-6">

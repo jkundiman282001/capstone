@@ -1151,8 +1151,15 @@
                                         </div>
                                         <div>
                                             <label class="input-label">GWA</label>
-                                            <input type="number" name="{{ $level['key'] }}_avg" class="form-control" step="0.01" min="75" max="100" value="{{ old($level['key'].'_avg') }}" {{ $level['required'] ? 'required' : '' }} placeholder="75-100">
-                                        </div>
+                                            <select name="{{ $level['key'] }}_avg" class="form-control" {{ $level['required'] ? 'required' : '' }}>
+                                                <option value="">Select GWA</option>
+                                                @foreach($gwaOptions as $gwa)
+                                                    <option value="{{ $gwa }}" {{ old($level['key'].'_avg') == $gwa ? 'selected' : '' }}>
+                                                        {{ $gwa }}
+                                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                                         <div>
                                             <label class="input-label">Rank/Honors</label>
                                             <select name="{{ $level['key'] }}_rank" class="form-control">

@@ -92,27 +92,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getConvertedGradeAttribute()
     {
-        return $this->convertGrade($this->gpa);
-    }
-
-    /**
-     * Convert a numeric grade based on the user's selected scale.
-     *
-     * @param float|string|null $grade
-     * @param string|null $scale
-     * @return string|null
-     */
-    public function convertGrade($grade, $scale = null)
-    {
-        $scale = $scale ?: $this->grade_scale;
-        
-        if (!$grade || !$scale) {
+        if (!$this->gpa || !$this->grade_scale) {
             return null;
         }
 
-        $grade = (float) $grade;
+        $grade = (float) $this->gpa;
         
-        if ($scale === "1.0") {
+        if ($this->grade_scale === "1.0") {
             if ($grade >= 97) return "1.00";
             if ($grade >= 94) return "1.25";
             if ($grade >= 91) return "1.50";
@@ -123,7 +109,7 @@ class User extends Authenticatable implements MustVerifyEmail
             if ($grade >= 76) return "2.75";
             if ($grade >= 75) return "3.00";
             return "5.00";
-        } elseif ($scale === "4.0") {
+        } elseif ($this->grade_scale === "4.0") {
             if ($grade >= 96) return "4.00";
             if ($grade >= 90) return "3.50";
             if ($grade >= 85) return "3.00";

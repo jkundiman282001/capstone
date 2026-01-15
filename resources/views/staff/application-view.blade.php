@@ -637,17 +637,7 @@
                                     <p class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mb-1">Declared GWA</p>
                                     <div class="flex items-center gap-2">
                                         <p class="text-sm font-black text-orange-900">
-                                            @php
-                                                $declaredGwa = 'N/A';
-                                                if ($user->educational_status === 'Ongoing College') {
-                                                    $collegeEdu = $education->where('category', 4)->first();
-                                                    $declaredGwa = $collegeEdu ? number_format($collegeEdu->grade_ave, 2) : 'N/A';
-                                                } else {
-                                                    $hsEdu = $education->where('category', 2)->first();
-                                                    $declaredGwa = $hsEdu ? number_format($hsEdu->grade_ave, 2) : 'N/A';
-                                                }
-                                            @endphp
-                                            {{ $declaredGwa }}
+                                            {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'N/A' }}
                                         </p>
                                         <span class="px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[9px] font-bold rounded uppercase">Student</span>
                                     </div>
@@ -655,17 +645,9 @@
                                 <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-indigo-200 ring-2 ring-indigo-50">
                                     <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Verified GWA</p>
                                     <div class="flex items-center gap-2">
-                                        <div class="flex flex-col">
-                                            <p class="text-sm font-black text-indigo-900">
-                                                {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'NOT VERIFIED' }}
-                                            </p>
-                                            @if($basicInfo->gpa && $user->grade_scale)
-                                                <div class="flex items-center gap-1 mt-0.5">
-                                                    <span class="text-[10px] font-black text-indigo-600">{{ $user->convertGrade($basicInfo->gpa) }}</span>
-                                                    <span class="text-[8px] font-bold text-indigo-400 uppercase">Converted</span>
-                                                </div>
-                                            @endif
-                                        </div>
+                                        <p class="text-sm font-black text-indigo-900">
+                                            {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'NOT VERIFIED' }}
+                                        </p>
                                         @if($basicInfo->gpa)
                                             <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[9px] font-bold rounded uppercase">Admin</span>
                                         @endif
@@ -1159,29 +1141,6 @@
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-lg font-semibold"
                     >
                     <p class="text-xs text-slate-500 mt-2">Enter GWA on a scale of 75 to 100 (Philippine grading system)</p>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-slate-700 mb-3">
-                        Grade Scale Preference <span class="text-red-500">*</span>
-                    </label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
-                            <input type="radio" name="grade_scale" value="1.0" required class="sr-only">
-                            <div class="text-center">
-                                <p class="text-sm font-black text-slate-700 group-has-[:checked]:text-indigo-700">1.0 Highest</p>
-                                <p class="text-[10px] text-slate-500 group-has-[:checked]:text-indigo-500 uppercase font-bold">University Scale</p>
-                            </div>
-                        </label>
-                        <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
-                            <input type="radio" name="grade_scale" value="4.0" required class="sr-only">
-                            <div class="text-center">
-                                <p class="text-sm font-black text-slate-700 group-has-[:checked]:text-indigo-700">4.0 Highest</p>
-                                <p class="text-[10px] text-slate-500 group-has-[:checked]:text-indigo-500 uppercase font-bold">Standard Scale</p>
-                            </div>
-                        </label>
-                    </div>
-                    <p class="text-[10px] text-slate-500 mt-2 italic">This scale will be used for automatic conversion to GPA.</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
@@ -2145,18 +2104,9 @@ async function submitManualGWA(event) {
     event.preventDefault();
     
     const gwaValue = parseFloat(document.getElementById('gwaValue').value);
-    const gradeScale = document.querySelector('input[name="grade_scale"]:checked')?.value;
     const domain = window.location.hostname;
     
     // Client-side validation
-    if (!gradeScale) {
-        await showCustomAlert({
-            title: `${domain} says`,
-            message: 'Please select a grade scale preference.'
-        });
-        return;
-    }
-
     if (isNaN(gwaValue) || gwaValue < 75 || gwaValue > 100) {
         await showCustomAlert({
             title: `${domain} says`,
@@ -2179,19 +2129,15 @@ async function submitManualGWA(event) {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ 
-            gwa: gwaValue,
-            grade_scale: gradeScale
-        })
+        body: JSON.stringify({ gwa: gwaValue })
     })
     .then(response => response.json())
     .then(async (data) => {
         if (data.success) {
             closeManualGWAModal();
-            let conversionMsg = data.converted_grade ? ` (Converted to ${data.converted_grade} GPA)` : '';
             await showCustomAlert({
                 title: `${domain} says`,
-                message: `GWA updated successfully to ${gwaValue}${conversionMsg}!`
+                message: `GWA updated successfully to ${gwaValue}!`
             });
             location.reload();
         } else {
