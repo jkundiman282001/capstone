@@ -149,19 +149,13 @@
                                         </svg>
                                     </button>
                                     <div id="regular-dropdown" class="pl-2 pt-1.5 space-y-1 {{ request()->routeIs('staff.masterlist.regular.*') ? '' : 'hidden' }} overflow-hidden transition-all duration-300">
-                                        <a href="{{ route('staff.masterlist.regular.all') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-xs tracking-wide">View All</span>
-                                                <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
-                                            </div>
-                                        </a>
                                         <a href="{{ route('staff.masterlist.regular.grantees') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.grantees') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-xs tracking-wide">Grantees</span>
                                                 <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.grantees') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
                                             </div>
                                         </a>
-                                        <a href="{{ route('staff.masterlist.regular.waiting') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                        <a href="{{ route('staff.masterlist.regular.all') }}" class="group block px-4 py-2 rounded-lg {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md' : 'bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 border-2 border-slate-200 hover:border-orange-300 font-medium text-slate-700 hover:text-orange-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-3">
                                                     <span class="text-xs tracking-wide">Waiting</span>
@@ -177,10 +171,10 @@
                                                         }
                                                     @endphp
                                                     @if($waitingCount > 0)
-                                                        <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $waitingCount }}</span>
+                                                        <span class="px-2 py-0.5 text-xs font-black rounded-full {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700' }}">{{ $waitingCount }}</span>
                                                     @endif
                                                 </div>
-                                                <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.waiting') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
+                                                <div class="w-1 h-1 rounded-full {{ request()->routeIs('staff.masterlist.regular.all') ? 'bg-white/50' : 'bg-slate-300 group-hover:bg-orange-500' }} transition-colors"></div>
                                             </div>
                                         </a>
                                     </div>
