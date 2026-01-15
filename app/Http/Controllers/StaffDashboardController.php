@@ -1842,16 +1842,27 @@ class StaffDashboardController extends Controller
         $basicInfo->gpa = $validated['gwa'];
         $basicInfo->save();
 
+        // Calculate converted grade for the log description
+        $convertedInfo = "";
+        if ($user->grade_scale) {
+            $convertedGrade = $user->convertGrade($validated['gwa']);
+            if ($convertedGrade) {
+                $convertedInfo = " (Converted: {$convertedGrade} on {$user->grade_scale} scale)";
+            }
+        }
+
         // Log the action in Transaction History (Audit Log)
         \App\Models\TransactionHistory::create([
             'user_id' => $user->id,
             'action' => 'GWA Verified',
-            'description' => 'GWA verified and updated by admin' . (auth()->user() ? ' (' . auth()->user()->first_name . ' ' . auth()->user()->last_name . ')' : '') . '. Old GWA: ' . ($oldGwa ?? 'N/A') . ', New GWA: ' . $validated['gwa'],
+            'description' => 'GWA verified and updated by admin' . (auth()->user() ? ' (' . auth()->user()->first_name . ' ' . auth()->user()->last_name . ')' : '') . '. Old GWA: ' . ($oldGwa ?? 'N/A') . ', New GWA: ' . $validated['gwa'] . $convertedInfo,
             'status' => 'success',
             'metadata' => [
                 'admin_id' => auth()->id(),
                 'old_gwa' => $oldGwa,
                 'new_gwa' => $validated['gwa'],
+                'grade_scale' => $user->grade_scale,
+                'converted_grade' => $user->convertGrade($validated['gwa']),
                 'updated_at' => now()->toDateTimeString(),
             ]
         ]);

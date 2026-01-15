@@ -637,7 +637,17 @@
                                     <p class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mb-1">Declared GWA</p>
                                     <div class="flex items-center gap-2">
                                         <p class="text-sm font-black text-orange-900">
-                                            {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'N/A' }}
+                                            @php
+                                                $declaredGwa = 'N/A';
+                                                if ($user->educational_status === 'Ongoing College') {
+                                                    $collegeEdu = $education->where('category', 4)->first();
+                                                    $declaredGwa = $collegeEdu ? number_format($collegeEdu->grade_ave, 2) : 'N/A';
+                                                } else {
+                                                    $hsEdu = $education->where('category', 2)->first();
+                                                    $declaredGwa = $hsEdu ? number_format($hsEdu->grade_ave, 2) : 'N/A';
+                                                }
+                                            @endphp
+                                            {{ $declaredGwa }}
                                         </p>
                                         <span class="px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[9px] font-bold rounded uppercase">Student</span>
                                     </div>
@@ -645,9 +655,17 @@
                                 <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-indigo-200 ring-2 ring-indigo-50">
                                     <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Verified GWA</p>
                                     <div class="flex items-center gap-2">
-                                        <p class="text-sm font-black text-indigo-900">
-                                            {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'NOT VERIFIED' }}
-                                        </p>
+                                        <div class="flex flex-col">
+                                            <p class="text-sm font-black text-indigo-900">
+                                                {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'NOT VERIFIED' }}
+                                            </p>
+                                            @if($basicInfo->gpa && $user->grade_scale)
+                                                <div class="flex items-center gap-1 mt-0.5">
+                                                    <span class="text-[10px] font-black text-indigo-600">{{ $user->convertGrade($basicInfo->gpa) }}</span>
+                                                    <span class="text-[8px] font-bold text-indigo-400 uppercase">Converted</span>
+                                                </div>
+                                            @endif
+                                        </div>
                                         @if($basicInfo->gpa)
                                             <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[9px] font-bold rounded uppercase">Admin</span>
                                         @endif

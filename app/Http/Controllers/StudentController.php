@@ -1355,8 +1355,10 @@ class StudentController extends Controller
             'contact_num' => 'required|string|max:20',
             'email' => 'required|email|unique:users,email,'.$user->id,
             'current_year_level' => 'nullable|string|in:1st,2nd,3rd,4th,5th',
+            'grade_scale' => 'nullable|string|in:1.0,4.0',
         ]);
 
+        $oldScale = $user->grade_scale;
         $user->update([
             'first_name' => $validated['first_name'],
             'middle_name' => $validated['middle_name'],
@@ -1364,7 +1366,22 @@ class StudentController extends Controller
             'contact_num' => $validated['contact_num'],
             'email' => $validated['email'],
             'college_year' => $validated['current_year_level'] ? (int) filter_var($validated['current_year_level'], FILTER_SANITIZE_NUMBER_INT) : null,
+            'grade_scale' => $validated['grade_scale'] ?? $user->grade_scale,
         ]);
+
+        // Log scale change if it occurred
+        if ($oldScale !== $user->grade_scale) {
+            \App\Models\TransactionHistory::create([
+                'user_id' => $user->id,
+                'action' => 'Grade Scale Updated',
+                'description' => "Grade scale changed from " . ($oldScale ?? 'None') . " to " . ($user->grade_scale ?? 'None') . ". This will update all automatic GPA conversions.",
+                'status' => 'success',
+                'metadata' => [
+                    'old_scale' => $oldScale,
+                    'new_scale' => $user->grade_scale,
+                ]
+            ]);
+        }
 
         // Update or create basic_info record for current_year_level
         $basicInfo = $user->basicInfo;
