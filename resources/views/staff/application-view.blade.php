@@ -1161,6 +1161,29 @@
                     <p class="text-xs text-slate-500 mt-2">Enter GWA on a scale of 75 to 100 (Philippine grading system)</p>
                 </div>
 
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-3">
+                        Grade Scale Preference <span class="text-red-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
+                            <input type="radio" name="grade_scale" value="1.0" required class="sr-only">
+                            <div class="text-center">
+                                <p class="text-sm font-black text-slate-700 group-has-[:checked]:text-indigo-700">1.0 Highest</p>
+                                <p class="text-[10px] text-slate-500 group-has-[:checked]:text-indigo-500 uppercase font-bold">University Scale</p>
+                            </div>
+                        </label>
+                        <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-indigo-500 transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
+                            <input type="radio" name="grade_scale" value="4.0" required class="sr-only">
+                            <div class="text-center">
+                                <p class="text-sm font-black text-slate-700 group-has-[:checked]:text-indigo-700">4.0 Highest</p>
+                                <p class="text-[10px] text-slate-500 group-has-[:checked]:text-indigo-500 uppercase font-bold">Standard Scale</p>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2 italic">This scale will be used for automatic conversion to GPA.</p>
+                </div>
+
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -2122,9 +2145,18 @@ async function submitManualGWA(event) {
     event.preventDefault();
     
     const gwaValue = parseFloat(document.getElementById('gwaValue').value);
+    const gradeScale = document.querySelector('input[name="grade_scale"]:checked')?.value;
     const domain = window.location.hostname;
     
     // Client-side validation
+    if (!gradeScale) {
+        await showCustomAlert({
+            title: `${domain} says`,
+            message: 'Please select a grade scale preference.'
+        });
+        return;
+    }
+
     if (isNaN(gwaValue) || gwaValue < 75 || gwaValue > 100) {
         await showCustomAlert({
             title: `${domain} says`,
@@ -2147,15 +2179,19 @@ async function submitManualGWA(event) {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ gwa: gwaValue })
+        body: JSON.stringify({ 
+            gwa: gwaValue,
+            grade_scale: gradeScale
+        })
     })
     .then(response => response.json())
     .then(async (data) => {
         if (data.success) {
             closeManualGWAModal();
+            let conversionMsg = data.converted_grade ? ` (Converted to ${data.converted_grade} GPA)` : '';
             await showCustomAlert({
                 title: `${domain} says`,
-                message: `GWA updated successfully to ${gwaValue}!`
+                message: `GWA updated successfully to ${gwaValue}${conversionMsg}!`
             });
             location.reload();
         } else {
