@@ -1343,6 +1343,7 @@
                                         <label class="input-label">Annual Income</label>
                                         <select name="{{ $parent }}_income" class="form-control">
                                             <option value="">Select Annual Income</option>
+                                            <option value="none">None</option>
                                             @foreach($incomeOptions as $option)
                                                 <option value="{{ $option }}">{{ $option }}</option>
                                             @endforeach
