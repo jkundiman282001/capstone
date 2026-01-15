@@ -1695,10 +1695,46 @@
 
                                                 <div class="mt-auto">
                                                     @if($typeKey === 'grades')
-                                                    <div class="mb-3">
-                                                        <label class="input-label text-xs">GWA (General Weighted Average) <span class="text-red-500">*</span></label>
-                                                        <input type="number" name="gpa" id="gpa-input-grades" step="0.01" min="75" max="100" class="form-control text-sm" placeholder="Enter GWA (75 - 100)">
-                                                        <p class="text-xs text-slate-500 mt-1">Scale: 75 - 100 (Philippine Grading System)</p>
+                                                    <!-- Grade Conversion Logic for New Application -->
+                                                    <div class="mb-4 space-y-3 p-3 bg-orange-50/50 rounded-lg border border-orange-100">
+                                                        <label class="block text-[10px] font-bold text-orange-800 uppercase tracking-wider">College Grade Scale</label>
+                                                        <div class="grid grid-cols-2 gap-2">
+                                                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
+                                                                <input type="radio" name="grade_scale" value="1.0" class="w-3 h-3 text-orange-600 focus:ring-orange-500 grade-scale-radio-new">
+                                                                <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">1.0 Scale</span>
+                                                            </label>
+                                                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
+                                                                <input type="radio" name="grade_scale" value="4.0" class="w-3 h-3 text-orange-600 focus:ring-orange-500 grade-scale-radio-new">
+                                                                <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">4.0 Scale</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="relative">
+                                                            <label class="input-label text-xs">Numerical Grade (GWA) <span class="text-red-500">*</span></label>
+                                                            <input 
+                                                                type="number" 
+                                                                name="gpa" 
+                                                                id="gpa-input-new" 
+                                                                step="0.01" 
+                                                                min="0" 
+                                                                max="100" 
+                                                                class="form-control text-sm" 
+                                                                placeholder="Enter GWA (e.g., 95.50)"
+                                                            >
+                                                        </div>
+
+                                                        <!-- Conversion Result Area -->
+                                                        <div id="conversion_result_new" class="hidden p-3 bg-white rounded-lg border border-orange-200 shadow-sm transition-all">
+                                                            <div class="flex items-center justify-between">
+                                                                <div>
+                                                                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Equivalent</p>
+                                                                    <p id="converted_value_new" class="text-xl font-black text-orange-600">--</p>
+                                                                </div>
+                                                                <div class="px-2 py-0.5 bg-orange-100 rounded-md">
+                                                                    <span id="scale_badge_new" class="text-[9px] font-bold text-orange-700 uppercase tracking-tighter">--</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     @endif
                                                     <div class="doc-upload-container">
@@ -1768,10 +1804,46 @@
 
                                                 <div class="mt-auto">
                                                     @if($typeKey === 'gwa_previous_sem')
-                                                    <div class="mb-3">
-                                                        <label class="input-label text-xs">GWA (General Weighted Average) <span class="text-red-500">*</span></label>
-                                                        <input type="number" name="gpa" id="gpa-input-renewal" step="0.01" min="75" max="100" class="form-control text-sm" placeholder="Enter GWA (75 - 100)">
-                                                        <p class="text-xs text-slate-500 mt-1">Scale: 75 - 100 (Philippine Grading System)</p>
+                                                    <!-- Grade Conversion Logic for Renewal Application -->
+                                                    <div class="mb-4 space-y-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                                                        <label class="block text-[10px] font-bold text-blue-800 uppercase tracking-wider">College Grade Scale</label>
+                                                        <div class="grid grid-cols-2 gap-2">
+                                                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-blue-400 transition-colors group has-[:checked]:border-blue-500">
+                                                                <input type="radio" name="grade_scale_renewal" value="1.0" class="w-3 h-3 text-blue-600 focus:ring-blue-500 grade-scale-radio-renewal">
+                                                                <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">1.0 Scale</span>
+                                                            </label>
+                                                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-blue-400 transition-colors group has-[:checked]:border-blue-500">
+                                                                <input type="radio" name="grade_scale_renewal" value="4.0" class="w-3 h-3 text-blue-600 focus:ring-blue-500 grade-scale-radio-renewal">
+                                                                <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">4.0 Scale</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="relative">
+                                                            <label class="input-label text-xs">Numerical Grade (GWA) <span class="text-red-500">*</span></label>
+                                                            <input 
+                                                                type="number" 
+                                                                name="gpa" 
+                                                                id="gpa-input-renewal" 
+                                                                step="0.01" 
+                                                                min="0" 
+                                                                max="100" 
+                                                                class="form-control text-sm" 
+                                                                placeholder="Enter GWA (e.g., 95.50)"
+                                                            >
+                                                        </div>
+
+                                                        <!-- Conversion Result Area -->
+                                                        <div id="conversion_result_renewal" class="hidden p-3 bg-white rounded-lg border border-blue-200 shadow-sm transition-all">
+                                                            <div class="flex items-center justify-between">
+                                                                <div>
+                                                                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Equivalent</p>
+                                                                    <p id="converted_value_renewal" class="text-xl font-black text-blue-600">--</p>
+                                                                </div>
+                                                                <div class="px-2 py-0.5 bg-blue-100 rounded-md">
+                                                                    <span id="scale_badge_renewal" class="text-[9px] font-bold text-blue-700 uppercase tracking-tighter">--</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     @endif
                                                     <div class="doc-upload-container">
@@ -1918,6 +1990,89 @@
                     }
                 });
             }
+        }
+
+        // Grade Conversion Logic
+        function updateConversion(type) {
+            const scaleRadios = document.querySelectorAll(`.grade-scale-radio-${type}`);
+            const gpaInput = document.getElementById(`gpa-input-${type}`);
+            const resultArea = document.getElementById(`conversion_result_${type}`);
+            const convertedValue = document.getElementById(`converted_value_${type}`);
+            const scaleBadge = document.getElementById(`scale_badge_${type}`);
+            
+            if (!gpaInput || !resultArea || !convertedValue || !scaleBadge) return;
+
+            let selectedScale = null;
+            scaleRadios.forEach(radio => {
+                if (radio.checked) selectedScale = radio.value;
+            });
+
+            const val = parseFloat(gpaInput.value);
+
+            if (!selectedScale || isNaN(val)) {
+                resultArea.classList.add('hidden');
+                return;
+            }
+
+            // Validation and Conversion
+            let result = '';
+            let isValid = true;
+
+            if (selectedScale === '1.0') {
+                if (val < 1.0 || val > 5.0) {
+                    result = 'Invalid (1.0 - 5.0)';
+                    isValid = false;
+                } else {
+                    // 1.0 Scale to Percentage (Philippine Standard)
+                    if (val <= 1.0) result = '99-100%';
+                    else if (val <= 1.25) result = '96-98%';
+                    else if (val <= 1.5) result = '93-95%';
+                    else if (val <= 1.75) result = '90-92%';
+                    else if (val <= 2.0) result = '87-89%';
+                    else if (val <= 2.25) result = '84-86%';
+                    else if (val <= 2.5) result = '81-83%';
+                    else if (val <= 2.75) result = '78-80%';
+                    else if (val <= 3.0) result = '75-77%';
+                    else result = 'Below 75% (Failed)';
+                }
+                scaleBadge.textContent = '1.0 SCALE';
+            } else if (selectedScale === '4.0') {
+                if (val < 0 || val > 4.0) {
+                    result = 'Invalid (0.0 - 4.0)';
+                    isValid = false;
+                } else {
+                    // 4.0 Scale to Percentage
+                    if (val >= 3.8) result = '97-100%';
+                    else if (val >= 3.4) result = '93-96%';
+                    else if (val >= 3.0) result = '89-92%';
+                    else if (val >= 2.6) result = '85-88%';
+                    else if (val >= 2.2) result = '81-84%';
+                    else if (val >= 1.8) result = '77-80%';
+                    else if (val >= 1.5) result = '75-76%';
+                    else result = 'Below 75% (Failed)';
+                }
+                scaleBadge.textContent = '4.0 SCALE';
+            }
+
+            convertedValue.textContent = result;
+            convertedValue.className = `text-xl font-black ${isValid ? 'text-orange-600' : 'text-red-500'}`;
+            resultArea.classList.remove('hidden');
+        }
+
+        // Attach listeners for New Application
+        const newRadios = document.querySelectorAll('.grade-scale-radio-new');
+        const newInput = document.getElementById('gpa-input-new');
+        if (newInput) {
+            newRadios.forEach(r => r.addEventListener('change', () => updateConversion('new')));
+            newInput.addEventListener('input', () => updateConversion('new'));
+        }
+
+        // Attach listeners for Renewal Application
+        const renewalRadios = document.querySelectorAll('.grade-scale-radio-renewal');
+        const renewalInput = document.getElementById('gpa-input-renewal');
+        if (renewalInput) {
+            renewalRadios.forEach(r => r.addEventListener('change', () => updateConversion('renewal')));
+            renewalInput.addEventListener('input', () => updateConversion('renewal'));
         }
     });
     

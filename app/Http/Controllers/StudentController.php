@@ -157,7 +157,9 @@ class StudentController extends Controller
             'mother_address' => 'nullable|string|max:255',
             'mother_education' => 'nullable|string|max:255',
             'mother_income' => 'nullable|string|max:255',
-            'gpa' => 'nullable|numeric|min:75|max:100',
+            'gpa' => 'nullable|numeric|min:0|max:100',
+            'grade_scale' => 'nullable|string|in:1.0,4.0',
+            'grade_scale_renewal' => 'nullable|string|in:1.0,4.0',
         ]);
 
         try {
@@ -211,6 +213,13 @@ class StudentController extends Controller
                 if ($basicInfo) {
                     $basicInfo->update(['gpa' => $request->gpa]);
                 }
+                
+                // Also update user's profile with latest GWA and scale
+                $userUpdate = ['gpa' => $request->gpa];
+                if ($request->has('grade_scale_renewal')) {
+                    $userUpdate['grade_scale'] = $request->grade_scale_renewal;
+                }
+                $user->update($userUpdate);
             }
 
             // Notify all staff about renewal submission
@@ -346,6 +355,15 @@ class StudentController extends Controller
             'assistance_for' => $assistanceFor,
             'gpa' => $request->gpa,
         ]);
+
+        // Also update user's profile with latest GWA and scale
+        if ($request->has('gpa') && $request->gpa) {
+            $userUpdate = ['gpa' => $request->gpa];
+            if ($request->has('grade_scale')) {
+                $userUpdate['grade_scale'] = $request->grade_scale;
+            }
+            $user->update($userUpdate);
+        }
 
         // 2. Save Education (each level as a separate row, linked to BasicInfo)
         $educationLevels = [
