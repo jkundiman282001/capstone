@@ -692,9 +692,21 @@ class StaffDashboardController extends Controller
             $selectedEthno = $request->get('ethno');
             $selectedStatus = $request->get('status');
             $selectedType = $request->get('type');
+            $search = $request->get('search');
 
-            $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
-                ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus, $selectedType) {
+            $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents']);
+
+            if ($search) {
+                $applicantsQuery->where(function($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('middle_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('id', 'like', "%{$search}%");
+                });
+            }
+
+            $applicantsQuery->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay, $selectedStatus, $selectedType) {
                     if ($selectedProvince) {
                         $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
                             $q->whereHas('address', function ($aq) use ($selectedProvince) {

@@ -68,7 +68,18 @@
             </div>
             
             <form method="GET" action="{{ route('staff.applicants.list') }}">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Search</label>
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, email or ID..." class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 pl-10 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Status</label>
                         <select name="status" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
