@@ -595,6 +595,17 @@
 
             <!-- Course -->
             <div>
+              <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Are you a...</label>
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <button type="button" onclick="setApplicantType('shs')" id="btn-shs" class="p-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-orange-500 hover:text-orange-600 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+                  SHS Graduate
+                </button>
+                <button type="button" onclick="setApplicantType('college')" id="btn-college" class="p-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-orange-500 hover:text-orange-600 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+                  Ongoing College
+                </button>
+              </div>
+              <input type="hidden" name="applicant_type" id="applicant_type" required>
+
               <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Course/Preferred Course</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -876,6 +887,26 @@
   </div>
 
   <script>
+    function setApplicantType(type) {
+      // Update hidden input
+      document.getElementById('applicant_type').value = type;
+      
+      // Reset button styles
+      const shsBtn = document.getElementById('btn-shs');
+      const collegeBtn = document.getElementById('btn-college');
+      const baseClass = "p-3 border-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20";
+      const inactiveClass = "border-slate-200 text-slate-600 hover:border-orange-500 hover:text-orange-600";
+      const activeClass = "border-orange-500 text-orange-600 bg-orange-50";
+
+      if (type === 'shs') {
+        shsBtn.className = `${baseClass} ${activeClass}`;
+        collegeBtn.className = `${baseClass} ${inactiveClass}`;
+      } else {
+        shsBtn.className = `${baseClass} ${inactiveClass}`;
+        collegeBtn.className = `${baseClass} ${activeClass}`;
+      }
+    }
+
     function toggleForm() {
       const loginForm = document.getElementById('loginForm');
       const signupForm = document.getElementById('signupForm');
