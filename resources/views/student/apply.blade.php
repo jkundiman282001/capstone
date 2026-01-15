@@ -1519,9 +1519,22 @@
     $courseInPredefined = in_array($userCourse, array_diff($courseOptions, ['Other']));
 @endphp
 @foreach(['school1' => 'First Choice', 'school2' => 'Second Choice'] as $key => $label)
-    <div class="p-5 border border-slate-200 rounded-lg bg-slate-50/50 mb-6">
-        <h4 class="font-semibold text-slate-800 mb-4">{{ $label }}</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="p-5 border border-slate-200 rounded-lg bg-slate-50/50 mb-6" id="school-section-{{ $key }}">
+        <div class="flex justify-between items-center mb-4">
+            <h4 class="font-semibold text-slate-800">{{ $label }}</h4>
+            @if($key !== 'school1')
+            <div class="flex items-center">
+                <label class="inline-flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" 
+                           class="form-checkbox w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 transition-colors same-as-first-choice-checkbox"
+                           data-target-prefix="{{ $key }}"
+                           id="same_as_first_choice_{{ $key }}">
+                    <span class="text-sm font-medium text-slate-700 group-hover:text-orange-600 transition-colors">Same as First Choice</span>
+                </label>
+            </div>
+            @endif
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="school-fields-{{ $key }}">
             <div>
                 <label class="input-label">School Name</label>
                 <input type="text" name="{{ $key }}_name" class="form-control" value="{{ old($key.'_name') }}" required>
@@ -2736,6 +2749,96 @@
             }
         });
     });
+
+    // Setup "Same as First Choice" checkboxes
+    document.querySelectorAll('.same-as-first-choice-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const targetPrefix = this.dataset.targetPrefix;
+            const schoolFields = document.getElementById(`school-fields-${targetPrefix}`);
+            
+            if (this.checked) {
+                // Copy first choice values
+                copyFirstChoiceTo(targetPrefix);
+                
+                // Make target fields read-only/non-interactive but still enabled so they are submitted
+                if (schoolFields) {
+                    schoolFields.querySelectorAll('select, input:not([readonly])').forEach(field => {
+                        field.style.pointerEvents = 'none';
+                        field.style.backgroundColor = '#f8fafc'; // bg-slate-50
+                        field.tabIndex = -1;
+                        field.setAttribute('aria-disabled', 'true');
+                    });
+                }
+            } else {
+                // Enable target fields
+                if (schoolFields) {
+                    schoolFields.querySelectorAll('select, input:not([readonly])').forEach(field => {
+                        field.style.pointerEvents = 'auto';
+                        field.style.backgroundColor = '';
+                        field.tabIndex = 0;
+                        field.removeAttribute('aria-disabled');
+                    });
+                }
+            }
+        });
+
+        // Also copy when first choice changes (if checkbox is checked)
+        const targetPrefix = checkbox.dataset.targetPrefix;
+        const sourceFields = [
+            'school1_name', 'school1_address', 'school1_course1', 
+            'school1_course1_other', 'school1_course_alt', 
+            'school1_course_alt_other', 'school1_type', 'school1_years'
+        ];
+        
+        sourceFields.forEach(fieldName => {
+            const sourceField = document.getElementsByName(fieldName)[0];
+            if (sourceField) {
+                // Listen for change events
+                sourceField.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        copyFirstChoiceTo(targetPrefix);
+                    }
+                });
+                // Also listen for input events for text fields for real-time updates
+                if (sourceField.tagName === 'INPUT') {
+                     sourceField.addEventListener('input', function() {
+                        if (checkbox.checked) {
+                            copyFirstChoiceTo(targetPrefix);
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    function copyFirstChoiceTo(targetPrefix) {
+        // List of fields to copy
+        const mappings = [
+            { source: 'school1_name', target: `${targetPrefix}_name` },
+            { source: 'school1_address', target: `${targetPrefix}_address` },
+            { source: 'school1_course1', target: `${targetPrefix}_course1` },
+            { source: 'school1_course1_other', target: `${targetPrefix}_course1_other` },
+            { source: 'school1_course_alt', target: `${targetPrefix}_course_alt` },
+            { source: 'school1_course_alt_other', target: `${targetPrefix}_course_alt_other` },
+            { source: 'school1_type', target: `${targetPrefix}_type` },
+            { source: 'school1_years', target: `${targetPrefix}_years` }
+        ];
+
+        mappings.forEach(map => {
+            const sourceEl = document.getElementsByName(map.source)[0];
+            const targetEl = document.getElementsByName(map.target)[0];
+
+            if (sourceEl && targetEl) {
+                targetEl.value = sourceEl.value;
+                
+                // If it's a select element, we trigger change event
+                // specifically for course selectors to toggle the 'Other' field
+                if (targetEl.tagName === 'SELECT') {
+                    targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
+    }
 
     // Setup occupation "Other" field toggle
     document.querySelectorAll('.occupation-select').forEach(select => {
