@@ -680,6 +680,15 @@
                                 <div class="bg-white rounded-xl p-3 border border-purple-100">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">GWA</p>
                                     <p class="text-sm font-bold text-slate-900">{{ $edu->grade_ave ?? 'N/A' }}</p>
+                                    @if($user->grade_scale && $user->gpa && $edu->category === 'College')
+                                        <div class="mt-1 flex flex-col gap-1">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[10px] font-bold text-purple-600 px-1.5 py-0.5 bg-purple-50 rounded border border-purple-100">{{ $user->grade_scale }} Scale</span>
+                                                <span class="text-[10px] font-black text-orange-600">{{ $user->converted_grade }}</span>
+                                            </div>
+                                            <p class="text-[9px] text-slate-400 italic">From registration GWA: {{ $user->gpa }}</p>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="bg-white rounded-xl p-3 border border-purple-100">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Rank</p>

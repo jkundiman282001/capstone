@@ -783,6 +783,37 @@
               </div>
             </div>
 
+            <!-- Numerical Grade Input (Conditional) -->
+            <div id="numerical_grade_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
+              <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">Numerical Grade (GWA)</label>
+              <div class="relative">
+                <input 
+                  type="number" 
+                  name="numerical_grade" 
+                  id="register_numerical_grade" 
+                  min="0" 
+                  max="100"
+                  step="0.01"
+                  placeholder="Enter GWA (e.g., 95.50)" 
+                  class="form-input w-full px-4 py-3 rounded-xl focus:ring-4 focus:ring-orange-500/20 outline-none"
+                />
+                <p class="text-[10px] text-orange-600 font-medium mt-1">Input your numerical grade to see its scale equivalent.</p>
+              </div>
+              
+              <!-- Conversion Result Area -->
+              <div id="conversion_result" class="hidden p-4 bg-white rounded-xl border border-orange-200 shadow-sm transition-all animate-pulse-once">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Scale Equivalent</p>
+                    <p id="converted_value" class="text-2xl font-black text-orange-600">--</p>
+                  </div>
+                  <div class="px-3 py-1 bg-orange-100 rounded-lg">
+                    <span id="scale_badge" class="text-[10px] font-bold text-orange-700 uppercase tracking-tighter">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- College Year Level (Conditional) -->
             <div id="college_year_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
               <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">College Year Level</label>
@@ -963,26 +994,92 @@
       const collegeYearSection = document.getElementById('college_year_section');
       const collegeYearInput = document.getElementById('register_college_year');
       const gradeScaleRadios = document.querySelectorAll('input[name="grade_scale"]');
+      const numericalGradeSection = document.getElementById('numerical_grade_section');
+      const numericalGradeInput = document.getElementById('register_numerical_grade');
+      const conversionResult = document.getElementById('conversion_result');
+      const convertedValueDisplay = document.getElementById('converted_value');
+      const scaleBadge = document.getElementById('scale_badge');
+
+      function updateConversion() {
+          const grade = parseFloat(numericalGradeInput.value);
+          const selectedScale = document.querySelector('input[name="grade_scale"]:checked');
+          
+          if (!selectedScale || isNaN(grade)) {
+              conversionResult.classList.add('hidden');
+              return;
+          }
+
+          const scale = selectedScale.value;
+          
+          // Handle edge cases (above 100 or below 0)
+          if (grade > 100 || grade < 0) {
+              convertedValueDisplay.innerText = "Invalid";
+              convertedValueDisplay.classList.replace('text-orange-600', 'text-red-500');
+              scaleBadge.innerText = "OUT OF RANGE";
+              conversionResult.classList.remove('hidden');
+              return;
+          }
+          
+          convertedValueDisplay.classList.replace('text-red-500', 'text-orange-600');
+          let result = "--";
+          
+          if (scale === "1.0") {
+              scaleBadge.innerText = "1.0 Scale";
+              if (grade >= 97) result = "1.00";
+              else if (grade >= 94) result = "1.25";
+              else if (grade >= 91) result = "1.50";
+              else if (grade >= 88) result = "1.75";
+              else if (grade >= 85) result = "2.00";
+              else if (grade >= 82) result = "2.25";
+              else if (grade >= 79) result = "2.50";
+              else if (grade >= 76) result = "2.75";
+              else if (grade >= 75) result = "3.00";
+              else result = "5.00";
+          } else if (scale === "4.0") {
+              scaleBadge.innerText = "4.0 Scale";
+              if (grade >= 96) result = "4.00";
+              else if (grade >= 90) result = "3.50";
+              else if (grade >= 85) result = "3.00";
+              else if (grade >= 80) result = "2.50";
+              else if (grade >= 75) result = "2.00";
+              else result = "1.00";
+          }
+
+          convertedValueDisplay.innerText = result;
+          conversionResult.classList.remove('hidden');
+      }
 
       eduRadios.forEach(radio => {
         radio.addEventListener('change', function() {
           if (this.value === 'Ongoing College' && this.checked) {
             gradeScaleSection.classList.remove('hidden');
             collegeYearSection.classList.remove('hidden');
+            numericalGradeSection.classList.remove('hidden');
             gradeScaleRadios.forEach(r => r.required = true);
             collegeYearInput.required = true;
+            numericalGradeInput.required = true;
           } else {
             gradeScaleSection.classList.add('hidden');
             collegeYearSection.classList.add('hidden');
+            numericalGradeSection.classList.add('hidden');
             gradeScaleRadios.forEach(r => {
               r.required = false;
               r.checked = false;
             });
             collegeYearInput.required = false;
             collegeYearInput.value = '';
+            numericalGradeInput.required = false;
+            numericalGradeInput.value = '';
+            conversionResult.classList.add('hidden');
           }
         });
       });
+
+      gradeScaleRadios.forEach(radio => {
+          radio.addEventListener('change', updateConversion);
+      });
+
+      numericalGradeInput.addEventListener('input', updateConversion);
 
       if (courseSelect) {
         courseSelect.addEventListener('change', function() {

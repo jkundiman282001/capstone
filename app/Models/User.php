@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'educational_status',
         'college_year',
         'grade_scale',
+        'gpa',
         'role',
     ];
 
@@ -84,6 +85,40 @@ class User extends Authenticatable implements MustVerifyEmail
     public function transactionHistories(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\TransactionHistory::class, 'user_id');
+    }
+
+    /**
+     * Get the converted grade based on the selected scale.
+     */
+    public function getConvertedGradeAttribute()
+    {
+        if (!$this->gpa || !$this->grade_scale) {
+            return null;
+        }
+
+        $grade = (float) $this->gpa;
+        
+        if ($this->grade_scale === "1.0") {
+            if ($grade >= 97) return "1.00";
+            if ($grade >= 94) return "1.25";
+            if ($grade >= 91) return "1.50";
+            if ($grade >= 88) return "1.75";
+            if ($grade >= 85) return "2.00";
+            if ($grade >= 82) return "2.25";
+            if ($grade >= 79) return "2.50";
+            if ($grade >= 76) return "2.75";
+            if ($grade >= 75) return "3.00";
+            return "5.00";
+        } elseif ($this->grade_scale === "4.0") {
+            if ($grade >= 96) return "4.00";
+            if ($grade >= 90) return "3.50";
+            if ($grade >= 85) return "3.00";
+            if ($grade >= 80) return "2.50";
+            if ($grade >= 75) return "2.00";
+            return "1.00";
+        }
+
+        return null;
     }
 
     /**
