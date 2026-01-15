@@ -158,8 +158,8 @@ class StudentController extends Controller
             'mother_education' => 'nullable|string|max:255',
             'mother_income' => 'nullable|string|max:255',
             'gpa' => 'nullable|numeric|min:0|max:100',
-            'grade_scale' => 'nullable|string|in:1.0,4.0',
-            'grade_scale_renewal' => 'nullable|string|in:1.0,4.0',
+            'grade_scale' => 'nullable|string|in:1.0,4.0,75-100',
+            'grade_scale_renewal' => 'nullable|string|in:1.0,4.0,75-100',
         ]);
 
         try {

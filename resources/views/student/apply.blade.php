@@ -1698,7 +1698,7 @@
                                                     <!-- Grade Conversion Logic for New Application -->
                                                     <div class="mb-4 space-y-3 p-3 bg-orange-50/50 rounded-lg border border-orange-100">
                                                         <label class="block text-[10px] font-bold text-orange-800 uppercase tracking-wider">College Grade Scale</label>
-                                                        <div class="grid grid-cols-2 gap-2">
+                                                        <div class="grid grid-cols-3 gap-2">
                                                             <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
                                                                 <input type="radio" name="grade_scale" value="1.0" class="w-3 h-3 text-orange-600 focus:ring-orange-500 grade-scale-radio-new">
                                                                 <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">1.0 Scale</span>
@@ -1706,6 +1706,10 @@
                                                             <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
                                                                 <input type="radio" name="grade_scale" value="4.0" class="w-3 h-3 text-orange-600 focus:ring-orange-500 grade-scale-radio-new">
                                                                 <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">4.0 Scale</span>
+                                                            </label>
+                                                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-orange-400 transition-colors group has-[:checked]:border-orange-500">
+                                                                <input type="radio" name="grade_scale" value="75-100" class="w-3 h-3 text-orange-600 focus:ring-orange-500 grade-scale-radio-new">
+                                                                <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">75-100 Scale</span>
                                                             </label>
                                                         </div>
 
@@ -1807,7 +1811,7 @@
                                                     <!-- Grade Conversion Logic for Renewal Application -->
                                                     <div class="mb-4 space-y-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100">
                                                         <label class="block text-[10px] font-bold text-blue-800 uppercase tracking-wider">College Grade Scale</label>
-                                                        <div class="grid grid-cols-2 gap-2">
+                                                        <div class="grid grid-cols-3 gap-2">
                                                             <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-blue-400 transition-colors group has-[:checked]:border-blue-500">
                                                                 <input type="radio" name="grade_scale_renewal" value="1.0" class="w-3 h-3 text-blue-600 focus:ring-blue-500 grade-scale-radio-renewal">
                                                                 <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">1.0 Scale</span>
@@ -1815,6 +1819,10 @@
                                                             <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-blue-400 transition-colors group has-[:checked]:border-blue-500">
                                                                 <input type="radio" name="grade_scale_renewal" value="4.0" class="w-3 h-3 text-blue-600 focus:ring-blue-500 grade-scale-radio-renewal">
                                                                 <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">4.0 Scale</span>
+                                                            </label>
+                                                            <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-blue-400 transition-colors group has-[:checked]:border-blue-500">
+                                                                <input type="radio" name="grade_scale_renewal" value="75-100" class="w-3 h-3 text-blue-600 focus:ring-blue-500 grade-scale-radio-renewal">
+                                                                <span class="text-[10px] text-slate-700 group-has-[:checked]:font-semibold leading-tight text-center">75-100 Scale</span>
                                                             </label>
                                                         </div>
 
@@ -2052,6 +2060,24 @@
                     else result = 'Below 75% (Failed)';
                 }
                 scaleBadge.textContent = '4.0 SCALE';
+            } else if (selectedScale === '75-100') {
+                if (val < 0 || val > 100) {
+                    result = 'Invalid (0 - 100)';
+                    isValid = false;
+                } else {
+                    // Percentage to 1.0 Scale Equivalent
+                    if (val >= 99) result = '1.0 Equivalent';
+                    else if (val >= 96) result = '1.25 Equivalent';
+                    else if (val >= 93) result = '1.5 Equivalent';
+                    else if (val >= 90) result = '1.75 Equivalent';
+                    else if (val >= 87) result = '2.0 Equivalent';
+                    else if (val >= 84) result = '2.25 Equivalent';
+                    else if (val >= 81) result = '2.5 Equivalent';
+                    else if (val >= 78) result = '2.75 Equivalent';
+                    else if (val >= 75) result = '3.0 Equivalent';
+                    else result = '5.0 (Failed)';
+                }
+                scaleBadge.textContent = '75-100 SCALE';
             }
 
             convertedValue.textContent = result;

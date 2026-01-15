@@ -99,23 +99,39 @@ class User extends Authenticatable implements MustVerifyEmail
         $grade = (float) $this->gpa;
         
         if ($this->grade_scale === "1.0") {
-            if ($grade >= 97) return "1.00";
-            if ($grade >= 94) return "1.25";
-            if ($grade >= 91) return "1.50";
-            if ($grade >= 88) return "1.75";
-            if ($grade >= 85) return "2.00";
-            if ($grade >= 82) return "2.25";
-            if ($grade >= 79) return "2.50";
-            if ($grade >= 76) return "2.75";
-            if ($grade >= 75) return "3.00";
-            return "5.00";
+            // Convert 1.0 scale to percentage range
+            if ($grade <= 1.0) return "99-100%";
+            if ($grade <= 1.25) return "96-98%";
+            if ($grade <= 1.5) return "93-95%";
+            if ($grade <= 1.75) return "90-92%";
+            if ($grade <= 2.0) return "87-89%";
+            if ($grade <= 2.25) return "84-86%";
+            if ($grade <= 2.5) return "81-83%";
+            if ($grade <= 2.75) return "78-80%";
+            if ($grade <= 3.0) return "75-77%";
+            return "Below 75%";
         } elseif ($this->grade_scale === "4.0") {
-            if ($grade >= 96) return "4.00";
-            if ($grade >= 90) return "3.50";
-            if ($grade >= 85) return "3.00";
-            if ($grade >= 80) return "2.50";
-            if ($grade >= 75) return "2.00";
-            return "1.00";
+            // Convert 4.0 scale to percentage range
+            if ($grade >= 3.8) return "97-100%";
+            if ($grade >= 3.4) return "93-96%";
+            if ($grade >= 3.0) return "89-92%";
+            if ($grade >= 2.6) return "85-88%";
+            if ($grade >= 2.2) return "81-84%";
+            if ($grade >= 1.8) return "77-80%";
+            if ($grade >= 1.5) return "75-76%";
+            return "Below 75%";
+        } elseif ($this->grade_scale === "75-100") {
+            // Convert percentage to 1.0 scale equivalent
+            if ($grade >= 99) return "1.0 Equiv.";
+            if ($grade >= 96) return "1.25 Equiv.";
+            if ($grade >= 93) return "1.5 Equiv.";
+            if ($grade >= 90) return "1.75 Equiv.";
+            if ($grade >= 87) return "2.0 Equiv.";
+            if ($grade >= 84) return "2.25 Equiv.";
+            if ($grade >= 81) return "2.5 Equiv.";
+            if ($grade >= 78) return "2.75 Equiv.";
+            if ($grade >= 75) return "3.0 Equiv.";
+            return "5.0 Equiv.";
         }
 
         return null;
