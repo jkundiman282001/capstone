@@ -218,68 +218,77 @@
                         </div>
                     @elseif($isValidated)
                         <div class="flex flex-wrap justify-center lg:justify-end gap-3">
-                            <button onclick="updateApplicationStatus('pending', event)" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                Set to Pending
-                            </button>
-
-                            @php
-                                $isGrantee = ($basicInfo->grant_status === 'grantee' || $basicInfo->grant_status === 'waiting' || $basicInfo->type_assist === 'Pamana');
-                                $actionWord = $isGrantee ? 'Move to' : 'Add to';
-                            @endphp
-
-                            @if($basicInfo->type_assist !== 'Pamana')
-                                @if($basicInfo->grant_status !== 'grantee')
-                                    <button onclick="addToGrantees(event)" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        {{ $actionWord }} Grantees
-                                    </button>
-                                @else
-                                    <div class="px-5 py-2.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-sm text-center border border-emerald-200 flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        In Grantees
-                                    </div>
-                                @endif
-
-                                @if($basicInfo->grant_status !== 'waiting')
-                                    <button onclick="addToWaiting(event)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        {{ $actionWord }} Waiting
-                                    </button>
-                                @else
-                                    <div class="px-5 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm text-center border border-blue-200 flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        In Waiting List
-                                    </div>
-                                @endif
-
-                                <button onclick="moveToPamana(event)" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                    </svg>
-                                    {{ $actionWord }} Pamana
-                                </button>
-                            @else
-                                <div class="px-5 py-2.5 bg-purple-50 text-purple-700 font-bold rounded-xl text-sm text-center border border-purple-200 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    In Pamana
-                                </div>
-                            @endif
-
                             @php
                                 $isConfirmedGrantee = ($basicInfo->grant_status === 'grantee' || $basicInfo->type_assist === 'Pamana');
                             @endphp
 
-                            <button onclick="showApplicationRejectionModal({{ $isConfirmedGrantee ? 'true' : 'false' }})" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                {{ $isConfirmedGrantee ? 'Terminate' : 'Reject Application' }}
-                            </button>
+                            @if($isConfirmedGrantee)
+                                <button onclick="showApplicationRejectionModal(true)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Terminate Applicant
+                                </button>
+                            @else
+                                <button onclick="updateApplicationStatus('pending', event)" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    Set to Pending
+                                </button>
+
+                                @php
+                                    $isGrantee = ($basicInfo->grant_status === 'grantee' || $basicInfo->grant_status === 'waiting' || $basicInfo->type_assist === 'Pamana');
+                                    $actionWord = $isGrantee ? 'Move to' : 'Add to';
+                                @endphp
+
+                                @if($basicInfo->type_assist !== 'Pamana')
+                                    @if($basicInfo->grant_status !== 'grantee')
+                                        <button onclick="addToGrantees(event)" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {{ $actionWord }} Grantees
+                                        </button>
+                                    @else
+                                        <div class="px-5 py-2.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-sm text-center border border-emerald-200 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            In Grantees
+                                        </div>
+                                    @endif
+
+                                    @if($basicInfo->grant_status !== 'waiting')
+                                        <button onclick="addToWaiting(event)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {{ $actionWord }} Waiting
+                                        </button>
+                                    @else
+                                        <div class="px-5 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm text-center border border-blue-200 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            In Waiting List
+                                        </div>
+                                    @endif
+
+                                    <button onclick="moveToPamana(event)" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                        {{ $actionWord }} Pamana
+                                    </button>
+                                @else
+                                    <div class="px-5 py-2.5 bg-purple-50 text-purple-700 font-bold rounded-xl text-sm text-center border border-purple-200 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        In Pamana
+                                    </div>
+                                @endif
+
+                                <button onclick="showApplicationRejectionModal(false)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reject Application
+                                </button>
+                            @endif
                         </div>
                     @else
                         <div class="flex flex-wrap justify-end gap-3">
