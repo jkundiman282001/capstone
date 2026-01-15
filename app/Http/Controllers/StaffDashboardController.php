@@ -1544,9 +1544,17 @@ class StaffDashboardController extends Controller
             ], 400);
         }
 
-        // Update type_assist to Pamana
+        // Update type_assist to Pamana and grant_status to pamana
         $basicInfo->update([
             'type_assist' => 'Pamana',
+            'grant_status' => 'pamana',
+        ]);
+
+        // Log the status change
+        Log::info('Applicant moved to Pamana', [
+            'user_id' => $user->id,
+            'admin_id' => auth()->guard('staff')->id(),
+            'timestamp' => now()
         ]);
 
         // Notify the student
