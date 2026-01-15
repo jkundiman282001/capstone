@@ -166,6 +166,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::delete('/staff/notifications/{id}', [StaffDashboardController::class, 'deleteNotification'])->name('staff.notifications.delete');
     Route::post('/staff/notifications/mark-all-read', [StaffDashboardController::class, 'markAllNotificationsRead'])->name('staff.notifications.markAllRead');
     Route::get('/staff/applicants/list', [StaffDashboardController::class, 'applicantsList'])->name('staff.applicants.list');
+    Route::get('/staff/applicants/search-suggestions', [StaffDashboardController::class, 'searchSuggestions'])->name('staff.applicants.search-suggestions');
     Route::get('/staff/applications/{user}', [StaffDashboardController::class, 'viewApplication'])->name('staff.applications.view');
     Route::post('/staff/applications/{user}/update-status', [StaffDashboardController::class, 'updateApplicationStatus'])->name('staff.applications.update-status');
     Route::delete('/staff/applications/{user}', [StaffDashboardController::class, 'destroyApplicant'])->name('staff.applications.destroy');

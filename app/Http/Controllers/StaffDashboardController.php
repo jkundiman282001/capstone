@@ -681,6 +681,51 @@ class StaffDashboardController extends Controller
         ));
     }
 
+    public function searchSuggestions(Request $request)
+    {
+        try {
+            /** @var Staff $user */
+            $user = Auth::guard('staff')->user();
+            $query = trim($request->get('query'));
+            
+            // Only proceed if query is at least 2 characters
+            if (strlen($query) < 2) {
+                return response()->json([]);
+            }
+
+            // Log search activity
+            Log::info('Applicant search suggestion request', [
+                'staff_id' => $user->id,
+                'query' => $query
+            ]);
+
+            $suggestions = User::select('id', 'first_name', 'middle_name', 'last_name', 'profile_pic_url', 'email')
+                ->whereHas('basicInfo') // Ensure they are applicants
+                ->where(function($q) use ($query) {
+                    $q->where('first_name', 'like', "%{$query}%")
+                      ->orWhere('last_name', 'like', "%{$query}%")
+                      ->orWhere('middle_name', 'like', "%{$query}%");
+                })
+                ->limit(5) // Limit results for performance
+                ->get()
+                ->map(function($user) {
+                     $fullName = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
+                     return [
+                         'id' => $user->id,
+                         'name' => $fullName,
+                         'initials' => $user->initials,
+                         'profile_pic_url' => $user->profile_pic_url,
+                         'email' => $user->email, // Included for context in UI, though search is by name
+                     ];
+                });
+
+            return response()->json($suggestions);
+        } catch (Throwable $e) {
+            Log::error('Search suggestion error: ' . $e->getMessage());
+            return response()->json(['error' => 'Search failed'], 500);
+        }
+    }
+
     public function applicantsList(Request $request)
     {
         try {
@@ -697,12 +742,16 @@ class StaffDashboardController extends Controller
             $applicantsQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents']);
 
             if ($search) {
+                // Log detailed search activity
+                Log::info('Applicant search performed', [
+                    'staff_id' => $user->id, 
+                    'query' => $search
+                ]);
+                
                 $applicantsQuery->where(function($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
                       ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('middle_name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('id', 'like', "%{$search}%");
+                      ->orWhere('middle_name', 'like', "%{$search}%");
                 });
             }
 

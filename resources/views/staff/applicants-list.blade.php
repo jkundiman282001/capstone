@@ -69,14 +69,25 @@
             
             <form method="GET" action="{{ route('staff.applicants.list') }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Search</label>
+                    <div class="space-y-1.5 relative">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Search Applicant</label>
                         <div class="relative">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, email or ID..." class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 pl-10 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
+                            <input type="text" 
+                                   id="applicant-search"
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Search by name..." 
+                                   autocomplete="off"
+                                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 pl-10 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
+                            </div>
+                            
+                            <!-- Search Suggestions Dropdown -->
+                            <div id="search-suggestions" class="absolute z-50 w-full bg-white rounded-xl shadow-xl mt-2 hidden border border-slate-100 max-h-80 overflow-y-auto overflow-x-hidden transform transition-all duration-200 origin-top">
+                                <!-- Suggestions will be injected here via JS -->
                             </div>
                         </div>
                     </div>
@@ -915,6 +926,129 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        const searchInput = document.getElementById('applicant-search');
+        const suggestionsBox = document.getElementById('search-suggestions');
+        let currentFocus = -1;
+
+        if (searchInput) {
+            // Event listener for input
+            searchInput.addEventListener('input', debounce(function(e) {
+                const query = this.value;
+                
+                if (query.length < 2) {
+                    suggestionsBox.innerHTML = '';
+                    suggestionsBox.classList.add('hidden');
+                    return;
+                }
+
+                // Fetch suggestions
+                fetch(`{{ route('staff.applicants.search-suggestions') }}?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsBox.innerHTML = '';
+                        currentFocus = -1;
+
+                        if (data.length > 0) {
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center gap-3 transition-colors';
+                                
+                                // Profile Picture or Initials
+                                let profileHtml = '';
+                                if (item.profile_pic_url) {
+                                    profileHtml = `<img src="${item.profile_pic_url}" class="w-8 h-8 rounded-full object-cover border border-slate-200">`;
+                                } else {
+                                    profileHtml = `<div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold border border-orange-200">${item.initials}</div>`;
+                                }
+
+                                div.innerHTML = `
+                                    ${profileHtml}
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-bold text-slate-800 truncate highlight-text">${highlightMatch(item.name, query)}</p>
+                                        <p class="text-xs text-slate-500 truncate">${item.email || 'No email'}</p>
+                                    </div>
+                                `;
+                                
+                                div.addEventListener('click', function() {
+                                    searchInput.value = item.name; // Set full name
+                                    suggestionsBox.classList.add('hidden');
+                                    searchInput.closest('form').submit(); // Submit form
+                                });
+                                
+                                suggestionsBox.appendChild(div);
+                            });
+                            suggestionsBox.classList.remove('hidden');
+                        } else {
+                            // No results found
+                            const div = document.createElement('div');
+                            div.className = 'p-4 text-center text-sm text-slate-500 italic';
+                            div.textContent = 'No results found';
+                            suggestionsBox.appendChild(div);
+                            suggestionsBox.classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                    });
+            }, 300)); // 300ms debounce
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target !== searchInput && e.target !== suggestionsBox) {
+                    suggestionsBox.classList.add('hidden');
+                }
+            });
+
+            // Keyboard navigation
+            searchInput.addEventListener('keydown', function(e) {
+                const items = suggestionsBox.querySelectorAll('div.cursor-pointer');
+                if (items.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    currentFocus++;
+                    addActive(items);
+                } else if (e.key === 'ArrowUp') {
+                    currentFocus--;
+                    addActive(items);
+                } else if (e.key === 'Enter') {
+                    if (currentFocus > -1) {
+                        e.preventDefault();
+                        if (items[currentFocus]) items[currentFocus].click();
+                    }
+                    // If no suggestion selected, submit form normally
+                }
+            });
+        }
+
+        function addActive(items) {
+            if (!items) return;
+            removeActive(items);
+            if (currentFocus >= items.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = items.length - 1;
+            items[currentFocus].classList.add('bg-slate-100');
+            items[currentFocus].scrollIntoView({ block: 'nearest' });
+        }
+
+        function removeActive(items) {
+            for (let i = 0; i < items.length; i++) {
+                items[i].classList.remove('bg-slate-100');
+            }
+        }
+
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="text-orange-600 bg-orange-50 font-black">$1</span>');
+        }
+
         const provinceFilter = document.getElementById('province-filter');
         const municipalityFilter = document.getElementById('municipality-filter');
         const barangayFilter = document.getElementById('barangay-filter');
