@@ -3162,37 +3162,7 @@
                 return false;
             }
             
-            // Validate GWA if grades document is being uploaded
-            const gradesFileInput = formEl.querySelector('input[name="documents[grades]"]');
-            const gwaFileInput = formEl.querySelector('input[name="documents[gwa_previous_sem]"]');
-            const gpaInputGrades = document.getElementById('gpa-input-grades');
-            const gpaInputRenewal = document.getElementById('gpa-input-renewal');
-            
-            if (gradesFileInput && gradesFileInput.files && gradesFileInput.files.length > 0) {
-                if (!gpaInputGrades || !gpaInputGrades.value || gpaInputGrades.value.trim() === '') {
-                    e.preventDefault();
-                    isSubmitting = false; // Reset flag if validation fails
-                    alert('Please enter your GWA when uploading grades document.');
-                    if (gpaInputGrades) {
-                        gpaInputGrades.focus();
-                        gpaInputGrades.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                    return false;
-                }
-            }
-            
-            if (gwaFileInput && gwaFileInput.files && gwaFileInput.files.length > 0) {
-                if (!gpaInputRenewal || !gpaInputRenewal.value || gpaInputRenewal.value.trim() === '') {
-                    e.preventDefault();
-                    isSubmitting = false; // Reset flag if validation fails
-                    alert('Please enter your GWA when uploading GWA document.');
-                    if (gpaInputRenewal) {
-                        gpaInputRenewal.focus();
-                        gpaInputRenewal.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                    return false;
-                }
-            }
+
             
             // Remove required attribute from hidden GWA inputs to prevent validation errors
             const allGpaInputs = formEl.querySelectorAll('input[name="gpa"]');
