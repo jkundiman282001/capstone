@@ -606,6 +606,35 @@
               </div>
               <input type="hidden" name="applicant_type" id="applicant_type" required>
 
+              <!-- Year Level (Hidden by default, shown for College) -->
+              <div id="year_level_container" class="hidden mb-4">
+                <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Year Level</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <select 
+                    name="year_level" 
+                    id="register_year_level" 
+                    class="form-input w-full pl-12 pr-10 py-3 rounded-xl focus:ring-4 focus:ring-orange-500/20 outline-none appearance-none bg-white cursor-pointer"
+                  >
+                    <option value="">Select Year Level</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                    <option value="5th Year">5th Year</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
               <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Course/Preferred Course</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -894,6 +923,9 @@
       // Reset button styles
       const shsBtn = document.getElementById('btn-shs');
       const collegeBtn = document.getElementById('btn-college');
+      const yearLevelContainer = document.getElementById('year_level_container');
+      const yearLevelInput = document.getElementById('register_year_level');
+      
       const baseClass = "p-3 border-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20";
       const inactiveClass = "border-slate-200 text-slate-600 hover:border-orange-500 hover:text-orange-600";
       const activeClass = "border-orange-500 text-orange-600 bg-orange-50";
@@ -901,9 +933,18 @@
       if (type === 'shs') {
         shsBtn.className = `${baseClass} ${activeClass}`;
         collegeBtn.className = `${baseClass} ${inactiveClass}`;
+        
+        // Hide Year Level
+        yearLevelContainer.classList.add('hidden');
+        yearLevelInput.removeAttribute('required');
+        yearLevelInput.value = ""; // Reset value
       } else {
         shsBtn.className = `${baseClass} ${inactiveClass}`;
         collegeBtn.className = `${baseClass} ${activeClass}`;
+        
+        // Show Year Level
+        yearLevelContainer.classList.remove('hidden');
+        yearLevelInput.setAttribute('required', 'required');
       }
     }
 
