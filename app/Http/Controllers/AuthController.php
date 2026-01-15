@@ -87,6 +87,7 @@ class AuthController extends Controller
             'ethno_id' => ['required', 'exists:ethno,id'],
             'course' => ['nullable', 'string', 'max:150'],
             'course_other' => ['nullable', 'string', 'max:150'],
+            'year_level' => ['required', 'string', 'max:20'],
             'terms_accepted' => ['required', 'accepted'],
         ], [
             'terms_accepted.required' => 'You must accept the Terms and Conditions and Privacy Policy to create an account.',
@@ -107,6 +108,11 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
             'ethno_id' => $validated['ethno_id'],
             'course' => $course,
+        ]);
+
+        BasicInfo::create([
+            'user_id' => $user->id,
+            'current_year_level' => $request->input('year_level'),
         ]);
 
         Auth::login($user);

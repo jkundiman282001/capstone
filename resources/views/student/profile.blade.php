@@ -284,11 +284,11 @@
                                 @endphp
                                 <select name="current_year_level" id="current-year-level-select" class="w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm p-3.5 text-slate-800">
                                     <option value="">Select Year Level</option>
-                                    <option value="1st" {{ $currentYear == '1st' ? 'selected' : '' }}>1st Year</option>
-                                    <option value="2nd" {{ $currentYear == '2nd' ? 'selected' : '' }}>2nd Year</option>
-                                    <option value="3rd" {{ $currentYear == '3rd' ? 'selected' : '' }}>3rd Year</option>
-                                    <option value="4th" {{ $currentYear == '4th' ? 'selected' : '' }}>4th Year</option>
-                                    <option value="5th" {{ $currentYear == '5th' ? 'selected' : '' }}>5th Year</option>
+                                    <option value="1st Year" {{ $currentYear == '1st Year' ? 'selected' : '' }}>1st Year</option>
+                                    <option value="2nd Year" {{ $currentYear == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
+                                    <option value="3rd Year" {{ $currentYear == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
+                                    <option value="4th Year" {{ $currentYear == '4th Year' ? 'selected' : '' }}>4th Year</option>
+                                    <option value="5th Year" {{ $currentYear == '5th Year' ? 'selected' : '' }}>5th Year</option>
                                 </select>
                                 
                                 @if(!$currentYear)

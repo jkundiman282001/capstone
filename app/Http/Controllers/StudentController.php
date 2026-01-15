@@ -344,8 +344,9 @@ class StudentController extends Controller
             $assistanceFor = implode(',', $request->assistance_for);
         }
 
-        $basicInfo = \App\Models\BasicInfo::create([
-            'user_id' => $user->id,
+        $basicInfo = \App\Models\BasicInfo::updateOrCreate(
+            ['user_id' => $user->id],
+            [
             'house_num' => $request->mailing_house_num,
             'birthdate' => $request->birthdate,
             'birthplace' => $request->birthplace,
