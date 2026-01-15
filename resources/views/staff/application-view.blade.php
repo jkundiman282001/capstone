@@ -608,54 +608,7 @@
                         Educational Background
                     </h2>
 
-                    @if($user->educational_status === 'Ongoing College')
-                        <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-5 mb-6 shadow-sm">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-black text-indigo-900 uppercase tracking-tight">Ongoing College Status</h3>
-                                    <p class="text-xs text-indigo-600 font-bold">Declared Grading System & Current Year</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-indigo-100">
-                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Current Year</p>
-                                    <p class="text-sm font-black text-slate-900">{{ $user->college_year ?? 'N/A' }} Year</p>
-                                </div>
-                                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-indigo-100">
-                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Grading System</p>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-sm font-black text-slate-900">{{ $user->grade_scale ? $user->grade_scale . ' Highest' : 'Not Specified' }}</span>
-                                        @if($user->grade_scale)
-                                            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-orange-100">
-                                    <p class="text-[10px] font-bold text-orange-600 uppercase tracking-widest mb-1">Declared GWA</p>
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-sm font-black text-orange-900">
-                                            {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'N/A' }}
-                                        </p>
-                                        <span class="px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[9px] font-bold rounded uppercase">Student</span>
-                                    </div>
-                                </div>
-                                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-indigo-200 ring-2 ring-indigo-50">
-                                    <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Verified GWA</p>
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-sm font-black text-indigo-900">
-                                            {{ $basicInfo->gpa ? number_format($basicInfo->gpa, 2) : 'NOT VERIFIED' }}
-                                        </p>
-                                        @if($basicInfo->gpa)
-                                            <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[9px] font-bold rounded uppercase">Admin</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+
 
                     @forelse($education as $index => $edu)
                         <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-5 mb-4 border border-purple-100">
@@ -680,15 +633,7 @@
                                 <div class="bg-white rounded-xl p-3 border border-purple-100">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">GWA</p>
                                     <p class="text-sm font-bold text-slate-900">{{ $edu->grade_ave ?? 'N/A' }}</p>
-                                    @if($user->grade_scale && $user->gpa && $edu->category === 'College')
-                                        <div class="mt-1 flex flex-col gap-1">
-                                            <div class="flex items-center gap-1">
-                                                <span class="text-[10px] font-bold text-purple-600 px-1.5 py-0.5 bg-purple-50 rounded border border-purple-100">{{ $user->grade_scale }} Scale</span>
-                                                <span class="text-[10px] font-black text-orange-600">{{ $user->converted_grade }}</span>
-                                            </div>
-                                            <p class="text-[9px] text-slate-400 italic">From registration GWA: {{ $user->gpa }}</p>
-                                        </div>
-                                    @endif
+
                                 </div>
                                 <div class="bg-white rounded-xl p-3 border border-purple-100">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Rank</p>

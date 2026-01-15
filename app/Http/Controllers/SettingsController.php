@@ -108,7 +108,7 @@ class SettingsController extends Controller
             'voc_rank' => 'nullable|string',
             'college_school' => 'nullable|string',
             'college_type' => 'nullable|string',
-            'college_year' => 'nullable|string',
+
             'college_avg' => 'nullable|string',
             'college_rank' => 'nullable|string',
 

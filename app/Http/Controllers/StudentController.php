@@ -157,9 +157,6 @@ class StudentController extends Controller
             'mother_address' => 'nullable|string|max:255',
             'mother_education' => 'nullable|string|max:255',
             'mother_income' => 'nullable|string|max:255',
-            'gpa' => 'nullable|numeric|min:0|max:100',
-            'grade_scale' => 'nullable|string|in:1.0,4.0,75-100',
-            'grade_scale_renewal' => 'nullable|string|in:1.0,4.0,75-100',
         ]);
 
         try {
@@ -205,21 +202,6 @@ class StudentController extends Controller
                         \Log::error('Failed to notify staff about document upload: ' . $e->getMessage());
                     }
                 }
-            }
-
-            // Update GWA if provided for renewal
-            if ($request->has('gpa') && $request->gpa) {
-                $basicInfo = BasicInfo::where('user_id', $user->id)->first();
-                if ($basicInfo) {
-                    $basicInfo->update(['gpa' => $request->gpa]);
-                }
-                
-                // Also update user's profile with latest GWA and scale
-                $userUpdate = ['gpa' => $request->gpa];
-                if ($request->has('grade_scale_renewal')) {
-                    $userUpdate['grade_scale'] = $request->grade_scale_renewal;
-                }
-                $user->update($userUpdate);
             }
 
             // Notify all staff about renewal submission
@@ -353,17 +335,7 @@ class StudentController extends Controller
             'school_pref_id' => $schoolPref->id,
             'type_assist' => $typeAssist,
             'assistance_for' => $assistanceFor,
-            'gpa' => $request->gpa,
         ]);
-
-        // Also update user's profile with latest GWA and scale
-        if ($request->has('gpa') && $request->gpa) {
-            $userUpdate = ['gpa' => $request->gpa];
-            if ($request->has('grade_scale')) {
-                $userUpdate['grade_scale'] = $request->grade_scale;
-            }
-            $user->update($userUpdate);
-        }
 
         // 2. Save Education (each level as a separate row, linked to BasicInfo)
         $educationLevels = [
@@ -758,20 +730,7 @@ class StudentController extends Controller
         // Check application status from basic_info table
         $basicInfo = $student->basicInfo;
 
-        // Sync college_year from User to BasicInfo if BasicInfo exists but year is missing
-        if ($basicInfo && !$basicInfo->current_year_level && $student->college_year) {
-            $yearLevel = match((int)$student->college_year) {
-                1 => '1st',
-                2 => '2nd',
-                3 => '3rd',
-                4 => '4th',
-                5 => '5th',
-                default => null
-            };
-            if ($yearLevel) {
-                $basicInfo->update(['current_year_level' => $yearLevel]);
-            }
-        }
+
 
         $applicationStatus = $basicInfo ? ($basicInfo->application_status ?? 'pending') : 'pending';
         $rejectionReason = $basicInfo ? ($basicInfo->application_rejection_reason ?? null) : null;
@@ -1381,7 +1340,6 @@ class StudentController extends Controller
             'last_name' => $validated['last_name'],
             'contact_num' => $validated['contact_num'],
             'email' => $validated['email'],
-            'college_year' => $validated['current_year_level'] ? (int) filter_var($validated['current_year_level'], FILTER_SANITIZE_NUMBER_INT) : null,
         ]);
 
         // Update or create basic_info record for current_year_level

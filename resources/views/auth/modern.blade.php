@@ -753,38 +753,6 @@
               />
             </div>
 
-            <!-- Educational Status -->
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Educational Status</label>
-              <div class="grid grid-cols-2 gap-4">
-                <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-orange-500 transition-all group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
-                  <input type="radio" name="educational_status" value="SHS Graduate" required class="sr-only educational-status-radio">
-                  <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">SHS Graduate</span>
-                </label>
-                <label class="relative flex items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-orange-500 transition-all group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
-                  <input type="radio" name="educational_status" value="Ongoing College" required class="sr-only educational-status-radio">
-                  <span class="text-sm font-semibold text-slate-600 group-hover:text-orange-600 group-has-[:checked]:text-orange-600">Ongoing College</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- College Year Level (Conditional) -->
-            <div id="college_year_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
-              <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">College Year Level</label>
-              <div class="relative">
-                <input 
-                  type="number" 
-                  name="college_year" 
-                  id="register_college_year" 
-                  min="1" 
-                  max="5"
-                  placeholder="Enter Year Level (1-5)" 
-                  class="form-input w-full px-4 py-3 rounded-xl focus:ring-4 focus:ring-orange-500/20 outline-none"
-                />
-                <p class="text-[10px] text-orange-600 font-medium">Please enter your current year level (e.g., 1, 2, 3, 4, 5)</p>
-              </div>
-            </div>
-
             <!-- Email -->
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Email Address</label>
@@ -942,24 +910,6 @@
       const courseOther = document.getElementById('register_course_other');
       const signupForm = document.querySelector("form[action='{{ url('/register') }}']");
       
-      // Educational Status logic
-      const eduRadios = document.querySelectorAll('.educational-status-radio');
-      const collegeYearSection = document.getElementById('college_year_section');
-      const collegeYearInput = document.getElementById('register_college_year');
-
-      eduRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-          if (this.value === 'Ongoing College' && this.checked) {
-            collegeYearSection.classList.remove('hidden');
-            collegeYearInput.required = true;
-          } else {
-            collegeYearSection.classList.add('hidden');
-            collegeYearInput.required = false;
-            collegeYearInput.value = '';
-          }
-        });
-      });
-
       if (courseSelect) {
         courseSelect.addEventListener('change', function() {
           if (this.value === 'Other') {

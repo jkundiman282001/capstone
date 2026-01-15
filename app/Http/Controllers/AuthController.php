@@ -85,8 +85,6 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'min:8', 'confirmed'],
             'ethno_id' => ['required', 'exists:ethno,id'],
-            'educational_status' => ['required', 'string', 'in:SHS Graduate,Ongoing College'],
-            'college_year' => ['nullable', 'required_if:educational_status,Ongoing College', 'integer', 'min:1', 'max:5'],
             'course' => ['nullable', 'string', 'max:150'],
             'course_other' => ['nullable', 'string', 'max:150'],
             'terms_accepted' => ['required', 'accepted'],
@@ -108,8 +106,6 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'ethno_id' => $validated['ethno_id'],
-            'educational_status' => $validated['educational_status'],
-            'college_year' => $validated['college_year'] ?? null,
             'course' => $course,
         ]);
 

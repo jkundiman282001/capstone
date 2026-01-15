@@ -154,16 +154,6 @@
                         
                         @php
                             $yearLevel = optional($student->basicInfo)->current_year_level;
-                            if (!$yearLevel && $student->college_year) {
-                                $yearLevel = match((int)$student->college_year) {
-                                    1 => '1st',
-                                    2 => '2nd',
-                                    3 => '3rd',
-                                    4 => '4th',
-                                    5 => '5th',
-                                    default => null
-                                };
-                            }
                         @endphp
                         
                         @if($yearLevel)
@@ -291,16 +281,6 @@
                                 <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Current Year Level</label>
                                 @php
                                     $currentYear = old('current_year_level', optional($student->basicInfo)->current_year_level);
-                                    if (!$currentYear && $student->college_year) {
-                                        $currentYear = match((int)$student->college_year) {
-                                            1 => '1st',
-                                            2 => '2nd',
-                                            3 => '3rd',
-                                            4 => '4th',
-                                            5 => '5th',
-                                            default => ''
-                                        };
-                                    }
                                 @endphp
                                 <select name="current_year_level" id="current-year-level-select" class="w-full rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm p-3.5 text-slate-800">
                                     <option value="">Select Year Level</option>
