@@ -430,10 +430,7 @@
                             </div>
                             Required Documents
                         </h2>
-                        <button onclick="recalculateDocumentPriorities()" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-blue-100">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            Recalculate
-                        </button>
+
                     </div>
 
                     <div class="space-y-3">
@@ -1601,59 +1598,7 @@ function printDocument() {
     }
 }
 
-async function recalculateDocumentPriorities(event) {
-    const domain = window.location.hostname;
-    const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
-        message: 'Recalculate document priorities for all pending documents?',
-        okText: 'OK',
-        cancelText: 'Cancel'
-    });
 
-    if (!confirmed) return;
-
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-    button.disabled = true;
-
-    fetch('{{ route("staff.documents.recalculate-priorities") }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-        .then(async (data) => {
-            const domain = window.location.hostname;
-            if (data.success) {
-                await showCustomAlert({
-                    title: `${domain} says`,
-                    message: 'Document priorities recalculated successfully!'
-                });
-                location.reload();
-            } else {
-                await showCustomAlert({
-                    title: `${domain} says`,
-                    message: 'Error: ' + data.message
-                });
-            }
-        })
-        .catch(async (error) => {
-            const domain = window.location.hostname;
-            console.error('Error:', error);
-            await showCustomAlert({
-                title: `${domain} says`,
-                message: 'Error recalculating priorities'
-            });
-        })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
 
 async function updateApplicationStatus(status, event) {
     const domain = window.location.hostname;
