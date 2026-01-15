@@ -305,23 +305,7 @@
             </div>
         </div>
 
-        <!-- Application Trends -->
-        <div class="lg:col-span-2 bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-shadow duration-300">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="font-black text-slate-900 text-lg">Application Trends</h2>
-                    <p class="text-xs text-slate-500 font-medium">New applications over the last 6 months</p>
-                </div>
-            </div>
-            <div class="h-80">
-                <canvas id="trendsChart"></canvas>
-            </div>
-        </div>
+
     </div>
 </div>
 @endsection
@@ -488,60 +472,7 @@
         }
     });
 
-    // Application Trends Chart
-    new Chart(document.getElementById('trendsChart'), {
-        type: 'line',
-        data: {!! json_encode($trendsChartData) !!},
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    borderRadius: 8,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        font: {
-                            size: 12,
-                            weight: '600'
-                        },
-                        color: '#64748b',
-                        stepSize: 1
-                    },
-                    grid: {
-                        color: 'rgba(148, 163, 184, 0.1)'
-                    }
-                },
-                x: {
-                    ticks: {
-                        font: {
-                            size: 11,
-                            weight: '600'
-                        },
-                        color: '#64748b'
-                    },
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
+
 
     // Graduation Year Chart
     new Chart(document.getElementById('gradYearChart'), {
