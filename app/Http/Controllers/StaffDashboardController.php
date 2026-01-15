@@ -2451,7 +2451,10 @@ class StaffDashboardController extends Controller
                 ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                     $query->where('type_assist', 'Regular')
                         ->where('application_status', 'validated')
-                        ->where('grant_status', 'waiting'); // Only show waiting list
+                        ->where(function ($q) {
+                            $q->where('grant_status', 'waiting')
+                              ->orWhereNull('grant_status');
+                        }); // Only show waiting list (including validated with null status)
 
                     if ($selectedProvince) {
                         $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
