@@ -729,6 +729,12 @@ class StaffDashboardController extends Controller
                                  ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
                           });
                     });
+                } elseif ($selectedStatus === 'pamana') {
+                    $query->where('application_status', 'validated')
+                          ->where(function($q) {
+                              $q->where('type_assist', 'Pamana')
+                                ->orWhereRaw("LOWER(TRIM(grant_status)) = 'pamana'");
+                          });
                 } else {
                     $query->where('application_status', $selectedStatus);
 

@@ -19,6 +19,8 @@
                                 Scholarship Grantees
                             @elseif(request('status') === 'rejected')
                                 Rejected Applicants
+                            @elseif(request('status') === 'pamana')
+                                Pamana Applicants
                             @elseif(request('status') === 'validated')
                                 Validated Applicants
                             @elseif(request('status') === 'pending')
@@ -34,6 +36,8 @@
                                 View and manage active scholarship grantees
                             @elseif(request('status') === 'rejected')
                                 View and manage rejected scholarship applications
+                            @elseif(request('status') === 'pamana')
+                                View and manage Pamana scholarship applicants
                             @else
                                 Manage scholarship applications
                             @endif
@@ -72,6 +76,7 @@
                             <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="validated" {{ request('status') === 'validated' ? 'selected' : '' }}>Validated</option>
                             <option value="grantee" {{ request('status') === 'grantee' ? 'selected' : '' }}>Grantees</option>
+                            <option value="pamana" {{ request('status') === 'pamana' ? 'selected' : '' }}>Pamana</option>
                             <option value="rejected" {{ request('status') === 'rejected' && request('type') !== 'terminated' ? 'selected' : '' }}>Rejected</option>
                             <option value="terminated" {{ request('status') === 'terminated' || request('type') === 'terminated' ? 'selected' : '' }}>Terminated</option>
                         </select>
@@ -140,6 +145,10 @@
                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'grantee' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:bg-blue-50' }}">
                 Grantees
             </a>
+            <a href="{{ route('staff.applicants.list', ['status' => 'pamana']) }}" 
+               class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'pamana' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50' }}">
+                Pamana
+            </a>
             <a href="{{ route('staff.applicants.list', ['status' => 'rejected']) }}" 
                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request('status') === 'rejected' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-red-300 hover:bg-red-50' }}">
                 Rejected
@@ -176,17 +185,21 @@
                                 $grantStatus = strtolower(trim((string)($applicant->basicInfo?->grant_status ?? '')));
                                 $isTerminated = $appStatus === 'terminated' || ($appStatus === 'rejected' && $grantStatus === 'grantee');
                                 $isGrantee = $grantStatus === 'grantee' && $appStatus === 'validated';
-                                $isValidated = $appStatus === 'validated' && $grantStatus !== 'grantee';
+                                $isPamana = ($grantStatus === 'pamana' || $applicant->basicInfo?->type_assist === 'Pamana') && $appStatus === 'validated';
+                                $isValidated = $appStatus === 'validated' && $grantStatus !== 'grantee' && !$isPamana;
                                 $isRejected = $appStatus === 'rejected' && !$isTerminated;
                             @endphp
                             <div class="absolute top-3 left-3">
-                                <span class="{{ $isTerminated ? 'bg-slate-700' : ($isGrantee ? 'bg-blue-500' : ($isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500'))) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
+                                <span class="{{ $isTerminated ? 'bg-slate-700' : ($isGrantee ? 'bg-blue-500' : ($isPamana ? 'bg-emerald-600' : ($isValidated ? 'bg-emerald-500' : ($isRejected ? 'bg-red-500' : 'bg-amber-500')))) }} text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1">
                                     @if($isTerminated)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
                                         Terminated
                                     @elseif($isGrantee)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         Grantee
+                                    @elseif($isPamana)
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Pamana
                                     @elseif($isValidated)
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         Validated
