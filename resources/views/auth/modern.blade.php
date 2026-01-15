@@ -937,7 +937,7 @@
         // Hide Year Level
         yearLevelContainer.classList.add('hidden');
         yearLevelInput.removeAttribute('required');
-        yearLevelInput.value = ""; // Reset value
+        yearLevelInput.value = "1st Year"; // Auto-set to 1st Year
       } else {
         shsBtn.className = `${baseClass} ${inactiveClass}`;
         collegeBtn.className = `${baseClass} ${activeClass}`;
