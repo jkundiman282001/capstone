@@ -783,37 +783,6 @@
               </div>
             </div>
 
-            <!-- Numerical Grade Input (Conditional) -->
-            <div id="numerical_grade_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
-              <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">Numerical Grade (GWA)</label>
-              <div class="relative">
-                <input 
-                  type="number" 
-                  name="numerical_grade" 
-                  id="register_numerical_grade" 
-                  min="0" 
-                  max="100"
-                  step="0.01"
-                  placeholder="Enter GWA (e.g., 95.50)" 
-                  class="form-input w-full px-4 py-3 rounded-xl focus:ring-4 focus:ring-orange-500/20 outline-none"
-                />
-                <p class="text-[10px] text-orange-600 font-medium mt-1">Input your numerical grade to see its scale equivalent.</p>
-              </div>
-              
-              <!-- Conversion Result Area -->
-              <div id="conversion_result" class="hidden p-4 bg-white rounded-xl border border-orange-200 shadow-sm transition-all animate-pulse-once">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Scale Equivalent</p>
-                    <p id="converted_value" class="text-2xl font-black text-orange-600">--</p>
-                  </div>
-                  <div class="px-3 py-1 bg-orange-100 rounded-lg">
-                    <span id="scale_badge" class="text-[10px] font-bold text-orange-700 uppercase tracking-tighter">--</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- College Year Level (Conditional) -->
             <div id="college_year_section" class="hidden space-y-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100 transition-all">
               <label class="block text-xs font-bold text-orange-800 uppercase tracking-wide">College Year Level</label>
