@@ -2362,6 +2362,12 @@
             const renewalDocs = document.getElementById('renewal-documents');
             if (regularDocs) regularDocs.style.display = 'none';
             if (renewalDocs) renewalDocs.style.display = 'grid';
+
+            // Enable renewal GWA, disable regular GWA
+            const gpaRenewal = document.getElementById('gpa-input-renewal');
+            const gpaGrades = document.getElementById('gpa-input-grades');
+            if (gpaRenewal) gpaRenewal.disabled = false;
+            if (gpaGrades) gpaGrades.disabled = true;
             
             // Update sidebar nav for renewal (only one step)
             const renewalStep = document.getElementById('nav-step-renewal');
@@ -2409,6 +2415,12 @@
             const renewalDocs = document.getElementById('renewal-documents');
             if (regularDocs) regularDocs.style.display = 'grid';
             if (renewalDocs) renewalDocs.style.display = 'none';
+
+            // Enable regular GWA, disable renewal GWA
+            const gpaRenewal = document.getElementById('gpa-input-renewal');
+            const gpaGrades = document.getElementById('gpa-input-grades');
+            if (gpaGrades) gpaGrades.disabled = false;
+            if (gpaRenewal) gpaRenewal.disabled = true;
             // Regular application flow
             const currentStepEl = document.getElementById('step-' + currentStep);
             if (currentStepEl) {

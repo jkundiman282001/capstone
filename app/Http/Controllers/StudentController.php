@@ -217,6 +217,16 @@ class StudentController extends Controller
 
             // Notify all staff about renewal submission
             try {
+                // Update GWA if provided in renewal
+                if ($request->has('gpa') && $request->gpa) {
+                    $existingApplication = BasicInfo::where('user_id', $user->id)
+                        ->whereNotNull('type_assist')
+                        ->first();
+                    if ($existingApplication) {
+                        $existingApplication->update(['gpa' => $request->gpa]);
+                    }
+                }
+
                 foreach (\App\Models\Staff::all() as $staff) {
                     $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
                 }
