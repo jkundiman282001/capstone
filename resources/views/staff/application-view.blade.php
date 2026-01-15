@@ -216,6 +216,15 @@
                                 Application Rejected
                             </div>
                         </div>
+                    @elseif($isGrantee)
+                        <div class="flex flex-wrap justify-center lg:justify-end gap-3">
+                            <button onclick="showApplicationRejectionModal(true)" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Terminate Applicant
+                            </button>
+                        </div>
                     @elseif($isValidated)
                         <div class="flex flex-wrap justify-center lg:justify-end gap-3">
                             @php
