@@ -434,6 +434,99 @@
                     </div>
 
                     <div class="space-y-3">
+                        @php
+                            $renewalRequiredTypes = [
+                                'certificate_of_enrollment' => 'Certificate of Enrollment',
+                                'statement_of_account' => 'Statement of Account',
+                                'gwa_previous_sem' => 'GWA of Previous Semester',
+                            ];
+                        @endphp
+
+                        @if($isGrantee)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                    <span class="w-2 h-8 bg-green-500 rounded-full"></span>
+                                    Renewal Requirements
+                                </h3>
+                                <div class="space-y-3">
+                                    @foreach($renewalRequiredTypes as $typeKey => $typeLabel)
+                                        @php
+                                            $doc = $documents->where('type', $typeKey)->first();
+                                            $status = $doc ? $doc->status : 'missing';
+                                        @endphp
+                                        
+                                        <div class="space-y-2 p-4 rounded-2xl border-2 {{ 
+                                            $status === 'approved' ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200' : 
+                                            ($status === 'pending' ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200' : 
+                                            ($status === 'rejected' ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200' : 'bg-slate-50 border-slate-200 opacity-60')) 
+                                        }}">
+                                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                                <div class="flex items-center gap-3 w-full sm:w-auto flex-1">
+                                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 {{
+                                                        $status === 'approved' ? 'bg-emerald-500' : 
+                                                        ($status === 'pending' ? 'bg-amber-500' : 
+                                                        ($status === 'rejected' ? 'bg-red-500' : 'bg-slate-300'))
+                                                    }}">
+                                                        @if($status === 'approved')
+                                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                        @elseif($status === 'pending')
+                                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        @else
+                                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                        @endif
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
+                                                        @if($doc)
+                                                            <p class="text-xs font-medium {{
+                                                                $status === 'approved' ? 'text-emerald-600' : 
+                                                                ($status === 'pending' ? 'text-amber-600' : 'text-red-600')
+                                                            }}">
+                                                                {{ ucfirst($status) }} • {{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}
+                                                            </p>
+                                                        @else
+                                                            <p class="text-xs text-slate-500 font-medium">Not submitted</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                @if($doc)
+                                                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
+                                                        @if($typeKey === 'grades' || $typeKey === 'gwa_previous_sem')
+                                                            <button onclick="showManualGWAModal({{ $user->id }}, '{{ $basicInfo->gpa ?? '' }}')" class="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg text-xs transition-all flex items-center gap-1">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                                {{ $basicInfo->gpa ? 'Edit GWA' : 'Enter GWA' }}
+                                                            </button>
+                                                        @endif
+                                                        
+                                                        <button onclick="viewDocument('{{ route('documents.view', $doc->id) }}', '{{ $doc->filename }}', '{{ $doc->filetype }}')" class="px-4 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-all">View</button>
+                                                        
+                                                        @if($status === 'pending')
+                                                            <button onclick="updateDocumentStatus({{ $doc->id }}, 'approved')" class="px-4 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-xs transition-all">Accept</button>
+                                                            <button onclick="showFeedbackModal({{ $doc->id }}, '{{ $typeLabel }}')" class="px-4 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition-all">Return</button>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    <span class="px-3 py-1.5 bg-slate-200 text-slate-600 font-bold rounded-lg text-xs">Missing</span>
+                                                @endif
+                                            </div>
+
+                                            @if($doc && $doc->status === 'rejected' && $doc->rejection_reason)
+                                                <div class="mt-2 p-2 bg-white/80 rounded-lg border border-red-100">
+                                                    <p class="text-xs text-slate-700"><strong class="text-red-700">Rejection Reason:</strong> {{ $doc->rejection_reason }}</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <span class="w-2 h-8 bg-blue-500 rounded-full"></span>
+                                Original Application Documents
+                            </h3>
+                        @endif
+
                         @foreach($requiredTypes as $typeKey => $typeLabel)
                             @php
                                 $doc = $documents->where('type', $typeKey)->first();
