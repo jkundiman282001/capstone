@@ -78,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/student/notifications/{id}', [StudentController::class, 'deleteNotification'])->name('student.notifications.delete');
     Route::get('/student/support', [StudentController::class, 'support'])->name('student.support');
     Route::post('/student/apply', [StudentController::class, 'apply'])->name('student.apply');
+    Route::get('/student/renew', [StudentController::class, 'showRenewalForm'])->name('student.renew');
+    Route::post('/student/renew', [StudentController::class, 'submitRenewal'])->name('student.renew.submit');
     Route::post('/student/update-profile-pic', [StudentController::class, 'updateProfilePic'])->name('student.update-profile-pic');
     Route::put('/student/profile', [StudentController::class, 'updateProfile'])->name('student.update-profile');
     Route::post('/student/update-gwa', [StudentController::class, 'updateGWA'])->name('student.update-gwa');

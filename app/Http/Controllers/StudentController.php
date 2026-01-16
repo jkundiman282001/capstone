@@ -85,6 +85,140 @@ class StudentController extends Controller
         return view('student.dashboard', compact('application', 'hasApplied', 'applicationStatus', 'rejectionReason', 'grantStatus', 'announcements', 'stats'));
     }
 
+    public function showRenewalForm(Request $request)
+    {
+        $user = auth()->user();
+
+        // Check if user has submitted an application
+        $existingApplication = BasicInfo::where('user_id', $user->id)
+            ->whereNotNull('type_assist')
+            ->first();
+
+        // Check eligibility: Must be validated and a grantee
+        if (! $existingApplication ||
+            $existingApplication->application_status !== 'validated' ||
+            strtolower(trim($existingApplication->grant_status ?? '')) !== 'grantee') {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'You are not eligible for scholarship renewal. Only validated grantees can renew their scholarship.');
+        }
+
+        // Renewal application required documents
+        $renewalRequiredTypes = [
+            'certificate_of_enrollment' => 'Certificate of Enrollment',
+            'statement_of_account' => 'Statement of Account',
+            'gwa_previous_sem' => 'GWA of Previous Semester',
+        ];
+
+        // Fetch user documents
+        $documents = Document::where('user_id', $user->id)->latest()->get();
+
+        return view('student.renew', compact('user', 'renewalRequiredTypes', 'documents', 'existingApplication'));
+    }
+
+    public function submitRenewal(Request $request)
+    {
+        $user = auth()->user();
+
+        // Check eligibility
+        $existingApplication = BasicInfo::where('user_id', $user->id)
+            ->whereNotNull('type_assist')
+            ->first();
+
+        if (! $existingApplication ||
+            $existingApplication->application_status !== 'validated' ||
+            strtolower(trim($existingApplication->grant_status ?? '')) !== 'grantee') {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'You are not eligible for scholarship renewal.');
+        }
+
+        $request->validate([
+            'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
+            'gpa' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update GWA if provided
+            if ($request->has('gpa') && $request->gpa) {
+                $existingApplication->update(['gpa' => $request->gpa]);
+            }
+
+            // Handle document uploads
+            $hasUploads = false;
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $type => $file) {
+                    if (! $file) {
+                        continue;
+                    }
+                    $hasUploads = true;
+
+                    $disk = config('filesystems.default');
+                    $path = $file->store('documents', $disk);
+
+                    // Update or create document record
+                    $document = Document::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'type' => $type,
+                        ],
+                        [
+                            'filename' => $file->getClientOriginalName(),
+                            'filepath' => $path,
+                            'filetype' => $file->getClientMimeType(),
+                            'filesize' => $file->getSize(),
+                            'status' => 'pending',
+                            'submitted_at' => now(),
+                        ]
+                    );
+
+                    $priorityService = new \App\Services\DocumentPriorityService;
+                    $priorityService->onDocumentUploaded($document);
+
+                    // Notify staff about each document
+                    try {
+                        foreach (\App\Models\Staff::all() as $staff) {
+                            $staff->notify(new \App\Notifications\StudentUploadedDocument($user, $type));
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to notify staff about document upload: ' . $e->getMessage());
+                    }
+                }
+            }
+
+            if (!$hasUploads && !$request->has('gpa')) {
+                 return redirect()->back()->with('error', 'Please upload at least one document or update your GWA.');
+            }
+
+            // Notify all staff about renewal submission
+            try {
+                foreach (\App\Models\Staff::all() as $staff) {
+                    $staff->notify(new \App\Notifications\StudentSubmittedApplication($user));
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to notify staff about renewal submission: ' . $e->getMessage());
+            }
+
+            // Notify the student
+            $user->notify(new TransactionNotification(
+                'transaction',
+                'Renewal Submitted',
+                'Your scholarship renewal application has been successfully submitted and is now pending review.',
+                'normal'
+            ));
+
+            DB::commit();
+            $message = 'Your scholarship renewal application has been submitted!';
+            $request->session()->flash('status', $message);
+
+            return redirect()->route('student.dashboard');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Scholarship renewal submission failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while submitting your renewal: ' . $e->getMessage());
+        }
+    }
+
     public function apply(Request $request)
     {
         $user = auth()->user();
