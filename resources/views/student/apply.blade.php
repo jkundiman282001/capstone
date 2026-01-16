@@ -3700,6 +3700,17 @@
             }
         }
 
+        // Check for renewal mode in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'renewal') {
+            // Wait a bit to ensure everything is loaded
+            setTimeout(() => {
+                if (typeof startRenewalApplication === 'function') {
+                    startRenewalApplication();
+                }
+            }, 100);
+        }
+
         function renderDraftsList() {
             fetch('/student/drafts', {
                 method: 'GET',
