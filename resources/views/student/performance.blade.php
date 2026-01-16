@@ -598,6 +598,122 @@
       @endforeach
     </ul>
   </section>
+
+  <!-- Renewal Documents Section -->
+  @if(isset($renewalRequiredTypes) && count($renewalRequiredTypes) > 0 && $isGrantee)
+    <section class="backdrop-blur-lg bg-white/70 shadow-2xl rounded-[2.5rem] p-8 md:p-10 border border-white/40 flex flex-col space-y-8 select-none transition-all">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <h3 class="text-3xl font-black text-slate-900 flex items-center gap-4 tracking-tight">
+                <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </div>
+                Renewal Documents
+            </h3>
+
+            @php
+                $totalRenewalRequired = count($renewalRequiredTypes);
+                $approvedRenewalCount = $documents->whereIn('type', array_keys($renewalRequiredTypes))->where('status', 'approved')->count();
+                $renewalProgressPercent = $totalRenewalRequired > 0 ? round(($approvedRenewalCount / $totalRenewalRequired) * 100) : 0;
+            @endphp
+
+            <div class="flex items-center gap-4 bg-white/50 backdrop-blur-sm p-2 pr-6 rounded-2xl border border-white shadow-sm">
+                <div class="relative w-12 h-12">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle class="text-slate-200" stroke-width="4" stroke="currentColor" fill="transparent" r="20" cx="24" cy="24" />
+                        <circle class="text-blue-500 transition-all duration-1000" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="{{ 125.6 * (1 - $renewalProgressPercent / 100) }}" stroke-linecap="round" stroke="currentColor" fill="transparent" r="20" cx="24" cy="24" />
+                    </svg>
+                    <span class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-700">{{ $renewalProgressPercent }}%</span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Renewal Progress</p>
+                    <p class="text-sm font-black text-slate-800">{{ $approvedRenewalCount }} of {{ $totalRenewalRequired }} Verified</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="space-y-6">
+            @foreach($renewalRequiredTypes as $typeKey => $typeLabel)
+                @php
+                    $uploaded = $documents->firstWhere('type', $typeKey);
+                    $status = $uploaded ? $uploaded->status : 'missing';
+                @endphp
+                <li class="bg-gradient-to-br from-blue-50/80 via-indigo-50/60 to-white/60 border border-blue-200/60 rounded-2xl p-6 md:p-7 flex flex-col gap-5 shadow-lg hover:shadow-2xl transition-all">
+                    <div class="flex items-start gap-4 md:gap-5 min-w-0">
+                        @if($status === 'approved')
+                            <span class="w-12 h-12 rounded-full bg-green-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">✓</span>
+                        @elseif($status === 'pending')
+                            <span class="w-12 h-12 rounded-full bg-yellow-400/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">!</span>
+                        @elseif($status === 'rejected')
+                            <span class="w-12 h-12 rounded-full bg-red-500/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">×</span>
+                        @else
+                            <span class="w-12 h-12 rounded-full bg-slate-300/90 flex items-center justify-center text-white text-2xl font-black shadow-lg border-4 border-white/40 flex-shrink-0">?</span>
+                        @endif
+                        <div class="flex flex-col min-w-0 flex-1">
+                            <span class="font-extrabold text-base md:text-lg text-gray-900 leading-tight tracking-tight break-words">{{ $typeLabel }}</span>
+                            <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                @if($status === 'approved')
+                                    <span class="bg-green-200/80 text-green-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Approved</span>
+                                @elseif($status === 'pending')
+                                    <span class="bg-yellow-200/80 text-yellow-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Pending</span>
+                                @elseif($status === 'rejected')
+                                    <span class="bg-red-200/80 text-red-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Rejected</span>
+                                @else
+                                    <span class="bg-slate-200/80 text-slate-900 px-3 py-0.5 rounded-full text-xs font-bold shadow">Missing</span>
+                                @endif
+                                @if($uploaded)
+                                    <span class="text-gray-400 text-xs">• Uploaded {{ $uploaded->created_at->diffForHumans() }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    @if($status === 'rejected' && $uploaded && $uploaded->rejection_reason)
+                        <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm mb-4 mt-4">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-bold text-red-900 mb-1">Rejection Feedback</h4>
+                                    <p class="text-sm text-red-900 leading-relaxed whitespace-pre-wrap">{{ $uploaded->rejection_reason }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full pt-4 border-t border-blue-200/40 mt-4">
+                        <div class="flex flex-col md:items-start gap-2">
+                            @if($uploaded)
+                                <a href="{{ route('documents.view', $uploaded->id) }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600/90 text-white rounded-full text-xs font-bold shadow hover:bg-blue-700/90 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    View Document
+                                </a>
+                            @endif
+                        </div>
+                        
+                        @if(!$uploaded || ($uploaded && in_array($uploaded->status, ['rejected', 'pending'])))
+                            <form method="POST" action="{{ route('documents.upload') }}" enctype="multipart/form-data" class="flex items-center gap-2 w-full md:w-auto">
+                                @csrf
+                                <input type="hidden" name="type" value="{{ $typeKey }}">
+                                <div class="flex flex-col gap-1.5 w-full md:w-auto">
+                                    <input type="file" name="upload-file" required class="block text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-blue-50/80 file:text-blue-700 hover:file:bg-blue-100/80 focus:outline-none focus:ring-2 focus:ring-blue-400/60" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                                </div>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-full shadow hover:bg-blue-700 transition">Upload</button>
+                            </form>
+                        @endif
+                    </div>
+                </li>
+            @endforeach
+        </ul>
+    </section>
+  @endif
 </div>
 
         <!-- Side Column: Application Tracker -->

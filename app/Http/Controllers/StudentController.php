@@ -1155,6 +1155,12 @@ class StudentController extends Controller
             'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
 
+        $renewalRequiredTypes = [
+            'certificate_of_enrollment' => 'Certificate of Enrollment',
+            'statement_of_account' => 'Statement of Account',
+            'gwa_previous_sem' => 'GWA of Previous Semester'
+        ];
+
         return view('student.performance', compact(
             'student',
             'basicInfo',
@@ -1163,6 +1169,7 @@ class StudentController extends Controller
             'priorityStatistics',
             'documents',
             'requiredTypes',
+            'renewalRequiredTypes',
             'transactionHistories'
         ));
     }
