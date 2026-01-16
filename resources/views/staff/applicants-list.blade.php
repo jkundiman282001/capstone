@@ -321,14 +321,34 @@
                                 <svg class="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </a>
 
-                            <button type="button"
-                                    onclick='window.openReplacementModal("waiting", {{ $applicant->id }}, @json($fullName))'
-                                    class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all
-                                        {{ $canReplaceFromWaiting ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed' }}"
-                                    {{ $canReplaceFromWaiting ? '' : 'disabled' }}
-                                    title="{{ $canReplaceFromWaiting ? 'Replace a grantee with this waiting-list applicant' : 'Only validated waiting-list applicants can replace a grantee' }}">
-                                <span>Replace Grantee</span>
-                            </button>
+                            @php
+                                // Logic 1: Waiting List Applicant -> Can REPLACE a grantee (Promote)
+                                $isWaiting = ($appStatus === 'validated' && $grantStatus === 'waiting');
+                                
+                                // Logic 2: Grantee/Pamana -> Can BE REPLACED
+                                $isGranteeOrPamana = ($appStatus === 'validated' && ($grantStatus === 'grantee' || $grantStatus === 'pamana'));
+                            @endphp
+
+                            @if($isWaiting)
+                                <button type="button"
+                                        onclick='window.openReplacementModal("waiting", {{ $applicant->id }}, @json($fullName))'
+                                        class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600 text-white"
+                                        title="Replace a grantee with this waiting-list applicant">
+                                    <span>Promote to Replace</span>
+                                </button>
+                            @elseif($isGranteeOrPamana)
+                                <button type="button"
+                                        onclick='window.handleReplaceGrantee(this, {{ $applicant->id }}, @json($fullName))'
+                                        class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900"
+                                        title="Replace this grantee/scholar">
+                                    <span>Replace Grantee</span>
+                                </button>
+                            @else
+                                <button type="button" disabled
+                                        class="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all bg-slate-100 text-slate-300 cursor-not-allowed">
+                                    <span>Replace Grantee</span>
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -730,6 +750,33 @@
     // mode = 'grantee' -> fixed user is grantee to be replaced, select waiting-list replacement awardee
     window.replacementModalMode = 'waiting';
     window.replacementFixedUserId = null;
+
+    window.handleReplaceGrantee = function(btn, id, name) {
+        if (!confirm('Are you sure you want to replace grantee ' + name + '? This action will archive their current record.')) {
+            return;
+        }
+        
+        // Show loading indicator
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = `
+            <svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Processing...</span>
+        `;
+        
+        // Open modal after a short delay to allow UI update
+        setTimeout(() => {
+            window.openReplacementModal('grantee', id, name);
+            
+            // Reset button
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }, 500);
+    };
 
     window.openReplacementModal = function(arg1, arg2 = null, arg3 = null) {
         // Backward compatible signature:
