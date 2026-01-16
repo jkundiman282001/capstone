@@ -19,35 +19,32 @@
             </div>
         </div>
 
-        <!-- Filters Card -->
+        <!-- Search Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                    Filters
-                </h3>
-                <a href="{{ route('staff.archives.index') }}" class="text-xs font-bold text-orange-600 hover:text-orange-800 px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-all">Clear All</a>
-            </div>
-            
-            <form method="GET" action="{{ route('staff.archives.index') }}">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="space-y-1.5 relative">
-                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Search Applicant</label>
-                        <div class="relative">
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ request('search') }}" 
-                                   placeholder="Search by name..." 
-                                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 pl-10 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
+            <form method="GET" action="{{ route('staff.archives.index') }}" class="w-full">
+                <div class="flex flex-col sm:flex-row gap-4 items-center">
+                    <div class="relative flex-grow w-full">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Search archived applicants by name..." 
+                               class="w-full rounded-xl border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 pl-11 py-3 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all placeholder:text-slate-400">
                     </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="w-full px-5 py-2.5 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all">Apply Filters</button>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                            Search
+                        </button>
+                        @if(request('search'))
+                            <a href="{{ route('staff.archives.index') }}" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 hover:text-orange-600 transition-all text-center flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                Clear
+                            </a>
+                        @endif
                     </div>
                 </div>
             </form>
