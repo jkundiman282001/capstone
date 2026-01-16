@@ -362,7 +362,7 @@
 <div class="max-w-7xl mx-auto px-6 space-y-8 pb-12">
     <!-- Top Bar: Type of Assistance -->
     @if(isset($basicInfo) && $basicInfo)
-        <div class="bg-orange-100/80 backdrop-blur-sm border-l-4 border-orange-500 text-orange-700 p-4 rounded-2xl shadow-sm transition-all hover:shadow-md">
+        <div class="bg-orange-100/80 backdrop-blur-sm border-l-4 border-orange-500 text-orange-700 p-4 rounded-2xl shadow-sm transition-all hover:shadow-md flex flex-col md:flex-row md:items-center gap-6">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-orange-200/50 rounded-xl flex items-center justify-center">
                     <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -377,7 +377,7 @@
             
             @if($isGrantee)
                 @if($isRenewed)
-                    <div class="flex items-center gap-3 border-l border-orange-200/50 pl-4">
+                    <div class="flex items-center gap-3 md:border-l md:border-orange-200/50 md:pl-6 border-t md:border-t-0 border-orange-200/50 pt-4 md:pt-0">
                         <div class="w-10 h-10 bg-green-200/50 rounded-xl flex items-center justify-center">
                             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -394,7 +394,7 @@
                         </div>
                     </div>
                 @else
-                    <div class="flex items-center gap-3 border-l border-orange-200/50 pl-4">
+                    <div class="flex items-center gap-3 md:border-l md:border-orange-200/50 md:pl-6 border-t md:border-t-0 border-orange-200/50 pt-4 md:pt-0">
                         <div class="w-10 h-10 bg-orange-200/50 rounded-xl flex items-center justify-center">
                             <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10" />
