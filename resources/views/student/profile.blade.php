@@ -162,11 +162,30 @@
                     </div>
                     
                     <!-- Apply Button in Sidebar -->
+                    {{-- 
+                        Renew Scholarship Button Logic:
+                        1. If user is a grantee:
+                           - Check 'enable_renew_button' setting.
+                           - If enabled: Show "Renew Scholarship" button.
+                           - If disabled: Show "Renewal Disabled" message.
+                        2. If user is NOT a grantee:
+                           - Show standard "Apply for Scholarship" button.
+                    --}}
                     @if($isGrantee)
-                    <a href="{{ route('student.apply') }}" class="w-full btn bg-green-600 text-white hover:bg-green-700 rounded-xl py-3.5 font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group">
-                        <span>Renew Scholarship</span>
-                        <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
-                    </a>
+                        @if(isset($enableRenewButton) && $enableRenewButton)
+                        <a href="{{ route('student.apply') }}" class="w-full btn bg-green-600 text-white hover:bg-green-700 rounded-xl py-3.5 font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group">
+                            <span>Renew Scholarship</span>
+                            <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
+                        </a>
+                        @else
+                        <div class="w-full">
+                            <button disabled class="w-full btn bg-slate-100 text-slate-400 rounded-xl py-3.5 font-bold border border-slate-200 cursor-not-allowed flex items-center justify-center gap-2">
+                                <span>Renewal Disabled</span>
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            </button>
+                            <p class="text-xs text-center text-slate-400 mt-2 px-2">Scholarship renewal is currently not accepting applications.</p>
+                        </div>
+                        @endif
                     @else
                     <a href="{{ route('student.apply') }}" class="w-full btn bg-slate-900 text-white hover:bg-slate-800 rounded-xl py-3.5 font-bold shadow-lg shadow-slate-900/20 hover:shadow-slate-900/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group">
                         <span>Apply for Scholarship</span>

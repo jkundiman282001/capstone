@@ -24,6 +24,7 @@ class SettingsController extends Controller
     public function index()
     {
         $maxSlots = \App\Models\Setting::get('max_slots', 120);
+        $enableRenewButton = \App\Models\Setting::get('enable_renew_button', 1);
 
         // Get regular applicants (non-manual)
         $applicants = User::whereHas('basicInfo', function($query) {
@@ -45,16 +46,22 @@ class SettingsController extends Controller
         $municipalities = \App\Models\Address::query()->select('municipality')->distinct()->where('municipality', '!=', '')->orderBy('municipality')->pluck('municipality');
         $provinces = \App\Models\Address::query()->select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
 
-        return view('staff.settings', compact('maxSlots', 'applicants', 'manualApplicants', 'ethnicities', 'barangays', 'municipalities', 'provinces'));
+        return view('staff.settings', compact('maxSlots', 'enableRenewButton', 'applicants', 'manualApplicants', 'ethnicities', 'barangays', 'municipalities', 'provinces'));
     }
 
     public function update(Request $request)
     {
         $validated = $request->validate([
             'max_slots' => ['required', 'integer', 'min:1'],
+            'enable_renew_button' => ['nullable', 'string'],
         ]);
 
         Setting::set('max_slots', $validated['max_slots']);
+        
+        // Handle renew button toggle (checkbox)
+        // If checked, it will be in request (usually 'on'). If unchecked, it won't be in request.
+        $enableRenew = $request->has('enable_renew_button') ? 1 : 0;
+        Setting::set('enable_renew_button', $enableRenew);
 
         return redirect()->route('staff.settings')->with('success', 'Settings updated successfully!');
     }

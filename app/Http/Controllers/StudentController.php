@@ -762,7 +762,9 @@ class StudentController extends Controller
         $currentGWA = $basicInfo ? ($basicInfo->gpa ?? null) : null;
         $grantStatus = $basicInfo ? ($basicInfo->grant_status ?? null) : null;
 
-        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGWA', 'grantStatus'));
+        $enableRenewButton = \App\Models\Setting::get('enable_renew_button', 1);
+
+        return view('student.profile', compact('student', 'applicationStatus', 'rejectionReason', 'currentGWA', 'grantStatus', 'enableRenewButton'));
     }
 
     public function performance(Request $request)

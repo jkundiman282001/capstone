@@ -88,6 +88,47 @@
                     </div>
                 </div>
 
+                <!-- Renew Button Setting -->
+                <!--
+                    Renew Button Setting
+                    Allows admins to enable/disable the "Renew Scholarship" button for grantees.
+                    - Checkbox: Toggles the 'enable_renew_button' setting.
+                    - Visual Feedback: Shows a warning message when disabled.
+                -->
+                <div class="border-b border-slate-200 pb-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <!-- Refresh Icon -->
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-black text-slate-900 text-xl">Scholarship Renewal</h2>
+                            <p class="text-sm text-slate-500 font-medium">Control the availability of the scholarship renewal button</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="enable_renew_button" class="sr-only peer" {{ $enableRenewButton ? 'checked' : '' }}>
+                            <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                            <span class="ml-3 text-sm font-medium text-slate-700">Enable Renewal Button</span>
+                        </label>
+                        <p class="mt-2 text-xs text-slate-500">When disabled, the "Renew Scholarship" button will be hidden for grantees, and they won't be able to access the renewal application.</p>
+                        
+                        <!-- Visual Feedback -->
+                        @if(!$enableRenewButton)
+                            <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+                                <svg class="w-5 h-5 text-amber-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <p class="text-sm text-amber-700">The renewal feature is currently <strong>disabled</strong>. Students will not see the renewal option.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="flex items-center justify-end gap-4 pt-4">
                     <a href="{{ route('staff.dashboard') }}" class="px-6 py-3 rounded-xl border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-all">
