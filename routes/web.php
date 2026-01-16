@@ -212,6 +212,10 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::post('/staff/waiting-list/update', [StaffDashboardController::class, 'updateWaitingList'])->name('staff.waiting-list.update');
     Route::post('/staff/grantees/update-grants', [StaffDashboardController::class, 'updateGrants'])->name('staff.grantees.update-grants');
 
+    // Archive Routes
+    Route::get('/staff/archives', [StaffDashboardController::class, 'archives'])->name('staff.archives.index');
+    Route::get('/staff/archives/{archive}', [StaffDashboardController::class, 'viewArchive'])->name('staff.archives.show');
+
     // Announcements routes
     Route::get('/staff/announcements', [StaffDashboardController::class, 'announcements'])->name('staff.announcements.index');
     Route::post('/staff/announcements', [StaffDashboardController::class, 'storeAnnouncement'])->name('staff.announcements.store');

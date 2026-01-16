@@ -312,6 +312,12 @@
                                 <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.announcements.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-blue-500' }} transition-colors"></div>
                             </div>
                         </a>
+                        <a href="{{ route('staff.archives.index') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.archives.*') ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold shadow-xl shadow-slate-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 border-2 border-slate-200 hover:border-slate-300 font-semibold text-slate-700 hover:text-slate-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm tracking-wide">Archives</span>
+                                <div class="w-2 h-2 rounded-full {{ request()->routeIs('staff.archives.*') ? 'bg-white/50 group-hover:bg-white' : 'bg-slate-300 group-hover:bg-slate-500' }} transition-colors"></div>
+                            </div>
+                        </a>
                     </div>
                 </section>
 

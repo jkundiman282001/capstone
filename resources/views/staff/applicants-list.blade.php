@@ -770,10 +770,10 @@
             if (selectLabelEl) selectLabelEl.textContent = 'Replacement awardee (Waiting List)';
             if (selectHelpEl) selectHelpEl.textContent = 'Select the waiting-list applicant who will replace this grantee.';
         } else {
-            if (subtitleEl) subtitleEl.textContent = 'Select the grantee/awardee to be replaced, and enter a reason.';
+            if (subtitleEl) subtitleEl.textContent = 'Select the grantee or Pamana scholar to be replaced, and enter a reason.';
             if (fixedLabelEl) fixedLabelEl.textContent = 'Replacement awardee (Waiting List):';
-            if (selectLabelEl) selectLabelEl.textContent = 'Replaced Grantee/Awardee';
-            if (selectHelpEl) selectHelpEl.textContent = 'Select the grantee/awardee that will be replaced.';
+            if (selectLabelEl) selectLabelEl.textContent = 'Replaced Grantee/Pamana';
+            if (selectHelpEl) selectHelpEl.textContent = 'Select the grantee or Pamana scholar that will be replaced.';
         }
 
         if (fixedNameEl) {

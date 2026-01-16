@@ -20,6 +20,7 @@ use App\Models\SchoolPref;
 use App\Models\Staff;
 use App\Models\TransactionHistory;
 use App\Models\User;
+use App\Models\ApplicantArchive;
 use App\Notifications\AnnouncementNotification;
 use App\Notifications\ApplicationStatusUpdated;
 use App\Notifications\DocumentStatusUpdated;
@@ -3014,7 +3015,10 @@ class StaffDashboardController extends Controller
         $grantees = User::with(['basicInfo'])
             ->whereHas('basicInfo', function ($q) {
                 $q->where('application_status', 'validated')
-                    ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'");
+                    ->where(function ($sq) {
+                        $sq->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+                           ->orWhereRaw("LOWER(TRIM(grant_status)) = 'pamana'");
+                    });
             })
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -3024,10 +3028,11 @@ class StaffDashboardController extends Controller
             'success' => true,
             'grantees' => $grantees->map(function ($u) {
                 $name = trim(($u->first_name ?? '').' '.($u->middle_name ?? '').' '.($u->last_name ?? ''));
+                $status = ucfirst($u->basicInfo->grant_status ?? '');
 
                 return [
                     'user_id' => $u->id,
-                    'name' => $name,
+                    'name' => "{$name} ({$status})",
                 ];
             })->values(),
         ]);
@@ -3093,32 +3098,56 @@ class StaffDashboardController extends Controller
                     ];
                 }
 
-                // Enforce: replaced must be a validated grantee (so this is a termination)
-                $replacedUser = User::with('basicInfo')->findOrFail($validated['replaced_user_id']);
+                // Enforce: replaced must be a validated grantee OR pamana (so this is a termination)
+                // Load all relationships for archiving
+                $replacedUser = User::with([
+                    'basicInfo.fullAddress.address',
+                    'basicInfo.fullAddress.mailingAddress',
+                    'basicInfo.fullAddress.permanentAddress',
+                    'basicInfo.fullAddress.origin',
+                    'basicInfo.education',
+                    'basicInfo.family',
+                    'basicInfo.siblings',
+                    'basicInfo.schoolPref',
+                    'documents',
+                    'ethno'
+                ])->findOrFail($validated['replaced_user_id']);
+
                 $replacedBasic = $replacedUser->basicInfo;
+                $grantStatus = strtolower(trim((string) ($replacedBasic->grant_status ?? '')));
+                
                 if (
                     ! $replacedBasic ||
                     strtolower(trim((string) ($replacedBasic->application_status ?? ''))) !== 'validated' ||
-                    strtolower(trim((string) ($replacedBasic->grant_status ?? ''))) !== 'grantee'
+                    !in_array($grantStatus, ['grantee', 'pamana'])
                 ) {
                     return [
                         'ok' => false,
                         'status' => 400,
-                        'message' => 'Selected replaced applicant must be a validated grantee.',
+                        'message' => 'Selected replaced applicant must be a validated grantee or pamana scholar.',
                     ];
                 }
 
-                // 1) Terminate the replaced grantee (application_status -> rejected, keep grant_status=grantee to mark as terminated)
+                // 1) Archive the applicant data
+                $archiveData = $replacedUser->toArray();
+                $archive = ApplicantArchive::create([
+                    'user_id' => $replacedUser->id,
+                    'replacement_id' => null, // Will update after creating replacement
+                    'data' => $archiveData,
+                    'archived_by' => $staff ? $staff->id : null,
+                ]);
+
+                // 2) Terminate the replaced grantee (application_status -> rejected, keep grant_status to mark as terminated)
                 $replacedBasic->update([
                     'application_status' => 'rejected',
                     'application_rejection_reason' => trim($validated['replacement_reason']),
-                    // keep grant_status = 'grantee' to identify as terminated (per existing logic)
+                    // keep grant_status to identify as terminated (per existing logic)
                 ]);
 
                 // Notify terminated student
                 $replacedUser->notify(new ApplicationStatusUpdated('rejected', trim($validated['replacement_reason'])));
 
-                // 2) Promote the waiting applicant to grantee
+                // 3) Promote the waiting applicant to grantee
                 $promoteData = [
                     'grant_status' => 'grantee',
                     'application_rejection_reason' => null,
@@ -3140,7 +3169,7 @@ class StaffDashboardController extends Controller
                     'high'
                 ));
 
-                // 3) Record the replacement event
+                // 4) Record the replacement event
                 $replacement = Replacement::create([
                     'replacement_user_id' => $validated['replacement_user_id'],
                     'replaced_user_id' => $validated['replaced_user_id'],
@@ -3149,6 +3178,9 @@ class StaffDashboardController extends Controller
                     'school_year' => $validated['school_year'] ?? null,
                     'created_by_staff_id' => $staff ? $staff->id : null,
                 ]);
+
+                // 5) Link archive to replacement
+                $archive->update(['replacement_id' => $replacement->id]);
 
                 return [
                     'ok' => true,
@@ -3519,5 +3551,38 @@ class StaffDashboardController extends Controller
                 'message' => 'Failed to delete announcement: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Display the list of archived applicants.
+     */
+    public function archives(Request $request)
+    {
+        /** @var Staff $user */
+        $user = Auth::guard('staff')->user();
+        
+        $query = ApplicantArchive::with(['user', 'replacement', 'archiver'])
+            ->orderBy('archived_at', 'desc');
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('middle_name', 'like', "%{$search}%");
+            });
+        }
+
+        $archives = $query->paginate(20);
+
+        return view('staff.archives.index', compact('archives'));
+    }
+
+    /**
+     * Display the details of an archived applicant.
+     */
+    public function viewArchive(ApplicantArchive $archive)
+    {
+        return view('staff.archives.show', compact('archive'));
     }
 }
