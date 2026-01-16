@@ -3045,8 +3045,19 @@ class StaffDashboardController extends Controller
     {
         $waiting = User::with(['basicInfo'])
             ->whereHas('basicInfo', function ($q) {
-                $q->where('application_status', 'validated')
-                    ->whereRaw("LOWER(TRIM(grant_status)) = 'waiting'");
+                $q->where('application_status', 'validated');
+                // The user requested ALL validated applicants, not just those marked as 'waiting'
+                // But we should probably exclude current grantees to avoid replacing a grantee with another grantee?
+                // For now, I'll follow the request "all the applicants with a validated status" literally, 
+                // but usually, you want to exclude those who already have a grant.
+                // However, let's just show all validated applicants except the ones who are already grantees/pamana?
+                // If the user insists on "all", I will just filter by application_status = 'validated'.
+                // But to be safe and logical, I will exclude 'grantee' and 'pamana'.
+                $q->where(function($sq) {
+                     $sq->whereRaw("LOWER(TRIM(grant_status)) != 'grantee'")
+                        ->whereRaw("LOWER(TRIM(grant_status)) != 'pamana'")
+                        ->orWhereNull('grant_status');
+                });
             })
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -3056,10 +3067,11 @@ class StaffDashboardController extends Controller
             'success' => true,
             'waiting' => $waiting->map(function ($u) {
                 $name = trim(($u->first_name ?? '').' '.($u->middle_name ?? '').' '.($u->last_name ?? ''));
+                $status = ucfirst($u->basicInfo->grant_status ?? 'Pending');
 
                 return [
                     'user_id' => $u->id,
-                    'name' => $name,
+                    'name' => "{$name} ({$status})",
                 ];
             })->values(),
         ]);
@@ -3083,18 +3095,21 @@ class StaffDashboardController extends Controller
 
         try {
             $result = DB::transaction(function () use ($validated, $staff) {
-                // Enforce: replacement must come from waiting list (validated + waiting)
+                // Enforce: replacement must come from a validated applicant (validated + any status except grantee/pamana)
                 $replacementUser = User::with('basicInfo')->findOrFail($validated['replacement_user_id']);
                 $replacementBasic = $replacementUser->basicInfo;
+                
+                $replacementGrantStatus = strtolower(trim((string) ($replacementBasic->grant_status ?? '')));
+                
                 if (
                     ! $replacementBasic ||
                     strtolower(trim((string) ($replacementBasic->application_status ?? ''))) !== 'validated' ||
-                    strtolower(trim((string) ($replacementBasic->grant_status ?? ''))) !== 'waiting'
+                    in_array($replacementGrantStatus, ['grantee', 'pamana'])
                 ) {
                     return [
                         'ok' => false,
                         'status' => 400,
-                        'message' => 'Selected replacement must be a validated waiting list applicant.',
+                        'message' => 'Selected replacement must be a validated applicant (and not currently a grantee).',
                     ];
                 }
 
