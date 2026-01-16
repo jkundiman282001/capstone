@@ -104,7 +104,7 @@
                     <a href="{{ route('student.dashboard') }}" class="text-white hover:text-orange-400 transition-colors px-2 py-1">Home</a>
                     @auth
                         @php
-                            $hasApplied = \App\Models\BasicInfo::where('user_id', auth()->id())->exists();
+                            $hasApplied = \App\Models\BasicInfo::where('user_id', auth()->id())->whereNotNull('type_assist')->exists();
                         @endphp
                         
                         @if($hasApplied)
@@ -241,7 +241,7 @@
                     
                     @auth
                         @php
-                            $hasApplied = \App\Models\BasicInfo::where('user_id', auth()->id())->exists();
+                            $hasApplied = \App\Models\BasicInfo::where('user_id', auth()->id())->whereNotNull('type_assist')->exists();
                         @endphp
                         
                         @if($hasApplied)

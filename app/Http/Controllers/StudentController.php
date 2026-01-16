@@ -768,6 +768,17 @@ class StudentController extends Controller
     public function performance(Request $request)
     {
         $student = Auth::user(); // Get the authenticated user
+
+        // Security check: Ensure user has submitted an application
+        $hasSubmitted = \App\Models\BasicInfo::where('user_id', $student->id)
+            ->whereNotNull('type_assist')
+            ->exists();
+
+        if (! $hasSubmitted) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'You must submit your application before viewing this page.');
+        }
+
         $basicInfo = \App\Models\BasicInfo::where('user_id', $student->id)->first();
 
         // Acceptance chance calculation moved to view
