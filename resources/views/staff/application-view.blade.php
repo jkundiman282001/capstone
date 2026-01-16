@@ -478,11 +478,19 @@
                                                     <div class="min-w-0">
                                                         <h4 class="font-bold text-slate-900 text-sm">{{ $typeLabel }}</h4>
                                                         @if($doc)
-                                                            <p class="text-xs font-medium {{
+                                                            <div class="flex items-center gap-2 mt-1">
+                                                                <p class="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200" title="{{ $doc->filename }}">
+                                                                    {{ Str::limit($doc->filename, 25) }}
+                                                                </p>
+                                                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200 px-1.5 rounded bg-white">
+                                                                    {{ strtoupper(pathinfo($doc->filename, PATHINFO_EXTENSION)) }}
+                                                                </p>
+                                                            </div>
+                                                            <p class="text-xs font-medium mt-1 {{
                                                                 $status === 'approved' ? 'text-emerald-600' : 
                                                                 ($status === 'pending' ? 'text-amber-600' : 'text-red-600')
                                                             }}">
-                                                                {{ ucfirst($status) }} • {{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}
+                                                                {{ ucfirst($status) }} • <span title="{{ $doc->submitted_at ? $doc->submitted_at->format('M d, Y h:i A') : $doc->created_at->format('M d, Y h:i A') }}">{{ $doc->submitted_at ? $doc->submitted_at->diffForHumans() : $doc->created_at->diffForHumans() }}</span>
                                                             </p>
                                                         @else
                                                             <p class="text-xs text-slate-500 font-medium">Not submitted</p>
