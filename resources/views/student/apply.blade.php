@@ -792,20 +792,7 @@
                     <div class="text-xs text-slate-500">{{ $hasSubmitted ? 'Already submitted' : 'NCIP Educational Assistance' }}</div>
                 </button>
 
-                <!-- Renewal Application Card -->
-                @if($canRenew)
-                <button type="button" onclick="startRenewalApplication()" class="group text-left">
-                    <div class="aspect-[3/4] bg-white rounded-lg border border-slate-200 shadow-sm group-hover:border-blue-400 group-hover:shadow-md transition-all flex items-center justify-center mb-3 relative overflow-hidden">
-                        <div class="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="font-medium text-slate-900 text-sm group-hover:text-blue-700 transition-colors">Scholarship Renewal</div>
-                    <div class="text-xs text-slate-500">Renew your scholarship</div>
-                </button>
-                @endif
+
                     </div>
                     </div>
 
