@@ -11,7 +11,6 @@
     };
 
     $basicInfo = $data['basic_info'] ?? [];
-    $documents = collect($data['documents'] ?? []);
     
     // Address data
     $fullAddress = $basicInfo['full_address'] ?? [];
@@ -35,15 +34,6 @@
     
     // Ethno
     $ethno = $data['ethno'] ?? null;
-
-    $requiredTypes = [
-        'form' => 'Application Form',
-        'pic_2x2' => '2x2 Picture',
-        'brgy_cert' => 'Barangay Indigency',
-        'cor' => 'Cert. of Registration',
-        'grades' => 'Report Card / Grades',
-        'valid_id' => 'Valid ID'
-    ];
 @endphp
 
 <div class="min-h-screen bg-slate-50 p-6 md:p-8 font-sans">
@@ -153,17 +143,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Raw Data Toggle -->
-                <div x-data="{ showRaw: false }" class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                    <button @click="showRaw = !showRaw" class="flex items-center justify-between w-full text-sm font-bold text-slate-500 hover:text-slate-900">
-                        <span>Raw JSON Data</span>
-                        <svg class="w-4 h-4" :class="showRaw ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div x-show="showRaw" class="mt-4 overflow-hidden">
-                        <pre class="text-[10px] bg-slate-900 text-green-400 p-3 rounded-lg overflow-x-auto font-mono max-h-64">{{ json_encode($data, JSON_PRETTY_PRINT) }}</pre>
                     </div>
                 </div>
             </div>
@@ -314,71 +293,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Documents -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                        <h3 class="font-bold text-slate-900">Submitted Documents</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-slate-500 uppercase bg-slate-50/50 border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-3 font-bold">Document Type</th>
-                                    <th class="px-6 py-3 font-bold">Status</th>
-                                    <th class="px-6 py-3 font-bold">Submission Date</th>
-                                    <th class="px-6 py-3 font-bold text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @foreach($requiredTypes as $typeKey => $typeLabel)
-                                    @php
-                                        $doc = $documents->where('type', $typeKey)->first();
-                                        $status = $doc['status'] ?? 'missing';
-                                    @endphp
-                                    <tr class="hover:bg-slate-50/50 transition-colors">
-                                        <td class="px-6 py-3">
-                                            <span class="font-medium text-slate-900">{{ $typeLabel }}</span>
-                                        </td>
-                                        <td class="px-6 py-3">
-                                            @if($status === 'approved')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                                    Approved
-                                                </span>
-                                            @elseif($status === 'pending')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                                    Pending
-                                                </span>
-                                            @elseif($status === 'rejected')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    Rejected
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                                                    Missing
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-3 text-slate-600">
-                                            @if($doc)
-                                                {{ \Carbon\Carbon::parse($doc['created_at'])->format('M d, Y') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-3 text-right">
-                                            @if($doc)
-                                                <a href="{{ route('documents.view', $doc['id']) }}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-xs">
-                                                    View File
-                                                </a>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 
