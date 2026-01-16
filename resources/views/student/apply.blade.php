@@ -2087,13 +2087,50 @@
         if (form) {
             form.classList.remove('pointer-events-none');
             form.removeAttribute('onsubmit');
-            // Re-enable all form inputs except the other mode's GPA input
-            const inputs = form.querySelectorAll('input, select, textarea, button');
-            inputs.forEach(input => {
-                if (input.type !== 'hidden' && input.id !== 'clearDraftBtn') {
-                    input.disabled = false;
-                }
+            
+            // Disable ALL inputs first to prevent validation of hidden required fields
+            const allInputs = form.querySelectorAll('input, select, textarea, button');
+            allInputs.forEach(input => {
+                input.disabled = true;
             });
+            
+            // Enable Hidden Inputs (CSRF, is_renewal, etc.)
+            const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
+            hiddenInputs.forEach(input => input.disabled = false);
+            
+            // Enable Renewal Documents Inputs
+            const renewalDocs = document.getElementById('renewal-documents');
+            if (renewalDocs) {
+                const renewalInputs = renewalDocs.querySelectorAll('input, select, textarea, button');
+                renewalInputs.forEach(input => input.disabled = false);
+            }
+
+            // Enable Clear Draft Button
+            const clearDraftBtn = document.getElementById('clearDraftBtn');
+            if (clearDraftBtn) clearDraftBtn.disabled = false;
+            
+            // Enable and setup Submit Button
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                
+                // Add specific click handler for renewal submission
+                submitBtn.onclick = function(e) {
+                    if (window.isRenewal) {
+                        e.preventDefault();
+                        
+                        // Validate renewal documents
+                        if (validateStep(6)) {
+                            // Show loading state
+                            const originalContent = submitBtn.innerHTML;
+                            submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Submitting...';
+                            submitBtn.disabled = true;
+                            
+                            // Submit the form programmatically
+                            form.submit();
+                        }
+                    }
+                };
+            }
         }
         
         // Show renewal notice
@@ -2382,7 +2419,33 @@
             if (form) {
                 form.classList.remove('pointer-events-none');
                 form.removeAttribute('onsubmit');
-                // Re-enable all form inputs
+                
+                // Disable ALL inputs first
+                const allInputs = form.querySelectorAll('input, select, textarea, button');
+                allInputs.forEach(input => input.disabled = true);
+                
+                // Enable Hidden Inputs
+                const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
+                hiddenInputs.forEach(input => input.disabled = false);
+                
+                // Enable Renewal Documents Inputs
+                const renewalDocs = document.getElementById('renewal-documents');
+                if (renewalDocs) {
+                    const renewalInputs = renewalDocs.querySelectorAll('input, select, textarea, button');
+                    renewalInputs.forEach(input => input.disabled = false);
+                }
+                
+                // Enable Clear Draft Button
+                const clearDraftBtn = document.getElementById('clearDraftBtn');
+                if (clearDraftBtn) clearDraftBtn.disabled = false;
+                
+                // Enable Submit Button
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        } else {
+            // Re-enable all form inputs for regular application
+            const form = document.getElementById('applicationForm');
+            if (form) {
                 const inputs = form.querySelectorAll('input, select, textarea, button');
                 inputs.forEach(input => {
                     if (input.type !== 'hidden' && input.id !== 'clearDraftBtn') {
@@ -2390,7 +2453,7 @@
                     }
                 });
             }
-        } else {
+
             // Hide renewal documents, show regular documents
             const regularDocs = document.getElementById('regular-documents');
             const renewalDocs = document.getElementById('renewal-documents');
