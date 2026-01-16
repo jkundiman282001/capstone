@@ -75,6 +75,16 @@
         $statusLabel = 'Pending';
         $statusClasses = 'text-amber-700 bg-amber-50 border-amber-200';
     }
+
+    // Renewal Status Check
+    $renewalRequiredTypes = [
+        'certificate_of_enrollment' => 'Certificate of Enrollment',
+        'statement_of_account' => 'Statement of Account',
+        'gwa_previous_sem' => 'GWA of Previous Semester'
+    ];
+    $studentDocs = $student->documents ?? collect();
+    $approvedRenewalCount = $studentDocs->whereIn('type', array_keys($renewalRequiredTypes))->where('status', 'approved')->count();
+    $isRenewed = $approvedRenewalCount === count($renewalRequiredTypes);
 @endphp
 
 <div class="min-h-screen bg-[#f8fafc] pb-12 pt-20 relative overflow-hidden selection:bg-orange-100 selection:text-orange-900">
@@ -147,6 +157,36 @@
                             </span>
                         @endif
                         
+                        <!-- Renewal Status Badge -->
+                        @if($isGrantee)
+                            @if($isRenewed)
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-600 border border-green-100 shadow-sm flex items-center gap-1.5 group relative cursor-help">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                    Renewed
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center z-50">
+                                        All renewal documents have been approved. You are set for the next term.
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                                    </div>
+                                </span>
+                            @else
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm flex items-center gap-1.5 group relative cursor-help">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                    Pending Renewal
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center z-50">
+                                        Please submit all required renewal documents to maintain your scholarship.
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                                    </div>
+                                </span>
+                            @endif
+                        @endif
+
                         <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100 shadow-sm">IP Scholar</span>
                         @if($courseName !== 'Course not set')
                             <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-100 shadow-sm">{{ $courseName }}</span>

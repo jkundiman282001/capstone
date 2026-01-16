@@ -117,6 +117,14 @@
     }
     
     $chancePercentage = $acceptanceChance;
+
+    // Renewal Status Check
+    $approvedRenewalCount = 0;
+    $isRenewed = false;
+    if(isset($renewalRequiredTypes)) {
+        $approvedRenewalCount = $documents->whereIn('type', array_keys($renewalRequiredTypes))->where('status', 'approved')->count();
+        $isRenewed = $approvedRenewalCount === count($renewalRequiredTypes);
+    }
 @endphp
 
 <!-- Performance Dashboard -->
@@ -366,7 +374,47 @@
                     <p class="text-lg font-black tracking-tight">{{ $basicInfo->type_assist ? $basicInfo->type_assist : 'Not specified' }}</p>
                 </div>
             </div>
+            
+            @if($isGrantee)
+                @if($isRenewed)
+                    <div class="flex items-center gap-3 border-l border-orange-200/50 pl-4">
+                        <div class="w-10 h-10 bg-green-200/50 rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M22 4L12 14.01l-3-3" />
+                            </svg>
+                        </div>
+                        <div class="group relative cursor-help">
+                            <span class="text-sm font-bold uppercase tracking-wider opacity-70">Renewal Status</span>
+                            <p class="text-lg font-black tracking-tight text-green-700">Renewed</p>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] font-normal rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center z-50">
+                                All renewal documents have been approved. You are set for the next term.
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="flex items-center gap-3 border-l border-orange-200/50 pl-4">
+                        <div class="w-10 h-10 bg-orange-200/50 rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </div>
+                        <div class="group relative cursor-help">
+                            <span class="text-sm font-bold uppercase tracking-wider opacity-70">Renewal Status</span>
+                            <p class="text-lg font-black tracking-tight text-orange-700">Pending Renewal</p>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] font-normal rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center z-50">
+                                Please submit all required renewal documents to maintain your scholarship.
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endif
         </div>
+    </div>
     @endif
 
     <div class="flex flex-col lg:flex-row gap-8 items-start">
