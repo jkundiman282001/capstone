@@ -28,6 +28,10 @@ class DocumentController extends Controller
             'endorsement',
             'good_moral',
             'grades',
+            // Renewal Documents
+            'certificate_of_enrollment',
+            'statement_of_account',
+            'gwa_previous_sem',
         ];
         try {
             $request->validate([
