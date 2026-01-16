@@ -38,7 +38,7 @@
     </header>
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-80 bg-gradient-to-b from-slate-50 to-white shadow-2xl border-r border-slate-200 hidden md:block fixed md:static h-screen md:h-auto z-40 overflow-y-auto">
+        <aside id="sidebar" class="w-80 bg-gradient-to-b from-slate-50 to-white shadow-2xl border-r border-slate-200 hidden md:block fixed md:sticky top-0 h-screen z-40 overflow-y-auto">
             <nav class="flex flex-col h-full py-8 px-5 space-y-6">
                 <!-- Dashboard Section -->
                 <section>
