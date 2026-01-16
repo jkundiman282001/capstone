@@ -41,43 +41,6 @@
         <form action="{{ route('student.renew.submit') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
             @csrf
 
-            <!-- GWA Section -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-                <div class="px-8 py-6 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-blue-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-black text-slate-800">Academic Performance</h2>
-                            <p class="text-sm text-slate-500 font-medium">Update your General Weighted Average (GWA)</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-8">
-                    <label for="gpa" class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
-                        GWA of Previous Semester <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <input 
-                            type="number" 
-                            step="0.01" 
-                            min="0" 
-                            max="100" 
-                            name="gpa" 
-                            id="gpa" 
-                            value="{{ old('gpa', $existingApplication->gpa) }}" 
-                            class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-slate-800 placeholder-slate-400"
-                            placeholder="e.g. 85.50"
-                            required
-                        >
-                    </div>
-                    <p class="mt-2 text-xs text-slate-500">Please enter your GWA as reflected in your grades.</p>
-                </div>
-            </div>
-
             <!-- Documents Section -->
             <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
                 <div class="px-8 py-6 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-b border-orange-100">
