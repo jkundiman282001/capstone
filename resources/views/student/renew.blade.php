@@ -3,7 +3,7 @@
 @section('title', 'Scholarship Renewal - IP Scholar Portal')
 
 @section('content')
-<div class="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-[#f8fafc] pt-24 pb-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <div class="mb-10 text-center">
