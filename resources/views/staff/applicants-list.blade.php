@@ -1,6 +1,67 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+    /* Toast Notification */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        min-width: 320px;
+        max-width: 400px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        pointer-events: auto;
+        animation: slideInRight 0.3s ease-out;
+        border-left: 4px solid #22c55e;
+    }
+
+    .toast.success { border-left-color: #22c55e; }
+    .toast.error { border-left-color: #ef4444; }
+
+    .toast-icon {
+        flex-shrink: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .toast.success .toast-icon { background: #dcfce7; color: #16a34a; }
+    .toast.error .toast-icon { background: #fee2e2; color: #ef4444; }
+
+    .toast-content { flex: 1; }
+    .toast-title { font-weight: 600; font-size: 0.95rem; color: #0f172a; margin-bottom: 0.25rem; }
+    .toast-message { font-size: 0.875rem; color: #64748b; }
+
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .toast.hiding { animation: slideOutRight 0.3s ease-in forwards; }
+</style>
+@endpush
+
 @section('content')
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
 <div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-6 md:p-8 font-sans">
     
     <div class="max-w-[1600px] mx-auto">
@@ -893,6 +954,41 @@
         }
     };
 
+    // Toast notification function
+    window.showToast = function(title, message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const iconSvg = type === 'success' 
+            ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+
+        toast.innerHTML = `
+            <div class="toast-icon">
+                ${iconSvg}
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+        `;
+
+        container.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 5000);
+    };
+
     window.saveReplacement = async function() {
         const fixedUserId = window.replacementFixedUserId;
         const mode = window.replacementModalMode || 'waiting';
@@ -905,15 +1001,16 @@
 
         const reason = (reasonEl?.value || '').trim();
         if (!reason) {
-            alert('Please enter a reason for replacement.');
+            window.showToast('Validation Error', 'Please enter a reason for replacement.', 'error');
+            reasonEl.focus();
             return;
         }
 
         const selected = selectEl?.value || '';
         if (!selected) {
-            alert(mode === 'grantee'
+            window.showToast('Validation Error', mode === 'grantee'
                 ? 'Please select the waiting-list applicant who will replace this grantee.'
-                : 'Please select the grantee/awardee to be replaced.');
+                : 'Please select the grantee/awardee to be replaced.', 'error');
             return;
         }
         const pickedUserId = parseInt(selected, 10);
@@ -954,16 +1051,18 @@
 
             const data = await res.json();
             if (res.ok && data && data.success) {
-                alert(data.message || 'Replacement recorded.');
+                window.showToast('Success', data.message || 'Replacement recorded successfully.', 'success');
                 window.closeReplacementModal();
                 // Reload to reflect status changes (waiting applicant promoted; replaced grantee terminated)
-                window.location.reload();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } else {
-                alert('Failed to record replacement: ' + (data.message || 'Unknown error'));
+                window.showToast('Error', 'Failed to record replacement: ' + (data.message || 'Unknown error'), 'error');
             }
         } catch (e) {
             console.error(e);
-            alert('Failed to record replacement. Please try again.');
+            window.showToast('Error', 'Failed to record replacement. Please try again.', 'error');
         } finally {
             if (saveBtn) {
                 saveBtn.disabled = false;
