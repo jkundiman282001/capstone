@@ -115,6 +115,36 @@ class StudentController extends Controller
                 return redirect()->route('student.apply')
                     ->with('error', 'You are not eligible for scholarship renewal. Only validated grantees can renew their scholarship.');
             }
+
+            // Validation for renewal documents and GPA
+            $requiredDocs = ['certificate_of_enrollment', 'statement_of_account', 'gwa_previous_sem'];
+            $missingDocs = [];
+
+            foreach ($requiredDocs as $docType) {
+                $hasFile = $request->hasFile("documents.{$docType}");
+                $hasDbRecord = Document::where('user_id', $user->id)
+                    ->where('type', $docType)
+                    ->exists();
+
+                if (!$hasFile && !$hasDbRecord) {
+                    $readableName = ucwords(str_replace('_', ' ', $docType));
+                    $missingDocs[] = $readableName;
+                }
+            }
+
+            if (!empty($missingDocs)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Please upload the following required documents: ' . implode(', ', $missingDocs));
+            }
+
+            $request->validate([
+                'gpa' => 'required|numeric|min:75|max:100',
+            ], [
+                'gpa.required' => 'Please enter your GWA for the previous semester.',
+                'gpa.min' => 'GWA must be at least 75.',
+                'gpa.max' => 'GWA cannot exceed 100.',
+            ]);
         }
 
         $request->validate([
