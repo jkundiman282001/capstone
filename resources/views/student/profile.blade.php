@@ -162,10 +162,17 @@
                     </div>
                     
                     <!-- Apply Button in Sidebar -->
+                    @if($isGrantee)
+                    <a href="{{ route('student.apply') }}" class="w-full btn bg-green-600 text-white hover:bg-green-700 rounded-xl py-3.5 font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group">
+                        <span>Renew Scholarship</span>
+                        <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
+                    </a>
+                    @else
                     <a href="{{ route('student.apply') }}" class="w-full btn bg-slate-900 text-white hover:bg-slate-800 rounded-xl py-3.5 font-bold shadow-lg shadow-slate-900/20 hover:shadow-slate-900/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group">
                         <span>Apply for Scholarship</span>
                         <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                     </a>
+                    @endif
                 </div>
             </div>
 
