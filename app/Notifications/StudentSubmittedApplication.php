@@ -48,17 +48,9 @@ class StudentSubmittedApplication extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $type = 'application form';
-        // Check if student is a grantee (Renewal)
-        if ($this->student->basicInfo && strtolower(trim($this->student->basicInfo->grant_status ?? '')) === 'grantee') {
-            $type = 'renewal application';
-        }
-
         return [
-            'message' => 'Student '.$this->student->first_name.' '.$this->student->last_name.' has submitted their '.$type.'.',
+            'message' => 'Student '.$this->student->first_name.' '.$this->student->last_name.' has submitted their application form.',
             'student_id' => $this->student->id,
-            'title' => 'Application Submitted',
-            'type' => 'submission'
         ];
     }
 }

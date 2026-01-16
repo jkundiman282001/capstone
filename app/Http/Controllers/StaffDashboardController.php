@@ -652,17 +652,6 @@ class StaffDashboardController extends Controller
             'grades' => 'Incoming First Year College (Senior High School Grades), Ongoing college students latest copy of grades',
         ];
 
-        // Check if user is a grantee (Renewal Application)
-        $isGrantee = $basicInfo && strtolower(trim($basicInfo->grant_status ?? '')) === 'grantee';
-        
-        if ($isGrantee) {
-            $requiredTypes = [
-                'certificate_of_enrollment' => 'Certificate of Enrollment (Renewal)',
-                'statement_of_account' => 'Statement of Account (Renewal)',
-                'gwa_previous_sem' => 'GWA of Previous Semester (Renewal)',
-            ];
-        }
-
         // Calculate progress variables
         $totalRequired = count($requiredTypes);
         

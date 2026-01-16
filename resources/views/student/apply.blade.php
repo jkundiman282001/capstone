@@ -2489,48 +2489,17 @@
             const stepEl = document.getElementById('step-6');
             if (!stepEl) return true;
             
+            // Check if at least one renewal document is uploaded
             const renewalDocs = document.getElementById('renewal-documents');
             if (!renewalDocs) return true;
             
-            // Validate Documents
-            const docCards = renewalDocs.children;
-            let allDocsValid = true;
-            
-            for (let card of docCards) {
-                // Check if already uploaded (look for the "Uploaded" text or absence of file input)
-                // The uploaded view doesn't have a file input with name="documents[...]"
-                const fileInput = card.querySelector('input[type="file"]');
-                const isUploaded = !fileInput; // If no file input, it's already uploaded (based on view logic)
-                const isFileSelected = fileInput && fileInput.files && fileInput.files.length > 0;
-                
-                if (!isUploaded && !isFileSelected) {
-                    allDocsValid = false;
-                    // Highlight the card
-                    card.classList.add('border-red-500', 'bg-red-50');
-                    setTimeout(() => card.classList.remove('border-red-500', 'bg-red-50'), 2000);
+            const fileInputs = renewalDocs.querySelectorAll('.doc-file-input');
+            let hasFile = false;
+            fileInputs.forEach(input => {
+                if (input.files && input.files.length > 0) {
+                    hasFile = true;
                 }
-            }
-            
-            if (!allDocsValid) {
-                showToast('error', 'Missing Documents', 'Please upload all required renewal documents.');
-                return false;
-            }
-
-            // Validate GPA
-            const gpaInput = document.getElementById('gpa-input-renewal');
-            if (gpaInput) {
-                const gpa = parseFloat(gpaInput.value);
-                if (!gpaInput.value || isNaN(gpa) || gpa < 75 || gpa > 100) {
-                    gpaInput.classList.add('border-red-500', 'ring-2', 'ring-red-200');
-                    gpaInput.focus();
-                    showToast('error', 'Invalid GWA', 'Please enter a valid GWA between 75 and 100.');
-                    setTimeout(() => gpaInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200'), 3000);
-                    return false;
-                }
-            }
-            
-            return true;
-        }
+            });
             
             // Check for already uploaded documents
             const uploadedDocs = renewalDocs.querySelectorAll('a[href*="documents/view"]');
