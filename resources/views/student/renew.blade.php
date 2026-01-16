@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <div class="mb-8 text-center">
+        <div class="mb-10 text-center">
             <h1 class="text-3xl font-black text-slate-900 mb-2">Scholarship Renewal</h1>
             <p class="text-slate-500">Submit your documents to renew your scholarship grant.</p>
         </div>
