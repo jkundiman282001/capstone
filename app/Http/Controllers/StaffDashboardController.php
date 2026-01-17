@@ -58,7 +58,7 @@ class StaffDashboardController extends Controller
         $selectedEthno = $request->get('ethno');
 
         // Build query for users with geographic filtering
-        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno'])
+        $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
             ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
                 if ($selectedProvince) {
                     $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
@@ -138,6 +138,26 @@ class StaffDashboardController extends Controller
             ->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
             ->count();
         $slotsLeft = max(0, $maxSlots - $currentGrantees);
+
+        // Calculate Total Renewed: Grantees who have all renewal documents approved
+        $renewalRequiredTypes = [
+            'certificate_of_enrollment',
+            'statement_of_account',
+            'gwa_previous_sem'
+        ];
+        
+        $totalRenewed = $users->filter(function ($user) use ($renewalRequiredTypes) {
+            $isGrantee = optional($user->basicInfo)->grant_status && strtolower(trim($user->basicInfo->grant_status)) === 'grantee';
+            if (!$isGrantee) return false;
+
+            $approvedDocsCount = $user->documents
+                ->whereIn('type', $renewalRequiredTypes)
+                ->where('status', 'approved')
+                ->unique('type')
+                ->count();
+            
+            return $approvedDocsCount === count($renewalRequiredTypes);
+        })->count();
 
         // Keep old variable names for backward compatibility but assign new values
         $activeScholars = $totalGraduates; // Total Graduates
@@ -436,7 +456,7 @@ class StaffDashboardController extends Controller
 
         return view('staff.dashboard', compact(
             'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
-            'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars',
+            'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars', 'totalRenewed',
             'alerts', 'barChartData', 'statusChartData', 'ipChartData',
             'pendingRequirements', 'notifications',
             'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',

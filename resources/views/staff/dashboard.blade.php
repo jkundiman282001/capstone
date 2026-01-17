@@ -203,9 +203,10 @@
     </div>
 
     <!-- Metrics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <x-metric-card title="Total Applicants" :value="$totalScholars" icon="users" />
         <x-metric-card title="Total Grantees" :value="$totalGrantees" icon="user-plus" />
+        <x-metric-card title="Total Renewed" :value="$totalRenewed" icon="refresh-cw" />
         <x-metric-card title="Total Graduates" :value="$activeScholars" icon="user-check" />
         <x-metric-card title="Slots left" :value="$inactiveScholars" icon="user-x" />
     </div>
