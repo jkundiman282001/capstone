@@ -472,6 +472,7 @@ class ApplicantPriorityService
     public function getPrioritizedApplicants(): array
     {
         // Get all applicants who have submitted applications
+        // Exclude applicants who are already grantees or Pamana scholars
         $applicants = User::with([
             'basicInfo',
             'ethno',
@@ -480,7 +481,16 @@ class ApplicantPriorityService
             'documents',
         ])
             ->whereHas('basicInfo', function ($query) {
-                $query->whereNotNull('type_assist');
+                $query->whereNotNull('type_assist')
+                      ->where(function($q) {
+                          $q->whereRaw("LOWER(TRIM(grant_status)) != 'grantee'")
+                            ->whereRaw("LOWER(TRIM(grant_status)) != 'pamana'")
+                            ->orWhereNull('grant_status');
+                      })
+                      ->where(function($q) {
+                          $q->where('type_assist', '!=', 'Pamana')
+                            ->orWhereNull('type_assist');
+                      });
             })
             ->get();
 
@@ -489,6 +499,14 @@ class ApplicantPriorityService
         foreach ($applicants as $applicant) {
             $basicInfo = $applicant->basicInfo;
             if (! $basicInfo) {
+                continue;
+            }
+
+            // Double check exclusion (safety check)
+            $grantStatus = strtolower(trim($basicInfo->grant_status ?? ''));
+            $typeAssist = strtolower(trim($basicInfo->type_assist ?? ''));
+            
+            if ($grantStatus === 'grantee' || $grantStatus === 'pamana' || $typeAssist === 'pamana') {
                 continue;
             }
 
