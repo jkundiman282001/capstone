@@ -208,6 +208,7 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/waiting-list/report', [StaffDashboardController::class, 'waitingListReport'])->name('staff.waiting-list.report');
     Route::get('/staff/disqualified/report', [StaffDashboardController::class, 'disqualifiedApplicantsReport'])->name('staff.disqualified.report');
     Route::get('/staff/replacements/report', [StaffDashboardController::class, 'replacementsReport'])->name('staff.replacements.report');
+    Route::get('/staff/monitoring/report', [StaffDashboardController::class, 'monitoringReport'])->name('staff.monitoring.report');
     Route::get('/staff/replacements/grantees', [StaffDashboardController::class, 'replacementGrantees'])->name('staff.replacements.grantees');
     Route::get('/staff/replacements/waiting', [StaffDashboardController::class, 'replacementWaiting'])->name('staff.replacements.waiting');
     Route::post('/staff/replacements', [StaffDashboardController::class, 'storeReplacement'])->name('staff.replacements.store');

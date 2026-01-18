@@ -546,6 +546,139 @@ class StaffDashboardController extends Controller
         return view('staff.reports.index', compact('activeTab'));
     }
 
+    /**
+     * Get Monitoring Tool report data
+     */
+    public function monitoringReport(Request $request)
+    {
+        try {
+            /** @var Staff $user */
+            $user = Auth::guard('staff')->user();
+
+            // Get filters from request
+            $selectedProvince = $request->get('province');
+            $selectedMunicipality = $request->get('municipality');
+            $selectedBarangay = $request->get('barangay');
+            $selectedEthno = $request->get('ethno');
+
+            // Build query for active scholars (Grantees and Pamana)
+            $applicantsQuery = User::with([
+                'basicInfo.fullAddress.address',
+                'ethno',
+                'basicInfo.schoolPref',
+                'basicInfo.education'
+            ])
+            ->whereHas('basicInfo', function ($query) use ($selectedProvince, $selectedMunicipality, $selectedBarangay) {
+                // Filter for Grantee or Pamana status
+                $query->where(function($q) {
+                    $q->whereRaw("LOWER(TRIM(grant_status)) = 'grantee'")
+                      ->orWhereRaw("LOWER(TRIM(grant_status)) = 'pamana'");
+                });
+
+                // Geographic filters
+                if ($selectedProvince) {
+                    $query->whereHas('fullAddress', function ($q) use ($selectedProvince) {
+                        $q->whereHas('address', function ($aq) use ($selectedProvince) {
+                            $aq->where('province', $selectedProvince);
+                        });
+                    });
+                }
+                if ($selectedMunicipality) {
+                    $query->whereHas('fullAddress', function ($q) use ($selectedMunicipality) {
+                        $q->whereHas('address', function ($aq) use ($selectedMunicipality) {
+                            $aq->where('municipality', $selectedMunicipality);
+                        });
+                    });
+                }
+                if ($selectedBarangay) {
+                    $query->whereHas('fullAddress', function ($q) use ($selectedBarangay) {
+                        $q->whereHas('address', function ($aq) use ($selectedBarangay) {
+                            $aq->where('barangay', $selectedBarangay);
+                        });
+                    });
+                }
+            });
+
+            if ($selectedEthno) {
+                $applicantsQuery->whereHas('ethno', function ($query) use ($selectedEthno) {
+                    $query->where('ethnicity', $selectedEthno);
+                });
+            }
+
+            $applicants = $applicantsQuery->get();
+
+            $monitoringData = $applicants->map(function ($applicant, $index) {
+                $basicInfo = $applicant->basicInfo;
+                $address = $basicInfo && $basicInfo->fullAddress ? $basicInfo->fullAddress->address : null;
+
+                // Name
+                $fullName = strtoupper($applicant->last_name . ', ' . $applicant->first_name . ' ' . ($applicant->middle_name ? $applicant->middle_name[0] . '.' : ''));
+
+                // Age
+                $age = $basicInfo && $basicInfo->birthdate ? Carbon::parse($basicInfo->birthdate)->age : '';
+
+                // Gender
+                $gender = $basicInfo ? ($basicInfo->gender ?? '') : '';
+                $isFemale = strtolower($gender) === 'female';
+                $isMale = strtolower($gender) === 'male';
+
+                // School
+                $schoolPref = $basicInfo ? $basicInfo->schoolPref : null;
+                $schoolName = $schoolPref ? ($schoolPref->school_name ?? '') : '';
+                
+                // Course
+                $course = $schoolPref ? ($schoolPref->degree ?? '') : '';
+
+                // Year Level
+                $yearLevel = $basicInfo ? ($basicInfo->current_year_level ?? '') : '';
+
+                // Status logic
+                $status = strtolower($basicInfo->application_status ?? '');
+                $remarks = strtolower($basicInfo->disqualification_remarks ?? '');
+                $grantStatus = strtolower($basicInfo->grant_status ?? '');
+
+                // Simple keyword matching for status checkboxes
+                $isDropout = str_contains($remarks, 'drop') || str_contains($status, 'drop');
+                $isTerminated = str_contains($remarks, 'terminat') || str_contains($status, 'terminat');
+                $isGraduate = str_contains($remarks, 'graduat') || str_contains($status, 'graduat');
+                // Default to Ongoing if they are a grantee/pamana and not in other states
+                $isOngoing = !$isDropout && !$isTerminated && !$isGraduate && ($grantStatus === 'grantee' || $grantStatus === 'pamana');
+
+                return [
+                    'no' => $index + 1,
+                    'category_name' => $fullName, // Mapping "Category Name" to Student Name
+                    'age' => $age,
+                    'gender' => $gender,
+                    'is_female' => $isFemale,
+                    'is_male' => $isMale,
+                    'course' => $course,
+                    'school' => $schoolName,
+                    'year_level' => $yearLevel,
+                    'is_dropout' => $isDropout,
+                    'is_terminated' => $isTerminated,
+                    'is_graduate' => $isGraduate,
+                    'is_ongoing' => $isOngoing,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'monitoring' => $monitoringData,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error in monitoringReport', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading monitoring report: '.$e->getMessage(),
+                'monitoring' => [],
+            ], 500);
+        }
+    }
+
     public function notifications(Request $request)
     {
         /** @var Staff $user */

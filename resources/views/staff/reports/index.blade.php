@@ -220,6 +220,29 @@
                             </thead>
                             <tbody id="replacementsTableBody" class="bg-white"></tbody>
                         </table>
+
+                        <!-- Monitoring Tool Report Table -->
+                        <table id="monitoringTable" class="hidden w-full border-collapse" style="min-width: 1200px;">
+                            <thead class="bg-gradient-to-r from-orange-600 to-amber-600 sticky top-0 z-10">
+                                <tr>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">No.</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Category Name</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Age</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Gender</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Courses</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">School</th>
+                                    <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Year Level</th>
+                                    <th colspan="4" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
+                                </tr>
+                                <tr>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Drop-out</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Terminated</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Graduate</th>
+                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Ongoing</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monitoringTableBody" class="bg-white"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -251,6 +274,9 @@
         grantees: [],
         pamana: [],
         waiting: [],
+        disqualified: [],
+        replacements: [],
+        monitoring: [],
         waitingDirty: false,
     };
 
@@ -288,6 +314,7 @@
         document.getElementById('waitingTable')?.classList.toggle('hidden', tab !== 'waiting');
         document.getElementById('disqualifiedTable')?.classList.toggle('hidden', tab !== 'disqualified');
         document.getElementById('replacementsTable')?.classList.toggle('hidden', tab !== 'replacements');
+        document.getElementById('monitoringTable')?.classList.toggle('hidden', tab !== 'monitoring');
 
         // meta
         const exportBtn = document.getElementById('exportBtn');
@@ -308,6 +335,10 @@
             document.getElementById('reportTitle').textContent = 'Pamana Report';
             document.getElementById('reportSubtitle').textContent = 'Grid view of Pamana scholarship applicants';
             if (exportBtnText) exportBtnText.textContent = 'Export to CSV';
+        } else if (tab === 'monitoring') {
+            document.getElementById('reportTitle').textContent = 'MONITORING TOOL';
+            document.getElementById('reportSubtitle').textContent = 'Educational Assistance Program/Merit-based Scholarship Program';
+            if (exportBtnText) exportBtnText.textContent = 'Export to Excel';
         } else {
             if (tab === 'waiting') {
                 document.getElementById('reportTitle').textContent = 'Master List of Wait Listed Applicants (MLWLA)';
@@ -756,6 +787,55 @@
         }).join('');
     }
 
+    function renderMonitoringTable(rows) {
+        const tableBody = document.getElementById('monitoringTableBody');
+        const countEl = document.getElementById('reportCount');
+        if (!tableBody) return;
+        if (countEl) countEl.textContent = `Total Active Scholars: ${rows.length}`;
+
+        if (!rows.length) {
+            updateReportSummary({});
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="border border-slate-600 px-4 py-8 text-center text-slate-500">
+                        No active scholars found for monitoring
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        // Calculate stats
+        const stats = {
+            'Total Active': rows.length,
+            'Ongoing': rows.filter(r => r.is_ongoing).length,
+            'Graduated': rows.filter(r => r.is_graduate).length,
+            'Terminated': rows.filter(r => r.is_terminated).length,
+            'Drop-out': rows.filter(r => r.is_dropout).length
+        };
+        updateReportSummary(stats);
+
+        tableBody.innerHTML = rows.map((row, index) => {
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+            
+            return `
+                <tr class="${rowClass}">
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.no || (index + 1)}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800">${row.category_name || ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.age || ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.gender || ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800">${row.course || ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800">${row.school || ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.year_level || ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_dropout ? '✓' : ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_terminated ? '✓' : ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_graduate ? '✓' : ''}</td>
+                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_ongoing ? '✓' : ''}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
     window.markWaitingAsChanged = markWaitingAsChanged;
 
     // ===== data loaders =====
@@ -775,6 +855,12 @@
                 const data = await res.json();
                 state.pamana = (data && data.success && Array.isArray(data.pamana)) ? data.pamana : [];
                 renderPamanaTable(state.pamana);
+            } else if (state.active === 'monitoring') {
+                const url = `{{ route('staff.monitoring.report') }}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                state.monitoring = (data && data.success && Array.isArray(data.monitoring)) ? data.monitoring : [];
+                renderMonitoringTable(state.monitoring);
             } else if (state.active === 'waiting') {
                 const url = `{{ route('staff.waiting-list.report') }}`;
                 const res = await fetch(url);
@@ -1230,6 +1316,40 @@
         document.body.removeChild(link);
     }
 
+    function exportMonitoringExcel() {
+        if (!state.monitoring.length) {
+            alert('No data to export');
+            return;
+        }
+
+        const table = document.getElementById('monitoringTable');
+        const html = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:x="urn:schemas-microsoft-com:office:excel"
+                  xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    table { border-collapse: collapse; width: 100%; }
+                    th, td { border: 1px solid black; padding: 5px; mso-number-format:"\\@"; }
+                </style>
+            </head>
+            <body>${table.outerHTML}</body>
+            </html>
+        `;
+
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.download = `Monitoring_Report_${dateStr}.xls`;
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     // ===== init =====
     document.addEventListener('DOMContentLoaded', function() {
         // buttons
@@ -1237,6 +1357,7 @@
             if (state.active === 'grantees') exportGranteesExcel();
             else if (state.active === 'pamana') exportPamanaToCSV();
             else if (state.active === 'waiting') exportWaitingToCSV();
+            else if (state.active === 'monitoring') exportMonitoringExcel();
             else exportReplacementsExcel();
         });
         document.getElementById('saveWaitingBtn')?.addEventListener('click', saveWaitingChanges);
