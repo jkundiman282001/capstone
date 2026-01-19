@@ -134,14 +134,26 @@ class StudentController extends Controller
         $request->validate([
             'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif|max:10240',
             'gpa' => 'nullable|numeric|min:0|max:100',
+            'target_year_level' => 'required|integer|min:1|max:5',
         ]);
 
         try {
             DB::beginTransaction();
 
+            $updateData = [];
+            
             // Update GWA if provided
             if ($request->has('gpa') && $request->gpa) {
-                $existingApplication->update(['gpa' => $request->gpa]);
+                $updateData['gpa'] = $request->gpa;
+            }
+
+            // Update Target Year Level
+            if ($request->has('target_year_level')) {
+                $updateData['target_year_level'] = $request->target_year_level;
+            }
+
+            if (!empty($updateData)) {
+                $existingApplication->update($updateData);
             }
 
             // Handle document uploads

@@ -243,7 +243,91 @@
                             </thead>
                             <tbody id="monitoringTableBody" class="bg-white"></tbody>
                         </table>
-                    </div>
+
+                        <!-- Actual Payments Report (Form C) -->
+                        <div id="paymentsContainer" class="hidden min-w-[1000px] bg-white p-4">
+                            <!-- Form Header -->
+                            <div class="mb-6 text-center">
+                                <p class="font-bold text-slate-700 uppercase tracking-wide">National Commission on Indigenous Peoples</p>
+                                <div class="bg-orange-500 text-white font-bold py-1.5 px-4 inline-block mt-2 mb-3 w-full shadow-sm">
+                                    ACTUAL PAYMENTS OF GRANTEES/AWARDEES
+                                </div>
+                                <div class="flex justify-center gap-16 text-sm font-semibold text-slate-700 mt-2">
+                                    <div class="flex items-end gap-2">
+                                        <span>sy</span>
+                                        <span class="border-b border-slate-800 w-32"></span>
+                                    </div>
+                                    <div class="flex items-end gap-2">
+                                        <span>As of</span>
+                                        <span class="border-b border-slate-800 w-32"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Details -->
+                            <div class="mb-6 flex justify-between items-end text-sm font-semibold text-slate-700">
+                                <div class="space-y-2 flex-1 max-w-lg">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-40">Region</span>
+                                        <span class="border-b border-slate-400 flex-1 h-5"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-40">Ethnographic Region</span>
+                                        <span class="border-b border-slate-400 flex-1 h-5"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-40">Ancestral Domain</span>
+                                        <span class="border-b border-slate-400 flex-1 h-5"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-40">Province/District</span>
+                                        <span class="border-b border-slate-400 flex-1 h-5"></span>
+                                    </div>
+                                </div>
+                                <div class="text-right pb-1">
+                                    <span class="font-bold text-slate-900">FORM C</span>
+                                </div>
+                            </div>
+
+                            <table id="paymentsTable" class="w-full border-collapse border border-slate-800">
+                                <thead class="bg-white">
+                                    <tr>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase w-1/6">Categories</th>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase w-1/4">Name</th>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase">Date Received (Payroll)</th>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase">Date Deposited(ATM)</th>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase">Other Mode (Specify)</th>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase">Amount</th>
+                                        <th class="border-2 border-slate-800 px-2 py-2 text-center text-xs font-bold uppercase">DV No.</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white">
+                                    @foreach(['EAP', 'K-6', 'JHS', 'SHS', 'Vocational', 'College', 'Medicine', 'Law', "Master's Degree", 'Doctorate Degree', 'MBS', 'PAMANA-EAP'] as $cat)
+                                    <tr>
+                                        <td class="border border-slate-800 px-2 py-3 text-xs font-bold text-slate-800">{{ $cat }}</td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                    </tr>
+                                    @endforeach
+                                    <!-- Extra empty rows -->
+                                    @for($i=0; $i<3; $i++)
+                                    <tr>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                        <td class="border border-slate-800 px-2 py-3"></td>
+                                    </tr>
+                                    @endfor
+                                </tbody>
+                            </table>
+                        </div>
                 </div>
             </section>
         </div>
@@ -277,6 +361,7 @@
         disqualified: [],
         replacements: [],
         monitoring: [],
+        payments: [],
         waitingDirty: false,
     };
 
@@ -315,6 +400,7 @@
         document.getElementById('disqualifiedTable')?.classList.toggle('hidden', tab !== 'disqualified');
         document.getElementById('replacementsTable')?.classList.toggle('hidden', tab !== 'replacements');
         document.getElementById('monitoringTable')?.classList.toggle('hidden', tab !== 'monitoring');
+        document.getElementById('paymentsContainer')?.classList.toggle('hidden', tab !== 'payments');
 
         // meta
         const exportBtn = document.getElementById('exportBtn');
@@ -338,6 +424,10 @@
         } else if (tab === 'monitoring') {
             document.getElementById('reportTitle').textContent = 'MONITORING TOOL';
             document.getElementById('reportSubtitle').textContent = 'Educational Assistance Program/Merit-based Scholarship Program';
+            if (exportBtnText) exportBtnText.textContent = 'Export to Excel';
+        } else if (tab === 'payments') {
+            document.getElementById('reportTitle').textContent = 'ACTUAL PAYMENTS OF GRANTEES/AWARDEES';
+            document.getElementById('reportSubtitle').textContent = 'National Commission on Indigenous Peoples';
             if (exportBtnText) exportBtnText.textContent = 'Export to Excel';
         } else {
             if (tab === 'waiting') {
@@ -855,6 +945,8 @@
                 const data = await res.json();
                 state.pamana = (data && data.success && Array.isArray(data.pamana)) ? data.pamana : [];
                 renderPamanaTable(state.pamana);
+            } else if (state.active === 'payments') {
+                updateReportSummary({});
             } else if (state.active === 'monitoring') {
                 const url = `{{ route('staff.monitoring.report') }}`;
                 const res = await fetch(url);
@@ -1350,6 +1442,40 @@
         document.body.removeChild(link);
     }
 
+    function exportPaymentsExcel() {
+        const container = document.getElementById('paymentsContainer');
+        if (!container) return;
+
+        const html = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:x="urn:schemas-microsoft-com:office:excel"
+                  xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    table { border-collapse: collapse; width: 100%; }
+                    th, td { border: 1px solid black; padding: 5px; mso-number-format:"\\@"; }
+                    .header { text-align: center; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                ${container.innerHTML}
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.download = `Actual_Payments_Report_${dateStr}.xls`;
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     // ===== init =====
     document.addEventListener('DOMContentLoaded', function() {
         // buttons
@@ -1358,6 +1484,7 @@
             else if (state.active === 'pamana') exportPamanaToCSV();
             else if (state.active === 'waiting') exportWaitingToCSV();
             else if (state.active === 'monitoring') exportMonitoringExcel();
+            else if (state.active === 'payments') exportPaymentsExcel();
             else exportReplacementsExcel();
         });
         document.getElementById('saveWaitingBtn')?.addEventListener('click', saveWaitingChanges);

@@ -310,6 +310,12 @@
                                         <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'monitoring' ? 'bg-white/20 text-white' : 'bg-orange-50 text-orange-700' }}"></span>
                                     </div>
                                 </a>
+                                <a href="{{ route('staff.reports.index', ['tab' => 'payments']) }}" class="group block px-4 py-2.5 rounded-xl {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'payments' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-indigo-50 hover:to-violet-50 border-2 border-slate-200 hover:border-indigo-300 font-semibold text-slate-700 hover:text-indigo-700 shadow-sm' }} hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs tracking-wide">Actual Payments</span>
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md {{ request()->routeIs('staff.reports.index') && request()->get('tab') === 'payments' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700' }}"></span>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                         <a href="{{ route('staff.announcements.index') }}" class="group block px-5 py-4 rounded-2xl {{ request()->routeIs('staff.announcements.*') ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-xl shadow-blue-600/20' : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-300 font-semibold text-slate-700 hover:text-blue-700 shadow-sm' }} hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">

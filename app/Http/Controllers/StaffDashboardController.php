@@ -1588,6 +1588,84 @@ class StaffDashboardController extends Controller
         // Notify the student
         $document->user->notify(new DocumentStatusUpdated($document, $validated['status']));
 
+        // Auto-progression logic for Grantees (Scholarship Renewal)
+        if ($validated['status'] === 'approved') {
+            $user = $document->user;
+            $basicInfo = $user->basicInfo;
+
+            // Check if user is a grantee and has a pending year level update
+            if ($basicInfo && 
+                strtolower($basicInfo->grant_status ?? '') === 'grantee' && 
+                $basicInfo->target_year_level) {
+                
+                // Define renewal documents
+                $renewalDocs = [
+                    'certificate_of_enrollment',
+                    'statement_of_account',
+                    'gwa_previous_sem'
+                ];
+
+                // Check if this document is a renewal document
+                if (in_array($document->type, $renewalDocs)) {
+                    // Check if ALL renewal documents are approved
+                    $allApproved = true;
+                    foreach ($renewalDocs as $type) {
+                        // Check if an approved document of this type exists
+                        // We query the DB because the current $document is already updated
+                        $exists = $user->documents()
+                            ->where('type', $type)
+                            ->where('status', 'approved')
+                            ->exists();
+                        
+                        if (!$exists) {
+                            $allApproved = false;
+                            break;
+                        }
+                    }
+
+                    if ($allApproved) {
+                        $oldYear = $basicInfo->current_year_level;
+                        $newYear = $basicInfo->target_year_level;
+
+                        // Validation: Check against Course Duration if available
+                        $schoolPref = $basicInfo->schoolPref;
+                        $maxYears = $schoolPref ? ($schoolPref->num_years ?? 5) : 5; // Default to 5 if not set
+
+                        if ($newYear <= $maxYears) {
+                            $basicInfo->update([
+                                'current_year_level' => $newYear,
+                                'target_year_level' => null // Clear pending update
+                            ]);
+
+                            // Log and Notify
+                            if ($oldYear != $newYear) {
+                                TransactionHistory::create([
+                                    'user_id' => $user->id,
+                                    'action' => 'Year Level Updated',
+                                    'description' => "Scholarship renewed. Year level advanced from {$oldYear} to {$newYear}.",
+                                    'status' => 'success'
+                                ]);
+                                
+                                $user->notify(new TransactionNotification(
+                                    'update',
+                                    'Year Level Updated',
+                                    "Congratulations! Your renewal is complete. You are now officially recognized as a {$newYear}" . ($newYear==1?'st':($newYear==2?'nd':($newYear==3?'rd':'th'))) . " Year scholar.",
+                                    'success'
+                                ));
+                            } else {
+                                TransactionHistory::create([
+                                    'user_id' => $user->id,
+                                    'action' => 'Scholarship Renewed',
+                                    'description' => "Scholarship renewed. Retained at Year Level {$oldYear}.",
+                                    'status' => 'success'
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Document status updated successfully',

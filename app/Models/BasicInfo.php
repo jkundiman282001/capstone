@@ -35,6 +35,7 @@ class BasicInfo extends Model
         'disqualification_remarks',
         'grant_status',
         'current_year_level',
+        'target_year_level',
         'gpa',
         'grant_1st_sem',
         'grant_2nd_sem',

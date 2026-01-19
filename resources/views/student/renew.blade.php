@@ -38,15 +38,80 @@
             </div>
         @endif
 
-        <form action="{{ route('student.renew.submit') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <form action="{{ route('student.renew.submit') }}" method="POST" enctype="multipart/form-data">
             @csrf
+            
+            <!-- Academic Progression -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden mb-8 border border-slate-100">
+                <div class="px-8 py-6 bg-slate-50 border-b border-slate-100 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-slate-800">Academic Progression</h2>
+                        <p class="text-sm text-slate-500 font-medium">Update your year level for the upcoming semester</p>
+                    </div>
+                </div>
+                <div class="p-8">
+                    @php
+                        $currentYear = $existingApplication->current_year_level ?? 1;
+                        // Default to next year, capped at 5
+                        $defaultNextYear = min((int)$currentYear + 1, 5);
+                    @endphp
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Incoming Year Level</label>
+                    <select name="target_year_level" class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-semibold text-slate-700">
+                        @for($i = 1; $i <= 5; $i++)
+                            <option value="{{ $i }}" {{ (old('target_year_level') == $i || (!old('target_year_level') && $i == $defaultNextYear)) ? 'selected' : '' }}>
+                                {{ $i == 1 ? '1st' : ($i == 2 ? '2nd' : ($i == 3 ? '3rd' : ($i . 'th'))) }} Year
+                            </option>
+                        @endfor
+                    </select>
+                    <div class="mt-3 flex items-start gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                        <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-xs text-blue-700 leading-relaxed">
+                            Current Level: <span class="font-bold">{{ $currentYear == 1 ? '1st' : ($currentYear == 2 ? '2nd' : ($currentYear == 3 ? '3rd' : ($currentYear . 'th'))) }} Year</span>.
+                            Please select the year level you are <strong>enrolling in</strong>. If you are repeating a year, please select your current year level.
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-            <!-- Documents Section -->
-            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-                <div class="px-8 py-6 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-b border-orange-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- GWA Update -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden mb-8 border border-slate-100">
+                <div class="px-8 py-6 bg-slate-50 border-b border-slate-100 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-slate-800">Academic Performance</h2>
+                        <p class="text-sm text-slate-500 font-medium">Update your GWA for the previous semester</p>
+                    </div>
+                </div>
+                <div class="p-8">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">General Weighted Average (GWA)</label>
+                    <input 
+                        type="number" 
+                        step="0.01" 
+                        name="gpa" 
+                        value="{{ old('gpa', $existingApplication->gpa) }}"
+                        class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-semibold text-slate-700"
+                        placeholder="e.g. 85.50"
+                    >
+                    <p class="mt-2 text-xs text-slate-500">Enter your GWA from the previous semester as reflected in your uploaded grades.</p>
+                </div>
+            </div>
+
+            <!-- Required Documents -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden mb-8 border border-slate-100">
+                <div class="px-8 py-6 bg-slate-50 border-b border-slate-100 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
