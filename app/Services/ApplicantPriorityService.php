@@ -511,7 +511,9 @@ class ApplicantPriorityService
             }
 
             // Get application submission time (when basicInfo was created/updated with type_assist)
+            // We use updated_at because that captures when the form was actually filled/submitted
             $applicationSubmittedAt = $basicInfo->updated_at ?? $basicInfo->created_at ?? now();
+
             if (! $applicationSubmittedAt) {
                 $applicationSubmittedAt = now();
             }
@@ -566,12 +568,17 @@ class ApplicantPriorityService
             }
 
             // TIEBREAKER: FCFS - First Come First Serve (earliest submission wins)
-            // Earlier submission time = higher priority when scores are equal
-            $aTime = $a['application_submitted_at']->timestamp ?? PHP_INT_MAX;
-            $bTime = $b['application_submitted_at']->timestamp ?? PHP_INT_MAX;
-            if ($aTime !== $bTime) {
-                return $aTime <=> $bTime; // Ascending: earlier timestamp = smaller number = better rank
+            // We use the DATE of submission as the primary basis, as requested
+            $aDate = $a['application_submitted_at']->format('Y-m-d');
+            $bDate = $b['application_submitted_at']->format('Y-m-d');
+
+            if ($aDate !== $bDate) {
+                return $aDate <=> $bDate; // Ascending: earlier date = better rank
             }
+
+            // If Dates are equal, proceed to User ID for stable sorting
+            // This effectively treats all same-day submissions as equal in timing,
+            // using registration order (User ID) as the final determinant.
 
             // FINAL TIEBREAKER: User ID (stable sort - ensures consistent ordering)
             return $a['user_id'] <=> $b['user_id'];
