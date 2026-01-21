@@ -56,6 +56,7 @@ class StaffDashboardController extends Controller
         $selectedMunicipality = $request->get('municipality');
         $selectedBarangay = $request->get('barangay');
         $selectedEthno = $request->get('ethno');
+        $selectedYear = $request->get('year');
 
         // Build query for users with geographic filtering
         $usersQuery = User::with(['basicInfo.fullAddress.address', 'ethno', 'documents'])
@@ -87,7 +88,18 @@ class StaffDashboardController extends Controller
             $usersQuery->where('ethno_id', $selectedEthno);
         }
 
+        if ($selectedYear) {
+            $usersQuery->whereYear('users.created_at', $selectedYear);
+        }
+
         $users = $usersQuery->get();
+
+        // Get available years for filter
+        $availableYears = DB::table('users')
+            ->selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
 
         // Get geographic data for filters
         $provinces = Address::select('province')->distinct()->where('province', '!=', '')->orderBy('province')->pluck('province');
@@ -459,13 +471,13 @@ class StaffDashboardController extends Controller
             'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars', 'totalRenewed',
             'alerts', 'barChartData', 'statusChartData', 'ipChartData',
             'pendingRequirements', 'notifications',
-            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedYear',
             'prioritizedDocuments', 'priorityStatistics',
             'overallCoursePrioritization', 'courseStatistics',
             'prioritizedApplicants', 'applicantPriorityStatistics',
             'barChartLabel', 'barChartDescription',
             'courseChartData', 'documentChartData', 'provinceChartData', 'trendsChartData', 'genderChartData',
-            'gradYearChartData'
+            'gradYearChartData', 'availableYears'
         ));
     }
 
