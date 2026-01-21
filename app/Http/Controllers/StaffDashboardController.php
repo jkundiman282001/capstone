@@ -108,6 +108,12 @@ class StaffDashboardController extends Controller
         
         $ethnicities = Ethno::orderBy('ethnicity')->get();
 
+        // Get available years for filter
+        $availableYears = BasicInfo::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
         // Calculate real metrics
         $totalScholars = $users->count();
         $newApplicants = $users->where('created_at', '>=', now()->subDays(30))->count(); // For notification bar
@@ -455,11 +461,11 @@ class StaffDashboardController extends Controller
         ];
 
         return view('staff.dashboard', compact(
-            'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+            'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities', 'availableYears',
             'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars', 'totalRenewed',
             'alerts', 'barChartData', 'statusChartData', 'ipChartData',
             'pendingRequirements', 'notifications',
-            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedYear',
             'prioritizedDocuments', 'priorityStatistics',
             'overallCoursePrioritization', 'courseStatistics',
             'prioritizedApplicants', 'applicantPriorityStatistics',
