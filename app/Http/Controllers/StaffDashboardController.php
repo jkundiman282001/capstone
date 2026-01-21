@@ -382,25 +382,24 @@ class StaffDashboardController extends Controller
             ]],
         ];
 
-        // Application Trends (Last 6 Months)
-        $sixMonthsAgo = now()->subMonths(6)->startOfMonth();
+        // Application Trends (Monthly distribution for selected year)
         $monthlyApplications = $users->filter(function ($user) {
             return $user->basicInfo && $user->basicInfo->created_at;
         })->groupBy(function ($user) {
-            return $user->basicInfo->created_at->format('M Y');
+            return $user->basicInfo->created_at->format('M');
         })->map->count();
 
-        // Fill in missing months
+        // Fill in all 12 months
         $trendsData = collect();
-        for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i)->format('M Y');
+        for ($m = 1; $m <= 12; $m++) {
+            $month = Carbon::create()->month($m)->format('M');
             $trendsData[$month] = $monthlyApplications->get($month, 0);
         }
 
         $trendsChartData = [
             'labels' => $trendsData->keys()->toArray(),
             'datasets' => [[
-                'label' => 'New Applications',
+                'label' => "New Applications ($selectedYear)",
                 'backgroundColor' => 'rgba(16, 185, 129, 0.2)',
                 'borderColor' => 'rgba(16, 185, 129, 1)',
                 'borderWidth' => 3,
@@ -455,11 +454,11 @@ class StaffDashboardController extends Controller
         ];
 
         return view('staff.dashboard', compact(
-            'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities',
+            'name', 'assignedBarangay', 'provinces', 'municipalities', 'barangays', 'ethnicities', 'years',
             'totalScholars', 'newApplicants', 'totalGrantees', 'activeScholars', 'inactiveScholars', 'totalRenewed',
             'alerts', 'barChartData', 'statusChartData', 'ipChartData',
             'pendingRequirements', 'notifications',
-            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno',
+            'selectedProvince', 'selectedMunicipality', 'selectedBarangay', 'selectedEthno', 'selectedYear',
             'prioritizedDocuments', 'priorityStatistics',
             'overallCoursePrioritization', 'courseStatistics',
             'prioritizedApplicants', 'applicantPriorityStatistics',
