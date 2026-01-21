@@ -707,7 +707,7 @@
             });
 
             // Other filters that trigger immediate submit
-            [barangayFilter, ethnoFilter, yearFilter].forEach(filter => {
+            [barangayFilter, ethnoFilter].forEach(filter => {
                 filter?.addEventListener('change', () => filterForm.submit());
             });
         };
