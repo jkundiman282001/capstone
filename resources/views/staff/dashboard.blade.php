@@ -163,16 +163,7 @@
                 <p class="text-[10px] md:text-sm text-slate-500 font-medium">Filter applicants by location and ethnicity</p>
             </div>
         </div>
-        <form id="filter-form" method="GET" action="{{ route('staff.dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5">
-            <div>
-                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Year</label>
-                <select name="year" id="year-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white" onchange="this.form.submit()">
-                    <option value="">All Years</option>
-                    @foreach($availableYears as $year)
-                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
-                    @endforeach
-                </select>
-            </div>
+        <form id="filter-form" method="GET" action="{{ route('staff.dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
                 <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-2">Province</label>
                 <select name="province" id="province-filter" class="form-select w-full border-slate-200 bg-slate-50 rounded-xl p-3 md:p-3.5 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-xs md:text-sm font-medium hover:bg-white">
