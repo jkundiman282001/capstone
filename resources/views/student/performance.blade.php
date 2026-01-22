@@ -852,7 +852,7 @@
                             <div class="flex-1 pb-8">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <span class="text-sm font-black text-slate-900 leading-none">{{ $activity->action }}</span>
-                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $activity->created_at->format('M d, Y h:i A') }}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap">{{ $activity->created_at->timezone('Asia/Manila')->format('M d, Y h:i A') }}</span>
                                 </div>
                                 <p class="text-[11px] font-medium text-slate-500 leading-relaxed italic">"{{ $activity->description }}"</p>
                             </div>

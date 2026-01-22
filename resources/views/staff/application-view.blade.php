@@ -759,7 +759,11 @@
                                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Income</p>
                                         <p class="text-sm font-medium text-slate-900">
                                             @if($familyFather->income)
-                                                ₱{{ number_format((float) $familyFather->income, 2) }}
+                                                @if(is_numeric($familyFather->income))
+                                                    ₱{{ number_format((float) $familyFather->income, 2) }}
+                                                @else
+                                                    {{ $familyFather->income }}
+                                                @endif
                                             @else
                                                 N/A
                                             @endif
@@ -816,7 +820,11 @@
                                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Income</p>
                                         <p class="text-sm font-medium text-slate-900">
                                             @if($familyMother->income)
-                                                ₱{{ number_format((float) $familyMother->income, 2) }}
+                                                @if(is_numeric($familyMother->income))
+                                                    ₱{{ number_format((float) $familyMother->income, 2) }}
+                                                @else
+                                                    {{ $familyMother->income }}
+                                                @endif
                                             @else
                                                 N/A
                                             @endif
