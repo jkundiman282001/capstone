@@ -232,10 +232,9 @@
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Courses</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">School</th>
                                     <th rowspan="2" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap align-middle">Year Level</th>
-                                    <th colspan="4" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
+                                    <th colspan="3" class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
                                 </tr>
                                 <tr>
-                                    <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Drop-out</th>
                                     <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Terminated</th>
                                     <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Graduate</th>
                                     <th class="border border-slate-600 px-2 py-2 text-center text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">Ongoing</th>
@@ -887,7 +886,7 @@
             updateReportSummary({});
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="11" class="border border-slate-600 px-4 py-8 text-center text-slate-500">
+                    <td colspan="10" class="border border-slate-600 px-4 py-8 text-center text-slate-500">
                         No active scholars found for monitoring
                     </td>
                 </tr>
@@ -900,8 +899,7 @@
             'Total Active': rows.length,
             'Ongoing': rows.filter(r => r.is_ongoing).length,
             'Graduated': rows.filter(r => r.is_graduate).length,
-            'Terminated': rows.filter(r => r.is_terminated).length,
-            'Drop-out': rows.filter(r => r.is_dropout).length
+            'Terminated': rows.filter(r => r.is_terminated).length
         };
         updateReportSummary(stats);
 
@@ -917,7 +915,6 @@
                     <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800">${row.course || ''}</td>
                     <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800">${row.school || ''}</td>
                     <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.year_level || ''}</td>
-                    <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_dropout ? '✓' : ''}</td>
                     <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_terminated ? '✓' : ''}</td>
                     <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_graduate ? '✓' : ''}</td>
                     <td class="border border-slate-600 px-2 py-2 text-xs text-slate-800 text-center">${row.is_ongoing ? '✓' : ''}</td>
