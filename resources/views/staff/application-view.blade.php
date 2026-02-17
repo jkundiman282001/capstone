@@ -1767,7 +1767,7 @@ async function updateApplicationStatus(status, event) {
 async function moveToPamana(event) {
     const domain = window.location.hostname;
     const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
+        title: `Admin says`,
         message: 'Are you sure you want to move this application to Pamana? This will change the scholarship type from Regular to Pamana.',
         okText: 'OK',
         cancelText: 'Cancel'
