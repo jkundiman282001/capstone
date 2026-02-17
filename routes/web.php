@@ -221,6 +221,12 @@ Route::middleware(['auth.staff'])->group(function () {
     Route::get('/staff/announcements', [StaffDashboardController::class, 'announcements'])->name('staff.announcements.index');
     Route::post('/staff/announcements', [StaffDashboardController::class, 'storeAnnouncement'])->name('staff.announcements.store');
     Route::delete('/staff/announcements/{id}', [StaffDashboardController::class, 'deleteAnnouncement'])->name('staff.announcements.delete');
+
+    // Admin Account Management
+    Route::get('/staff/admins', [App\Http\Controllers\AdminManagementController::class, 'index'])->name('staff.admins.index');
+    Route::get('/staff/admins/create', [App\Http\Controllers\AdminManagementController::class, 'create'])->name('staff.admins.create');
+    Route::post('/staff/admins', [App\Http\Controllers\AdminManagementController::class, 'store'])->name('staff.admins.store');
+    Route::delete('/staff/admins/{id}', [App\Http\Controllers\AdminManagementController::class, 'destroy'])->name('staff.admins.destroy');
 });
 
 // Geographic API Routes (Public)
