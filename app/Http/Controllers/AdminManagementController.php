@@ -35,14 +35,15 @@ class AdminManagementController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:staff'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'access_code' => ['required', 'string', 'min:6', 'unique:staff'],
         ]);
 
         $admin = Staff::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'access_code' => $validated['access_code'],
+            'password' => Hash::make('password'), // Dummy password
         ]);
 
         return redirect()->route('staff.admins.index')->with('success', 'New admin account created successfully.');

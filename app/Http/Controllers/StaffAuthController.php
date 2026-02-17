@@ -16,18 +16,20 @@ class StaffAuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+        $request->validate([
+            'access_code' => ['required', 'string'],
         ]);
 
-        if (Auth::guard('staff')->attempt($credentials)) {
+        $staff = Staff::where('access_code', $request->access_code)->first();
+
+        if ($staff) {
+            Auth::guard('staff')->login($staff);
             $request->session()->regenerate();
 
             return redirect()->route('staff.dashboard');
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
+        return back()->withErrors(['access_code' => 'Invalid access code'])->withInput();
     }
 
     public function register(Request $request)

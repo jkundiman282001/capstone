@@ -64,6 +64,7 @@
                     <tr class="bg-slate-50 border-b border-slate-200">
                         <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Name</th>
                         <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Email</th>
+                        <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Access Code</th>
                         <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Date Created</th>
                         <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                     </tr>
@@ -87,6 +88,7 @@
                             </div>
                         </td>
                         <td class="p-4 text-sm text-slate-600 font-medium">{{ $admin->email }}</td>
+                        <td class="p-4 text-sm font-mono text-slate-700 bg-slate-100 rounded px-2 py-1 inline-block">{{ $admin->access_code ?? 'N/A' }}</td>
                         <td class="p-4 text-sm text-slate-500">{{ $admin->created_at->format('M d, Y') }}</td>
                         <td class="p-4 text-right">
                             @if(auth()->guard('staff')->id() != $admin->id)

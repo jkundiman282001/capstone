@@ -63,23 +63,16 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <!-- Password -->
-                        <div>
-                            <label for="password" class="block text-sm font-bold text-slate-700 mb-2">Password</label>
-                            <input type="password" name="password" id="password" required
-                                class="w-full rounded-xl border-slate-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-colors @error('password') border-red-500 @enderror">
-                            @error('password')
-                                <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Confirm Password -->
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-bold text-slate-700 mb-2">Confirm Password</label>
-                            <input type="password" name="password_confirmation" id="password_confirmation" required
-                                class="w-full rounded-xl border-slate-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-colors">
-                        </div>
+                    <div class="mb-6">
+                        <!-- Access Code -->
+                        <label for="access_code" class="block text-sm font-bold text-slate-700 mb-2">Access Code</label>
+                        <input type="text" name="access_code" id="access_code" value="{{ old('access_code') }}" required
+                            placeholder="e.g. NCIP-ADMIN-2024"
+                            class="w-full rounded-xl border-slate-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-colors @error('access_code') border-red-500 @enderror">
+                        <p class="mt-1 text-xs text-slate-500 font-medium">This code will be used to log in instead of a password. It must be unique.</p>
+                        @error('access_code')
+                            <p class="mt-1 text-xs text-red-500 font-bold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-4 pt-6 border-t border-slate-100">
