@@ -155,8 +155,6 @@ Route::get('/student/profile-pic/{filename}', [StudentController::class, 'showPr
 // Staff Auth Routes (Public)
 Route::get('staff/login', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.login');
 Route::post('staff/login', [App\Http\Controllers\StaffAuthController::class, 'login']);
-Route::get('staff/register', [App\Http\Controllers\StaffAuthController::class, 'showForm'])->name('staff.register');
-Route::post('staff/register', [App\Http\Controllers\StaffAuthController::class, 'register']);
 
 // Staff Protected Routes (Require Authentication)
 Route::middleware(['auth.staff'])->group(function () {
