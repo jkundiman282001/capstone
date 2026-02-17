@@ -1617,7 +1617,7 @@ function showCustomConfirm({ title, message, okText = 'OK', cancelText = 'Cancel
 async function updateDocumentStatus(documentId, newStatus) {
     const domain = window.location.hostname;
     const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
+        title: `Admin says`,
         message: `Are you sure you want to ${newStatus === 'approved' ? 'approved' : newStatus} this document?`,
         okText: 'OK',
         cancelText: 'Cancel'
@@ -1638,13 +1638,13 @@ async function updateDocumentStatus(documentId, newStatus) {
         const domain = window.location.hostname;
         if (data.success) {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: `Document ${newStatus} successfully!`
             });
             location.reload();
         } else {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error updating document status'
             });
         }
@@ -1653,7 +1653,7 @@ async function updateDocumentStatus(documentId, newStatus) {
         const domain = window.location.hostname;
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error updating document status'
         });
     });
@@ -1712,7 +1712,7 @@ async function updateApplicationStatus(status, event) {
     }
 
     const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
+        title: `Admin says`,
         message: confirmationMessage,
         okText: 'OK',
         cancelText: 'Cancel'
@@ -1739,13 +1739,13 @@ async function updateApplicationStatus(status, event) {
         const domain = window.location.hostname;
         if (data.success) {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Application status updated successfully!'
             });
             location.reload();
         } else {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error: ' + data.message
             });
         }
@@ -1754,7 +1754,7 @@ async function updateApplicationStatus(status, event) {
         const domain = window.location.hostname;
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error updating application status'
         });
     })
@@ -1793,13 +1793,13 @@ async function moveToPamana(event) {
         const domain = window.location.hostname;
         if (data.success) {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Application moved to Pamana successfully!'
             });
             location.reload();
         } else {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error: ' + (data.message || 'Failed to move application')
             });
         }
@@ -1808,7 +1808,7 @@ async function moveToPamana(event) {
         const domain = window.location.hostname;
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error moving application to Pamana'
         });
     })
@@ -1821,7 +1821,7 @@ async function moveToPamana(event) {
 async function addToGrantees(event) {
     const domain = window.location.hostname;
     const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
+        title: `Admin says`,
         message: 'Are you sure you want to add this applicant to Grantees? This will mark them as an active grantee.',
         okText: 'OK',
         cancelText: 'Cancel'
@@ -1847,13 +1847,13 @@ async function addToGrantees(event) {
         const domain = window.location.hostname;
         if (data.success) {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Applicant added to Grantees successfully!'
             });
             location.reload();
         } else {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error: ' + (data.message || 'Failed to add to grantees')
             });
         }
@@ -1862,7 +1862,7 @@ async function addToGrantees(event) {
         const domain = window.location.hostname;
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error adding applicant to Grantees'
         });
     })
@@ -1875,7 +1875,7 @@ async function addToGrantees(event) {
 async function addToWaiting(event) {
     const domain = window.location.hostname;
     const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
+        title: `Admin says`,
         message: 'Are you sure you want to add this applicant to Waiting List? This will mark them as waiting for grant processing.',
         okText: 'OK',
         cancelText: 'Cancel'
@@ -1901,13 +1901,13 @@ async function addToWaiting(event) {
         const domain = window.location.hostname;
         if (data.success) {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Applicant added to Waiting List successfully!'
             });
             location.reload();
         } else {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error: ' + (data.message || 'Failed to add to waiting list')
             });
         }
@@ -1916,7 +1916,7 @@ async function addToWaiting(event) {
         const domain = window.location.hostname;
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error adding applicant to Waiting List'
         });
     })
@@ -1942,7 +1942,7 @@ document.addEventListener('keydown', function(e) {
 async function showFeedbackModal(documentId, documentName) {
     const domain = window.location.hostname;
     const confirmed = await showCustomConfirm({
-        title: `${domain} says`,
+        title: `Admin says`,
         message: `Are you sure you want to reject this document?`,
         okText: 'OK',
         cancelText: 'Cancel'
@@ -1982,7 +1982,7 @@ async function submitFeedback(event) {
     if (!rejectionReason || rejectionReason.length < 10) {
         const domain = window.location.hostname;
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Please provide a detailed rejection reason (at least 10 characters).'
         });
         document.getElementById('rejectionReason').focus();
@@ -2013,14 +2013,14 @@ async function submitFeedback(event) {
         if (data.success) {
             closeFeedbackModal();
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Feedback submitted successfully! The student will be notified.'
             });
             location.reload();
         } else {
             const errorMsg = data.message || data.errors?.rejection_reason?.[0] || 'Unknown error';
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error submitting feedback: ' + errorMsg
             });
         }
@@ -2029,7 +2029,7 @@ async function submitFeedback(event) {
         const domain = window.location.hostname;
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error submitting feedback. Please try again.'
         });
     })
@@ -2076,7 +2076,7 @@ async function submitManualGWA(event) {
     // Client-side validation
     if (isNaN(gwaValue) || gwaValue < 75 || gwaValue > 100) {
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Please enter a valid GWA between 75 and 100.'
         });
         document.getElementById('gwaValue').focus();
@@ -2103,14 +2103,14 @@ async function submitManualGWA(event) {
         if (data.success) {
             closeManualGWAModal();
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: `GWA updated successfully to ${gwaValue}!`
             });
             location.reload();
         } else {
             const errorMsg = data.message || data.errors?.gwa?.[0] || 'Unknown error';
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Error updating GWA: ' + errorMsg
             });
         }
@@ -2118,7 +2118,7 @@ async function submitManualGWA(event) {
     .catch(async (error) => {
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: 'Error updating GWA. Please try again.'
         });
     })
@@ -2262,7 +2262,7 @@ async function submitApplicationRejection(event) {
         const rejectionReason = document.getElementById('applicationRejectionReason').value.trim();
         if (!rejectionReason || rejectionReason.length < 10) {
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: 'Please provide a detailed termination reason (at least 10 characters).'
             });
             document.getElementById('applicationRejectionReason').focus();
@@ -2308,14 +2308,14 @@ async function submitApplicationRejection(event) {
         if (data.success) {
             closeApplicationRejectionModal();
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: isTerminate ? 'Scholarship terminated successfully! The student will be notified.' : 'Application rejected successfully! The student will be notified.'
             });
             location.reload();
         } else {
             const errorMsg = data.message || data.errors?.rejection_reason?.[0] || 'Unknown error';
             await showCustomAlert({
-                title: `${domain} says`,
+                title: `Admin says`,
                 message: `Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}: ` + errorMsg
             });
         }
@@ -2323,7 +2323,7 @@ async function submitApplicationRejection(event) {
     .catch(async (error) => {
         console.error('Error:', error);
         await showCustomAlert({
-            title: `${domain} says`,
+            title: `Admin says`,
             message: `Error ${isTerminate ? 'terminating scholarship' : 'rejecting application'}. Please try again.`
         });
     })
